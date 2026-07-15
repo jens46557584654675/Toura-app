@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>toura.ai — AI walkthrough videos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#111;
+    --muted:#8a8a8a;
+    --grey:#f4f4f4;
+    --grey2:#ececec;
+    --line:#e7e7e7;
+    --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:var(--ink);-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  input,textarea,select{font-family:inherit;font-size:15px;color:var(--ink)}
+  ::placeholder{color:#b5b5b5}
+
+  /* ---------- shared ---------- */
+  .view{display:none;min-height:100vh}
+  .view.active{display:block}
+  .logo{display:flex;align-items:center;gap:10px;user-select:none}
+  .logo .mark{width:34px;height:34px;border-radius:10px;background:var(--grey);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}
+  .logo .word{font-weight:800;font-size:19px;letter-spacing:-0.03em}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;transition:opacity .15s;text-decoration:none}
+  .btn:hover{opacity:.85}
+  .btn:disabled{background:var(--grey2);color:#b0b0b0;cursor:not-allowed}
+  .btn.ghost{background:var(--grey);color:var(--ink)}
+  .btn.small{padding:10px 20px;font-size:14px}
+  .muted{color:var(--muted)}
+  .field{width:100%;background:var(--grey);border:1px solid transparent;border-radius:12px;padding:14px 16px;margin-bottom:10px;outline:none;transition:border .15s}
+  .field:focus{border-color:#cfcfcf;background:#fff}
+  .err{font-size:13px;color:#c0392b;min-height:18px;margin-top:2px}
+
+  /* ---------- toast ---------- */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:14px;font-weight:500;padding:12px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:all .25s;z-index:100;max-width:90vw;text-align:center}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ---------- auth ---------- */
+  #auth{display:none;align-items:center;justify-content:center}
+  #auth.active{display:flex}
+  .auth-card{width:100%;max-width:380px;padding:24px;text-align:center}
+  .auth-card .logo{justify-content:center;margin-bottom:14px}
+  .auth-card .mark{width:48px;height:48px;border-radius:14px;font-size:24px}
+  .auth-card h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:6px}
+  .auth-card>p{font-size:14px;color:var(--muted);margin-bottom:24px}
+  .tabs{display:flex;background:var(--grey);border-radius:999px;padding:4px;margin-bottom:18px}
+  .tabs button{flex:1;padding:9px 0;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted)}
+  .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .auth-card .btn{width:100%;margin-top:8px}
+  .auth-foot{margin-top:26px;font-size:13px;color:var(--muted)}
+  .auth-foot a{color:var(--ink);text-decoration:none;font-weight:600}
+
+  /* ---------- app shell ---------- */
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
+  .nav-inner{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+  .nav-right{display:flex;align-items:center;gap:14px}
+  .user-chip{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--grey);border-radius:999px;padding:7px 14px 7px 7px}
+  .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .navlink{font-size:13px;color:var(--muted);font-weight:500}
+  .navlink:hover{color:var(--ink)}
+  .mode{font-size:11px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--grey);color:var(--muted)}
+  .mode.live{background:#eaf6ee;color:#1e7c3c}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 24px 80px}
+
+  /* ---------- dashboard ---------- */
+  .dash-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:36px}
+  .dash-head h1{font-size:34px;font-weight:800;letter-spacing:-0.03em}
+  .dash-head p{margin-top:6px;font-size:15px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+  .card{border-radius:var(--radius);overflow:hidden;background:var(--grey);transition:transform .15s}
+  .card:hover{transform:translateY(-2px)}
+  .thumb{aspect-ratio:16/10;background:var(--grey2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .thumb img,.thumb video{width:100%;height:100%;object-fit:cover}
+  .thumb .ph{font-size:26px;color:#c9c9c9}
+  .card-body{padding:14px 16px 16px;background:var(--grey)}
+  .card-body h3{font-size:15px;font-weight:600;margin-bottom:3px}
+  .card-body span{font-size:13px;color:var(--muted)}
+  .badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ink)}
+  .card.new{background:#fff;border:1.5px dashed #d6d6d6;display:flex;align-items:center;justify-content:center;min-height:100%;cursor:pointer}
+  .card.new:hover{border-color:var(--ink)}
+  .card.new .inner{text-align:center;padding:40px 20px}
+  .card.new .plus{width:44px;height:44px;border-radius:50%;background:var(--grey);display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 12px}
+  .card.new h3{font-size:15px;font-weight:600}
+  .card.new span{font-size:13px;color:var(--muted)}
+  .card .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .card .play i{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;padding-left:3px}
+
+  /* ---------- new walkthrough ---------- */
+  .back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--muted);margin-bottom:28px}
+  .back:hover{color:var(--ink)}
+  .flow{max-width:660px;margin:0 auto}
+  .flow h1{font-size:30px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px}
+  .flow>p{font-size:15px;color:var(--muted);margin-bottom:40px}
+  .step{margin-bottom:38px}
+  .step-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .step-num{font-size:13px;font-weight:600;color:#c4c4c4}
+  .step-head h2{font-size:18px;font-weight:700;letter-spacing:-0.01em}
+  .step-head .opt{font-size:12px;color:#c4c4c4;font-weight:500}
+  .step-sub{font-size:14px;color:var(--muted);margin-bottom:16px;margin-left:32px}
+  .step-body{margin-left:32px}
+  .name-field{max-width:420px}
+
+  .drop{border:1.5px dashed #d6d6d6;border-radius:var(--radius);padding:30px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+  .drop:hover,.drop.drag{border-color:var(--ink);background:#fafafa}
+  .drop .ico{font-size:22px;margin-bottom:8px}
+  .drop p{font-size:14px;font-weight:600}
+  .drop span{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+  .previews{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:12px}
+  .previews:empty{margin-top:0}
+  .pv{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--grey)}
+  .pv img{width:100%;height:100%;object-fit:cover}
+  .pv .rm{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(17,17,17,.75);color:#fff;font-size:11px;line-height:22px;text-align:center}
+  .pv .tag{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:600;background:rgba(255,255,255,.9);padding:3px 8px;border-radius:999px}
+
+  /* ---------- prompt editor (higgsfield-style, calm) ---------- */
+  .editor{background:var(--grey);border-radius:var(--radius);padding:16px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .chips:empty{display:none}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:4px 12px 4px 4px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:border .15s}
+  .chip:hover{border-color:#cfcfcf}
+  .chip img{width:24px;height:24px;border-radius:50%;object-fit:cover}
+  .chip.used{border-color:var(--ink)}
+  .editor textarea{width:100%;background:#fff;border:1px solid transparent;border-radius:12px;padding:14px 16px;min-height:110px;resize:vertical;line-height:1.55;outline:none}
+  .editor textarea:focus{border-color:#cfcfcf}
+  .editor-hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .suggest{margin-top:10px;font-size:13px;color:var(--muted)}
+  .suggest button{font-size:13px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+
+  .setrow{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px}
+  .setgroup label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+  .pills{display:inline-flex;background:#fff;border-radius:999px;padding:4px;gap:2px}
+  .editor .pills{background:#fff}
+  .pill{padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+  .pill.on{background:var(--ink);color:#fff}
+  .gen-row{margin-top:26px;margin-left:32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .gen-note{font-size:13px;color:var(--muted)}
+
+  /* ---------- generating ---------- */
+  #generating{display:none;align-items:center;justify-content:center;text-align:center}
+  #generating.active{display:flex}
+  .gen-box{max-width:440px;padding:24px;width:100%}
+  .gen-box .mark{width:48px;height:48px;border-radius:14px;background:var(--grey);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;margin:0 auto 24px;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .gen-box h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
+  .gen-stage{font-size:14px;color:var(--muted);min-height:20px;margin-bottom:26px}
+  .bar{width:100%;height:5px;border-radius:999px;background:var(--grey);overflow:hidden}
+  .bar i{display:block;height:100%;width:0%;background:var(--ink);border-radius:999px;transition:width .4s ease}
+  .bar.indet i{width:30%;animation:slide 1.4s ease-in-out infinite}
+  @keyframes slide{0%{margin-left:-30%}100%{margin-left:100%}}
+  .gen-pct{margin-top:12px;font-size:13px;color:var(--muted)}
+  .gen-cancel{margin-top:26px}
+
+  /* ---------- result ---------- */
+  .result-wrap{max-width:820px;margin:0 auto;text-align:center}
+  .result-wrap .done{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;background:var(--grey);border-radius:999px;padding:7px 16px;margin-bottom:18px}
+  .result-wrap .done i{font-style:normal}
+  .result-wrap h1{font-size:30px;font-weight:800;letter-spacing:-0.03em;margin-bottom:8px}
+  .result-wrap>p{font-size:15px;color:var(--muted);margin-bottom:30px}
+  .player{border-radius:20px;overflow:hidden;background:var(--grey2);aspect-ratio:16/9}
+  .player.vert{aspect-ratio:9/16;max-width:360px;margin:0 auto}
+  .player video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+  .result-actions{display:flex;justify-content:center;gap:12px;margin-top:26px;flex-wrap:wrap}
+
+  /* ---------- settings modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(17,17,17,.35);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .overlay.on{display:flex}
+  .modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:440px}
+  .modal h2{font-size:19px;font-weight:800;letter-spacing:-0.02em;margin-bottom:6px}
+  .modal>p{font-size:13.5px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+  .modal .row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+  .modal a{color:var(--ink);font-weight:600}
+
+  @media(max-width:640px){
+    .dash-head h1{font-size:26px}
+    .step-body,.step-sub,.gen-row{margin-left:0}
+    .wrap{padding:32px 18px 60px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= AUTH ================= -->
+<section id="auth" class="view active">
+  <div class="auth-card">
+    <div class="logo"><div class="mark">T</div></div>
+    <h1 id="authTitle">Welcome to toura</h1>
+    <p>Cinematic walkthrough videos for every listing.</p>
+    <div class="tabs">
+      <button id="tabIn" class="on" onclick="setAuthMode('in')">Sign in</button>
+      <button id="tabUp" onclick="setAuthMode('up')">Sign up</button>
+    </div>
+    <form id="authForm">
+      <input class="field" type="text" id="aName" placeholder="Full name" style="display:none" autocomplete="name">
+      <input class="field" type="email" id="aEmail" placeholder="Email" required autocomplete="email">
+      <input class="field" type="password" id="aPass" placeholder="Password" required autocomplete="current-password" minlength="4">
+      <div class="err" id="authErr"></div>
+      <button class="btn" type="submit" id="authBtn">Sign in</button>
+    </form>
+    <div class="auth-foot">New to Toura? <a href="https://toura.com" target="_blank" rel="noopener">Learn more at toura.com</a></div>
+  </div>
+</section>
+
+<!-- ================= DASHBOARD ================= -->
+<section id="dashboard" class="view">
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo"><div class="mark">T</div><div class="word">toura</div></div>
+      <div class="nav-right">
+        <span class="mode" id="modeBadge" title="Rendering mode">Demo</span>
+        <button class="navlink" onclick="openSettings()">API settings</button>
+        <div class="user-chip"><div class="avatar" id="avatar">·</div><span id="userName"></span></div>
+        <button class="navlink" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+  </nav>
+  <div class="wrap">
+    <div class="dash-head">
+      <div>
+        <h1 id="greeting">Good afternoon</h1>
+        <p>Your walkthroughs.</p>
+      </div>
+      <button class="btn" onclick="goNew()">New walkthrough</button>
+    </div>
+    <div class="grid" id="projectGrid"></div>
+  </div>
+</section>
+
+<!-- ================= NEW WALKTHROUGH ================= -->
+<section id="new" class="view">
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo"><div class="mark">T</div><div class="word">toura</div></div>
+      <div class="nav-right">
+        <span class="mode" id="modeBadge2">Demo</span>
+        <button class="navlink" onclick="goDash()">Cancel</button>
+      </div>
+    </div>
+  </nav>
+  <div class="wrap">
+    <div class="flow">
+      <button class="back" onclick="goDash()">&larr; Back</button>
+      <h1>New walkthrough</h1>
+      <p>Upload, describe, generate.</p>
+
+      <div class="step">
+        <div class="step-head"><span class="step-num">01</span><h2>Property</h2></div>
+        <div class="step-body name-field">
+          <input class="field" id="propName" placeholder="Address or listing name" style="margin-bottom:0">
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-num">02</span><h2>Floor plans</h2><span class="opt">optional</span></div>
+        <div class="step-sub">Ground floor first, then upper floors.</div>
+        <div class="step-body">
+          <div class="drop" id="planDrop">
+            <div class="ico">▦</div>
+            <p>Upload floor plans</p>
+            <span>PNG or JPG — drag &amp; drop or click</span>
+          </div>
+          <input type="file" id="planInput" accept="image/*" multiple hidden>
+          <div class="previews" id="planPreviews"></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-num">03</span><h2>Photos</h2></div>
+        <div class="step-sub">Each photo becomes an @image you can use in your prompt.</div>
+        <div class="step-body">
+          <div class="drop" id="photoDrop">
+            <div class="ico">▧</div>
+            <p>Upload photos</p>
+            <span>In the order of your walkthrough</span>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" multiple hidden>
+          <div class="previews" id="photoPreviews"></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-num">04</span><h2>Prompt</h2></div>
+        <div class="step-sub">Reference photos with @image1, @image2 — the first one is your start frame.</div>
+        <div class="step-body">
+          <div class="editor">
+            <div class="chips" id="chips"></div>
+            <textarea id="prompt" placeholder="Slow cinematic dolly through @image1, warm morning light…"></textarea>
+            <div class="editor-hint">Click an image chip to insert it at the cursor.</div>
+            <div class="setrow">
+              <div class="setgroup">
+                <label>Duration</label>
+                <div class="pills" id="durPills">
+                  <button class="pill" data-v="3">3s</button>
+                  <button class="pill on" data-v="5">5s</button>
+                  <button class="pill" data-v="10">10s</button>
+                </div>
+              </div>
+              <div class="setgroup">
+                <label>Aspect</label>
+                <div class="pills" id="arPills">
+                  <button class="pill on" data-v="16:9">16:9</button>
+                  <button class="pill" data-v="9:16">9:16</button>
+                </div>
+              </div>
+              <div class="setgroup">
+                <label>Quality</label>
+                <div class="pills" id="qPills">
+                  <button class="pill on" data-v="720p">720p</button>
+                  <button class="pill" data-v="1080p">1080p</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="suggest">Not sure? <button type="button" onclick="useSuggested()">Use the suggested prompt</button></div>
+        </div>
+      </div>
+
+      <div class="gen-row">
+        <button class="btn" id="generateBtn" disabled onclick="startGenerate()">Generate</button>
+        <span class="gen-note" id="genNote">Add photos to generate.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GENERATING ================= -->
+<section id="generating" class="view">
+  <div class="gen-box">
+    <div class="mark">T</div>
+    <h2>Generating your walkthrough</h2>
+    <div class="gen-stage" id="genStage">Preparing…</div>
+    <div class="bar" id="genBarWrap"><i id="genBar"></i></div>
+    <div class="gen-pct" id="genPct"></div>
+    <button class="navlink gen-cancel" onclick="cancelGenerate()">Cancel</button>
+  </div>
+</section>
+
+<!-- ================= RESULT ================= -->
+<section id="result" class="view">
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo"><div class="mark">T</div><div class="word">toura</div></div>
+      <div class="nav-right">
+        <button class="navlink" onclick="goDash()">Dashboard</button>
+      </div>
+    </div>
+  </nav>
+  <div class="wrap">
+    <div class="result-wrap">
+      <div class="done"><i>✓</i> <span id="doneLabel">Ready</span></div>
+      <h1 id="resultTitle">Your walkthrough</h1>
+      <p id="resultSub">Cinematic, generated by Toura AI.</p>
+      <div class="player" id="playerBox"></div>
+      <div class="result-actions">
+        <a class="btn" id="downloadBtn" href="#" target="_blank" rel="noopener" download="toura-walkthrough.mp4">Download</a>
+        <button class="btn ghost" onclick="goNew()">New walkthrough</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SETTINGS MODAL ================= -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <h2>API settings</h2>
+    <p>Connect your <a href="https://cloud.higgsfield.ai" target="_blank" rel="noopener">Higgsfield Cloud</a> account to render real videos. Without a key, Toura runs in demo mode.</p>
+    <input class="field" id="apiKey" placeholder="API key" autocomplete="off">
+    <input class="field" id="apiSecret" type="password" placeholder="API secret" autocomplete="off">
+    <div class="row">
+      <button class="btn ghost small" onclick="closeSettings()">Cancel</button>
+      <button class="btn small" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   toura.ai — prototype
+   Accounts & projects are stored in this browser
+   (localStorage). Passwords are NOT securely hashed —
+   replace with a real backend before launch.
+===================================================== */
+
+/* ---------- demo assets (rendered with Higgsfield) ---------- */
+const DEMO_VIDEO  = "https://d8j0ntlcm91z4.cloudfront.net/user_3Fuo2atmtAMQ1hIMh189RhM3Eyz/hf_20260715_123102_3db7ee9e-f0d3-4aaa-aadf-810e460817ec.mp4";
+const DEMO_POSTER = "https://d8j0ntlcm91z4.cloudfront.net/user_3Fuo2atmtAMQ1hIMh189RhM3Eyz/hf_20260715_122753_bb05ce7f-aafe-4e46-be79-760be05f9cc8.png";
+
+/* ---------- higgsfield api ---------- */
+const HF_BASE  = "https://platform.higgsfield.ai";
+const HF_MODEL = "higgsfield-ai/dop/standard"; // image-to-video
+
+/* ---------- storage helpers ---------- */
+const LS = {
+  get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); },
+};
+
+/* ---------- state ---------- */
+let user = null;
+let plans = [];    // {name,url}
+let photos = [];   // {name,url}  url = data-url (persists & can be sent to API)
+let projects = [];
+let genAbort = false;
+
+/* ---------- tiny ui helpers ---------- */
+const $ = id => document.getElementById(id);
+function show(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+let toastT;
+function toast(msg, ms=3200){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove('on'), ms);
+}
+function esc(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* =====================================================
+   AUTH — sign up & sign in (stored in this browser)
+===================================================== */
+let authMode = 'in';
+function setAuthMode(m){
+  authMode = m;
+  $('tabIn').classList.toggle('on', m==='in');
+  $('tabUp').classList.toggle('on', m==='up');
+  $('aName').style.display = m==='up' ? '' : 'none';
+  $('aName').required = m==='up';
+  $('authBtn').textContent = m==='up' ? 'Create account' : 'Sign in';
+  $('authTitle').textContent = m==='up' ? 'Create your account' : 'Welcome to toura';
+  $('authErr').textContent = '';
+}
+$('authForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const email = $('aEmail').value.trim().toLowerCase();
+  const pass  = $('aPass').value;
+  const users = LS.get('toura_users', {});
+  if(authMode === 'up'){
+    const name = $('aName').value.trim();
+    if(!name){ $('authErr').textContent = 'Please enter your name.'; return; }
+    if(users[email]){ $('authErr').textContent = 'An account with this email already exists.'; return; }
+    users[email] = {name, pass};
+    LS.set('toura_users', users);
+    enter(email, name);
+  } else {
+    const acc = users[email];
+    if(!acc || acc.pass !== pass){ $('authErr').textContent = 'Wrong email or password.'; return; }
+    enter(email, acc.name);
+  }
+});
+function enter(email, name){
+  user = {email, name};
+  LS.set('toura_session', email);
+  projects = LS.get('toura_projects_'+email, null);
+  if(projects === null){
+    projects = [{name:"Keizersgracht 214, Amsterdam", meta:"0:05 · Sample", video:DEMO_VIDEO, poster:DEMO_POSTER, ready:true, aspect:"16:9", sample:true}];
+    saveProjects();
+  }
+  $('userName').textContent = name.split(' ')[0];
+  $('avatar').textContent = name[0].toUpperCase();
+  const h = new Date().getHours();
+  $('greeting').textContent = h<12 ? 'Good morning, '+name.split(' ')[0] : h<18 ? 'Good afternoon, '+name.split(' ')[0] : 'Good evening, '+name.split(' ')[0];
+  updateModeBadge();
+  goDash();
+}
+function signOut(){
+  user = null;
+  localStorage.removeItem('toura_session');
+  $('aEmail').value = ''; $('aPass').value = ''; $('aName').value = '';
+  setAuthMode('in');
+  show('auth');
+}
+function saveProjects(){ if(user) LS.set('toura_projects_'+user.email, projects); }
+
+/* restore session */
+(function(){
+  const email = LS.get('toura_session', null);
+  if(email){
+    const acc = LS.get('toura_users', {})[email];
+    if(acc){ enter(email, acc.name); }
+  }
+})();
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+function goDash(){ renderProjects(); show('dashboard'); }
+function goNew(){ resetFlow(); updateModeBadge(); show('new'); }
+
+function renderProjects(){
+  const grid = $('projectGrid');
+  grid.innerHTML = '';
+  const add = document.createElement('div');
+  add.className = 'card new';
+  add.onclick = goNew;
+  add.innerHTML = '<div class="inner"><div class="plus">+</div><h3>New walkthrough</h3><span>Photos → prompt → video</span></div>';
+  grid.appendChild(add);
+  projects.forEach((p,i)=>{
+    const c = document.createElement('div');
+    c.className = 'card';
+    let thumb;
+    if(p.ready && p.poster){
+      thumb = `<img src="${p.poster}" alt=""><div class="play"><i>▶</i></div><span class="badge">${p.sample?'Sample':'Ready'}</span>`;
+    } else if(p.ready){
+      thumb = `<video src="${p.video}#t=0.5" muted playsinline preload="metadata"></video><div class="play"><i>▶</i></div><span class="badge">Ready</span>`;
+    } else {
+      thumb = `<span class="ph">▦</span><span class="badge">Draft</span>`;
+    }
+    c.innerHTML = `<div class="thumb">${thumb}</div><div class="card-body"><h3>${esc(p.name)}</h3><span>${esc(p.meta)}</span></div>`;
+    if(p.ready){ c.style.cursor='pointer'; c.onclick = ()=>openResult(p); }
+    grid.appendChild(c);
+  });
+}
+
+/* =====================================================
+   UPLOADS — files become downscaled data-URLs so they
+   persist and can be sent to the Higgsfield API
+===================================================== */
+function fileToDataUrl(file, maxW=1280){
+  return new Promise(res=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const scale = Math.min(1, maxW/img.width);
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width*scale);
+      cv.height = Math.round(img.height*scale);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      res(cv.toDataURL('image/jpeg', .85));
+    };
+    img.onerror = ()=>res(null);
+    img.src = URL.createObjectURL(file);
+  });
+}
+function bindDrop(dropId, inputId, list, previewId, tagFn){
+  const drop = $(dropId), input = $(inputId);
+  drop.onclick = ()=>input.click();
+  input.onchange = ()=>{ addFiles(input.files, list, previewId, tagFn); input.value=''; };
+  drop.ondragover = e=>{ e.preventDefault(); drop.classList.add('drag'); };
+  drop.ondragleave = ()=>drop.classList.remove('drag');
+  drop.ondrop = e=>{ e.preventDefault(); drop.classList.remove('drag'); addFiles(e.dataTransfer.files, list, previewId, tagFn); };
+}
+async function addFiles(files, list, previewId, tagFn){
+  for(const f of [...files]){
+    if(!f.type.startsWith('image/')) continue;
+    const url = await fileToDataUrl(f);
+    if(url) list.push({name:f.name, url});
+  }
+  renderPreviews(list, previewId, tagFn);
+  renderChips();
+  updateGenerate();
+}
+function renderPreviews(list, previewId, tagFn){
+  const el = $(previewId);
+  el.innerHTML = '';
+  list.forEach((f,i)=>{
+    const d = document.createElement('div');
+    d.className = 'pv';
+    d.innerHTML = `<img src="${f.url}" alt=""><span class="tag">${tagFn(i,f)}</span><button class="rm" title="Remove">✕</button>`;
+    d.querySelector('.rm').onclick = e=>{
+      e.stopPropagation();
+      list.splice(i,1);
+      renderPreviews(list, previewId, tagFn);
+      renderChips();
+      updateGenerate();
+    };
+    el.appendChild(d);
+  });
+}
+const planTag  = i => i===0 ? 'Ground floor' : `Floor ${i}`;
+const photoTag = i => `@image${i+1}`;
+bindDrop('planDrop','planInput',plans,'planPreviews',planTag);
+bindDrop('photoDrop','photoInput',photos,'photoPreviews',photoTag);
+
+/* =====================================================
+   PROMPT EDITOR — @image chips (higgsfield-style)
+===================================================== */
+function renderChips(){
+  const el = $('chips');
+  el.innerHTML = '';
+  const used = referencedImages();
+  photos.forEach((f,i)=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip' + (used.includes(i) ? ' used' : '');
+    b.innerHTML = `<img src="${f.url}" alt="">@image${i+1}`;
+    b.onclick = ()=>insertToken(`@image${i+1}`);
+    el.appendChild(b);
+  });
+}
+function insertToken(tok){
+  const ta = $('prompt');
+  const s = ta.selectionStart ?? ta.value.length;
+  const e = ta.selectionEnd ?? ta.value.length;
+  const before = ta.value.slice(0,s), after = ta.value.slice(e);
+  const pad1 = before && !/\s$/.test(before) ? ' ' : '';
+  const pad2 = after && !/^\s/.test(after) ? ' ' : '';
+  ta.value = before + pad1 + tok + pad2 + after;
+  ta.focus();
+  const pos = (before+pad1+tok+pad2).length;
+  ta.setSelectionRange(pos,pos);
+  renderChips();
+}
+$('prompt').addEventListener('input', renderChips);
+function referencedImages(){
+  const found = [];
+  const re = /@image(\d+)/g;
+  let m;
+  while((m = re.exec($('prompt').value))){
+    const idx = parseInt(m[1],10)-1;
+    if(idx>=0 && idx<photos.length && !found.includes(idx)) found.push(idx);
+  }
+  return found;
+}
+function useSuggested(){
+  $('prompt').value =
+    "Cinematic real estate walkthrough starting from @image1. Slow, gimbal-smooth dolly-in revealing the room's depth and natural light. Shallow depth of field, warm true-to-life color grading, subtle lens flare at the windows. Eye-level camera, straight verticals, luxurious pacing. No people, no text overlays.";
+  renderChips();
+}
+
+/* ---------- settings pills ---------- */
+const settings = { duration:5, aspect:'16:9', quality:'720p' };
+function bindPills(id, key, cast){
+  $(id).querySelectorAll('.pill').forEach(b=>{
+    b.onclick = ()=>{
+      $(id).querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      settings[key] = cast ? cast(b.dataset.v) : b.dataset.v;
+    };
+  });
+}
+bindPills('durPills','duration', v=>parseInt(v,10));
+bindPills('arPills','aspect');
+bindPills('qPills','quality');
+
+function updateGenerate(){
+  const ok = photos.length >= 1;
+  $('generateBtn').disabled = !ok;
+  $('genNote').textContent = ok ? 'Ready to generate.' : 'Add photos to generate.';
+}
+function resetFlow(){
+  plans.length = 0; photos.length = 0;
+  $('planPreviews').innerHTML = '';
+  $('photoPreviews').innerHTML = '';
+  $('chips').innerHTML = '';
+  $('propName').value = '';
+  $('prompt').value = '';
+  updateGenerate();
+}
+
+/* =====================================================
+   API SETTINGS (Higgsfield Cloud key)
+===================================================== */
+function apiCreds(){ return LS.get('toura_api', {key:'',secret:''}); }
+function isLive(){ const c = apiCreds(); return !!(c.key && c.secret); }
+function updateModeBadge(){
+  ['modeBadge','modeBadge2'].forEach(id=>{
+    const b = $(id);
+    b.textContent = isLive() ? 'Live' : 'Demo';
+    b.classList.toggle('live', isLive());
+  });
+}
+function openSettings(){
+  const c = apiCreds();
+  $('apiKey').value = c.key; $('apiSecret').value = c.secret;
+  $('settingsOverlay').classList.add('on');
+}
+function closeSettings(){ $('settingsOverlay').classList.remove('on'); }
+function saveSettings(){
+  LS.set('toura_api', {key:$('apiKey').value.trim(), secret:$('apiSecret').value.trim()});
+  updateModeBadge();
+  closeSettings();
+  toast(isLive() ? 'Live mode — videos render on Higgsfield.' : 'Demo mode.');
+}
+$('settingsOverlay').addEventListener('click', e=>{ if(e.target===$('settingsOverlay')) closeSettings(); });
+
+/* =====================================================
+   GENERATE
+===================================================== */
+function startGenerate(){
+  genAbort = false;
+  const prompt = $('prompt').value.trim() || "Slow cinematic walkthrough, warm natural light, gimbal-smooth camera.";
+  const refs = referencedImages();
+  const startIdx = refs.length ? refs[0] : 0;
+  if(isLive()){
+    generateLive(prompt, startIdx);
+  } else {
+    generateDemo();
+  }
+}
+function cancelGenerate(){ genAbort = true; show('new'); }
+
+/* ----- live: Higgsfield Cloud API ----- */
+async function generateLive(prompt, startIdx){
+  show('generating');
+  const bar = $('genBarWrap');
+  bar.classList.add('indet');
+  $('genPct').textContent = 'Rendering on Higgsfield';
+  $('genStage').textContent = 'Submitting to Higgsfield…';
+  const c = apiCreds();
+  try{
+    const submit = await fetch(`${HF_BASE}/${HF_MODEL}`, {
+      method:'POST',
+      headers:{
+        'Authorization':`Key ${c.key}:${c.secret}`,
+        'Content-Type':'application/json',
+        'Accept':'application/json',
+      },
+      body: JSON.stringify({
+        image_url: photos[startIdx].url,   // data-url; if your key requires hosted URLs, upload photos first
+        prompt: prompt.replace(/@image\d+/g,'').replace(/\s+/g,' ').trim(),
+        duration: settings.duration,
+        aspect_ratio: settings.aspect,
+        resolution: settings.quality,
+      }),
+    });
+    if(!submit.ok) throw new Error('Higgsfield replied '+submit.status);
+    const job = await submit.json();
+    $('genStage').textContent = 'Queued…';
+    const statusUrl = job.status_url || `${HF_BASE}/requests/${job.request_id}/status`;
+    while(true){
+      if(genAbort) return;
+      await new Promise(r=>setTimeout(r, 5000));
+      const st = await fetch(statusUrl, {headers:{'Authorization':`Key ${c.key}:${c.secret}`}});
+      if(!st.ok) throw new Error('Status check failed ('+st.status+')');
+      const data = await st.json();
+      if(data.status === 'completed'){
+        bar.classList.remove('indet');
+        finishGenerate(data.video?.url || DEMO_VIDEO, photos[startIdx].url, true);
+        return;
+      }
+      if(data.status === 'failed' || data.status === 'nsfw'){
+        throw new Error('Generation '+data.status);
+      }
+      $('genStage').textContent = data.status === 'in_progress' ? 'Rendering cinematic camera moves…' : 'Queued…';
+    }
+  }catch(err){
+    bar.classList.remove('indet');
+    if(genAbort) return;
+    toast('Higgsfield not reachable from the browser ('+err.message+') — showing demo result.', 5000);
+    generateDemo();
+  }
+}
+
+/* ----- demo: simulated render ----- */
+const stages = [
+  [0,  'Analyzing floor plans…'],
+  [18, 'Mapping the walkthrough route…'],
+  [36, 'Placing photos along the route…'],
+  [55, 'Rendering cinematic camera moves…'],
+  [78, 'Color grading & finishing…'],
+  [95, 'Exporting your video…'],
+];
+function generateDemo(){
+  show('generating');
+  $('genBarWrap').classList.remove('indet');
+  let p = 0;
+  const t = setInterval(()=>{
+    if(genAbort){ clearInterval(t); return; }
+    p += Math.random()*3.2 + 1.2;
+    if(p>=100){
+      p = 100; clearInterval(t);
+      setTimeout(()=>{ if(!genAbort) finishGenerate(DEMO_VIDEO, DEMO_POSTER, false); }, 500);
+    }
+    const s = stages.filter(s=>s[0]<=p).pop();
+    $('genStage').textContent = s[1];
+    $('genBar').style.width = p+'%';
+    $('genPct').textContent = Math.floor(p)+'%';
+  }, 220);
+}
+
+function finishGenerate(videoUrl, poster, live){
+  const name = $('propName').value.trim() || 'Untitled walkthrough';
+  const proj = {
+    name,
+    meta: `0:${String(settings.duration).padStart(2,'0')} · ${live?'Ready':'Demo'}`,
+    video: videoUrl,
+    poster: live ? null : poster,
+    ready: true,
+    aspect: settings.aspect,
+    live,
+  };
+  projects.unshift(proj);
+  saveProjects();
+  openResult(proj);
+}
+
+/* =====================================================
+   RESULT
+===================================================== */
+function openResult(p){
+  $('resultTitle').textContent = p.name;
+  $('doneLabel').textContent = p.live ? 'Ready' : (p.sample ? 'Sample' : 'Ready');
+  $('resultSub').textContent = p.live ? 'Rendered on Higgsfield via your API key.' : 'Cinematic, generated by Toura AI.';
+  const box = $('playerBox');
+  box.classList.toggle('vert', p.aspect === '9:16');
+  box.innerHTML = `<video src="${p.video}" ${p.poster?`poster="${p.poster}"`:''} controls playsinline></video>`;
+  const dl = $('downloadBtn');
+  dl.href = p.video;
+  dl.style.display = '';
+  show('result');
+}
+</script>
+</body>
+</html>
