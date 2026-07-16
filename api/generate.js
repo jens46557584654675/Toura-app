@@ -31,7 +31,7 @@ export default async function handler(req, res){
       const hosted = [];
       for(const img of seg.images) hosted.push(await hostImage(img));
       const prompt = clipPrompt(stylePrompt, hosted.length);
-      const falId = await falSubmit(MODELS.video, {
+      const job = await falSubmit(MODELS.video, {
         prompt,
         image_urls: hosted,
         duration: dur,
@@ -41,7 +41,9 @@ export default async function handler(req, res){
       });
       clips.push({
         cid: crypto.randomUUID(),
-        falId,
+        falId: job.falId,
+        statusUrl: job.statusUrl,
+        resultUrl: job.resultUrl,
         prompt,
         stylePrompt: String(stylePrompt || '').slice(0, 2000),
         images: hosted,

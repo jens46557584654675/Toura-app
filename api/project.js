@@ -32,7 +32,7 @@ export default async function handler(req, res){
       const style = req.body.stylePrompt != null ? String(req.body.stylePrompt).slice(0, 2000) : clip.stylePrompt;
       clip.stylePrompt = style;
       clip.prompt = clipPrompt(style, clip.images.length);
-      clip.falId = await falSubmit(MODELS.video, {
+      const job = await falSubmit(MODELS.video, {
         prompt: clip.prompt,
         image_urls: clip.images,
         duration: project.duration,
@@ -40,6 +40,9 @@ export default async function handler(req, res){
         resolution: project.quality,
         generate_audio: true,
       });
+      clip.falId = job.falId;
+      clip.statusUrl = job.statusUrl;
+      clip.resultUrl = job.resultUrl;
       clip.status = 'queued';
       clip.video = null;
       project.merged = null;
@@ -56,12 +59,12 @@ export default async function handler(req, res){
       if(videos.length === 1 && !project.music){
         project.merged = videos[0];
       } else if(videos.length === 1 && project.music){
-        const falId = await falSubmit(MODELS.audio, { video_url: videos[0], audio_url: project.music.url });
-        project.mergedPending = { phase: 'audio', falId };
+        const job = await falSubmit(MODELS.audio, { video_url: videos[0], audio_url: project.music.url });
+        project.mergedPending = { phase: 'audio', ...job };
         project.merged = null;
       } else {
-        const falId = await falSubmit(MODELS.merge, { video_urls: videos });
-        project.mergedPending = { phase: 'video', falId };
+        const job = await falSubmit(MODELS.merge, { video_urls: videos });
+        project.mergedPending = { phase: 'video', ...job };
         project.merged = null;
       }
 

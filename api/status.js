@@ -1,5 +1,5 @@
 import { getSession } from '../lib/auth.js';
-import { falStatus, falResult, falSubmit, MODELS } from '../lib/fal.js';
+import { falGet, falSubmit, jobUrls, MODELS } from '../lib/fal.js';
 import { archiveVideo } from '../lib/blob.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
@@ -17,10 +17,11 @@ export default async function handler(req, res){
     // 1. Poll pending clips
     for(const clip of project.clips){
       if(clip.status !== 'queued' && clip.status !== 'in_progress') continue;
-      const st = await falStatus(MODELS.video, clip.falId);
+      const urls = jobUrls(MODELS.video, clip);
+      const st = await falGet(urls.status);
       if(st.status === 'COMPLETED'){
         try{
-          const out = await falResult(MODELS.video, clip.falId);
+          const out = await falGet(urls.result);
           clip.video = await archiveVideo(out.video?.url);
           clip.status = 'done';
         }catch{
@@ -36,14 +37,15 @@ export default async function handler(req, res){
     const mp = project.mergedPending;
     if(mp){
       const model = mp.phase === 'audio' ? MODELS.audio : MODELS.merge;
-      const st = await falStatus(model, mp.falId);
+      const urls = jobUrls(model, mp);
+      const st = await falGet(urls.status);
       if(st.status === 'COMPLETED'){
-        const out = await falResult(model, mp.falId);
+        const out = await falGet(urls.result);
         const url = out.video?.url;
         if(mp.phase === 'video' && project.music?.url){
           // Video merged — now lay the music underneath
-          const falId = await falSubmit(MODELS.audio, { video_url: url, audio_url: project.music.url });
-          project.mergedPending = { phase: 'audio', falId };
+          const job = await falSubmit(MODELS.audio, { video_url: url, audio_url: project.music.url });
+          project.mergedPending = { phase: 'audio', ...job };
         } else {
           project.merged = await archiveVideo(url);
           project.mergedPending = null;
