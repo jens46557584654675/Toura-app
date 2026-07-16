@@ -4,49 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>toura — AI walkthrough videos</title>
-<meta name="description" content="Cinematic walkthrough videos for every listing. Upload photos, write a prompt, generate.">
+<meta name="description" content="Cinematic walkthrough videos for every listing. Upload photos, set your route, generate.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23f4f4f4'/%3E%3Ctext x='32' y='44' font-family='Inter,Helvetica,sans-serif' font-size='36' font-weight='800' text-anchor='middle' fill='%23111'%3ET%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#111;
-    --muted:#8a8a8a;
-    --grey:#f4f4f4;
-    --grey2:#ececec;
-    --line:#e7e7e7;
-    --radius:16px;
+    --ink:#111; --muted:#8a8a8a; --grey:#f4f4f4; --grey2:#ececec; --line:#e7e7e7; --radius:16px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
   body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:var(--ink);-webkit-font-smoothing:antialiased}
-  button{font-family:inherit;cursor:pointer;border:none;background:none}
-  input,textarea,select{font-family:inherit;font-size:15px;color:var(--ink)}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,textarea{font-family:inherit;font-size:15px;color:var(--ink)}
   ::placeholder{color:#b5b5b5}
 
   .view{display:none;min-height:100vh}
   .view.active{display:block}
-  .logo{display:flex;align-items:center;gap:10px;user-select:none}
+  .logo{display:flex;align-items:center;gap:10px;user-select:none;cursor:pointer}
   .logo .mark{width:34px;height:34px;border-radius:10px;background:var(--grey);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}
   .logo .word{font-weight:800;font-size:19px;letter-spacing:-0.03em}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;transition:opacity .15s;text-decoration:none}
   .btn:hover{opacity:.85}
   .btn:disabled{background:var(--grey2);color:#b0b0b0;cursor:not-allowed}
   .btn.ghost{background:var(--grey);color:var(--ink)}
-  .btn.small{padding:10px 20px;font-size:14px}
-  .muted{color:var(--muted)}
+  .btn.small{padding:9px 18px;font-size:13.5px}
   .field{width:100%;background:var(--grey);border:1px solid transparent;border-radius:12px;padding:14px 16px;margin-bottom:10px;outline:none;transition:border .15s}
   .field:focus{border-color:#cfcfcf;background:#fff}
   .err{font-size:13px;color:#c0392b;min-height:18px;margin-top:2px}
-
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:14px;font-weight:500;padding:12px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:all .25s;z-index:100;max-width:90vw;text-align:center}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  /* auth */
   #auth{display:none;align-items:center;justify-content:center}
   #auth.active{display:flex}
   .auth-card{width:100%;max-width:380px;padding:24px;text-align:center}
-  .auth-card .logo{justify-content:center;margin-bottom:14px}
+  .auth-card .logo{justify-content:center;margin-bottom:14px;cursor:default}
   .auth-card .mark{width:48px;height:48px;border-radius:14px;font-size:24px}
   .auth-card h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:6px}
   .auth-card>p{font-size:14px;color:var(--muted);margin-bottom:24px}
@@ -57,16 +51,18 @@
   .auth-foot{margin-top:26px;font-size:13px;color:var(--muted)}
   .auth-foot a{color:var(--ink);text-decoration:none;font-weight:600}
 
+  /* shell */
   .nav{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
-  .nav-inner{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-  .nav-right{display:flex;align-items:center;gap:14px}
+  .nav-inner{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+  .nav-right{display:flex;align-items:center;gap:16px}
   .user-chip{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--grey);border-radius:999px;padding:7px 14px 7px 7px}
   .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
-  .navlink{font-size:13px;color:var(--muted);font-weight:500}
-  .navlink:hover{color:var(--ink)}
-  .wrap{max-width:1080px;margin:0 auto;padding:48px 24px 80px}
+  .navlink{font-size:13.5px;color:var(--muted);font-weight:500}
+  .navlink:hover,.navlink.on{color:var(--ink)}
+  .wrap{max-width:1120px;margin:0 auto;padding:44px 24px 90px}
 
-  .dash-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:36px}
+  /* dashboard */
+  .dash-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:34px}
   .dash-head h1{font-size:34px;font-weight:800;letter-spacing:-0.03em}
   .dash-head p{margin-top:6px;font-size:15px;color:var(--muted)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
@@ -75,7 +71,7 @@
   .thumb{aspect-ratio:16/10;background:var(--grey2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
   .thumb img,.thumb video{width:100%;height:100%;object-fit:cover}
   .thumb .ph{font-size:26px;color:#c9c9c9}
-  .card-body{padding:14px 16px 16px;background:var(--grey)}
+  .card-body{padding:14px 16px 16px}
   .card-body h3{font-size:15px;font-weight:600;margin-bottom:3px}
   .card-body span{font-size:13px;color:var(--muted)}
   .badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ink)}
@@ -85,49 +81,79 @@
   .card.new .plus{width:44px;height:44px;border-radius:50%;background:var(--grey);display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 12px}
   .card.new h3{font-size:15px;font-weight:600}
   .card.new span{font-size:13px;color:var(--muted)}
-  .card .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-  .card .play i{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;padding-left:3px}
-  .empty{color:var(--muted);font-size:14px;padding:8px 2px}
+  .play-ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .play-ico i{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;padding-left:3px}
 
+  /* music */
+  .music-tabs{display:inline-flex;background:var(--grey);border-radius:999px;padding:4px;margin-bottom:22px}
+  .music-tabs button{padding:9px 22px;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted)}
+  .music-tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .tracks{max-width:640px}
+  .track{display:flex;align-items:center;gap:14px;background:var(--grey);border-radius:14px;padding:12px 16px;margin-bottom:10px}
+  .track .tplay{width:36px;height:36px;border-radius:50%;background:#fff;font-size:13px;flex:none;padding-left:2px}
+  .track .tname{flex:1;font-size:14.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .track .tby{font-size:12px;color:var(--muted)}
+  .track .theart{font-size:17px;color:#c9c9c9;flex:none}
+  .track .theart.on{color:var(--ink)}
+  .track .trm{font-size:12px;color:var(--muted);flex:none}
+  .empty-note{color:var(--muted);font-size:14px;padding:10px 2px}
+
+  /* new walkthrough */
   .back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--muted);margin-bottom:28px}
   .back:hover{color:var(--ink)}
-  .flow{max-width:660px;margin:0 auto}
+  .flow{max-width:760px;margin:0 auto}
   .flow h1{font-size:30px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px}
   .flow>p{font-size:15px;color:var(--muted);margin-bottom:40px}
-  .step{margin-bottom:38px}
+  .step{margin-bottom:42px}
   .step-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
   .step-num{font-size:13px;font-weight:600;color:#c4c4c4}
-  .step-head h2{font-size:18px;font-weight:700;letter-spacing:-0.01em}
-  .step-head .opt{font-size:12px;color:#c4c4c4;font-weight:500}
+  .step-head h2{font-size:18px;font-weight:700}
   .step-sub{font-size:14px;color:var(--muted);margin-bottom:16px;margin-left:32px}
   .step-body{margin-left:32px}
-  .name-field{max-width:420px}
+  .name-field{max-width:440px}
 
-  .drop{border:1.5px dashed #d6d6d6;border-radius:var(--radius);padding:30px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
-  .drop:hover,.drop.drag{border-color:var(--ink);background:#fafafa}
-  .drop .ico{font-size:22px;margin-bottom:8px}
-  .drop p{font-size:14px;font-weight:600}
-  .drop span{display:block;font-size:13px;color:var(--muted);margin-top:3px}
-  .previews{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:12px}
-  .previews:empty{margin-top:0}
-  .pv{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--grey)}
-  .pv img{width:100%;height:100%;object-fit:cover}
-  .pv .rm{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(17,17,17,.75);color:#fff;font-size:11px;line-height:22px;text-align:center}
-  .pv .tag{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:600;background:rgba(255,255,255,.9);padding:3px 8px;border-radius:999px}
+  .bigdrop{border:1.5px dashed #d6d6d6;border-radius:var(--radius);padding:56px 24px;text-align:center;cursor:pointer;transition:.15s}
+  .bigdrop:hover,.bigdrop.drag{border-color:var(--ink);background:#fafafa}
+  .bigdrop .ico{font-size:28px;margin-bottom:10px}
+  .bigdrop p{font-size:15px;font-weight:600}
+  .bigdrop span{display:block;font-size:13.5px;color:var(--muted);margin-top:5px}
 
+  /* route strip */
+  .route{background:var(--grey);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:0;overflow-x:auto}
+  .route:empty{display:none}
+  .rcard{position:relative;flex:none;width:120px;border-radius:12px;overflow:hidden;cursor:grab;background:#fff}
+  .rcard img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;pointer-events:none}
+  .rcard .rnum{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:700;background:rgba(255,255,255,.92);padding:3px 8px;border-radius:999px}
+  .rcard .rrm{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:rgba(17,17,17,.8);color:#fff;font-size:12px;line-height:20px;text-align:center}
+  .rcard.dragging{opacity:.4}
+  .rgap{flex:none;width:26px;align-self:stretch;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .rgap .gdot{width:6px;height:6px;border-radius:50%;background:#d0d0d0;transition:.15s}
+  .rgap:hover .gdot{background:var(--ink);transform:scale(1.5)}
+  .rgap.cut{width:34px}
+  .rgap.cut .gdot{display:none}
+  .rgap.cut::before{content:'';display:block;width:2.5px;height:84%;border-radius:2px;background:var(--ink)}
+  .route-hint{font-size:13px;color:var(--muted);margin-top:12px}
+  .clip-tags{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .clip-tag{font-size:12px;font-weight:600;background:var(--grey);border-radius:999px;padding:5px 14px;color:var(--muted)}
+
+  /* music picker */
+  .mpick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .mopt{padding:10px 20px;border-radius:999px;font-size:13.5px;font-weight:600;background:var(--grey);color:var(--muted)}
+  .mopt.on{background:var(--ink);color:#fff}
+  .mlist{max-width:560px}
+  .mrow{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:1.5px solid transparent}
+  .mrow:hover{background:var(--grey)}
+  .mrow.sel{border-color:var(--ink)}
+  .mrow .tplay{width:30px;height:30px;border-radius:50%;background:var(--grey);font-size:11px;flex:none;padding-left:2px}
+  .mrow.sel .tplay{background:var(--grey2)}
+  .mrow span{font-size:14px;font-weight:600}
+
+  /* prompt editor */
   .editor{background:var(--grey);border-radius:var(--radius);padding:16px}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-  .chips:empty{display:none}
-  .chip{display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:4px 12px 4px 4px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:border .15s}
-  .chip:hover{border-color:#cfcfcf}
-  .chip img{width:24px;height:24px;border-radius:50%;object-fit:cover}
-  .chip.used{border-color:var(--ink)}
-  .editor textarea{width:100%;background:#fff;border:1px solid transparent;border-radius:12px;padding:14px 16px;min-height:110px;resize:vertical;line-height:1.55;outline:none}
+  .editor textarea{width:100%;background:#fff;border:1px solid transparent;border-radius:12px;padding:14px 16px;min-height:96px;resize:vertical;line-height:1.55;outline:none}
   .editor textarea:focus{border-color:#cfcfcf}
-  .editor-hint{font-size:12px;color:var(--muted);margin-top:8px}
-  .suggest{margin-top:10px;font-size:13px;color:var(--muted)}
-  .suggest button{font-size:13px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
-
+  .editor-hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .editor-hint button{font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;font-size:12.5px}
   .setrow{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px}
   .setgroup label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
   .pills{display:inline-flex;background:#fff;border-radius:999px;padding:4px;gap:2px}
@@ -136,28 +162,33 @@
   .gen-row{margin-top:26px;margin-left:32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
   .gen-note{font-size:13px;color:var(--muted)}
 
-  #generating{display:none;align-items:center;justify-content:center;text-align:center}
-  #generating.active{display:flex}
-  .gen-box{max-width:440px;padding:24px;width:100%}
-  .gen-box .mark{width:48px;height:48px;border-radius:14px;background:var(--grey);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;margin:0 auto 24px;animation:pulse 1.6s ease-in-out infinite}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  .gen-box h2{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
-  .gen-stage{font-size:14px;color:var(--muted);min-height:20px;margin-bottom:26px}
-  .bar{width:100%;height:5px;border-radius:999px;background:var(--grey);overflow:hidden}
-  .bar i{display:block;height:100%;width:30%;background:var(--ink);border-radius:999px;animation:slide 1.4s ease-in-out infinite}
-  @keyframes slide{0%{margin-left:-30%}100%{margin-left:100%}}
-  .gen-pct{margin-top:12px;font-size:13px;color:var(--muted)}
-  .gen-cancel{margin-top:26px}
-
-  .result-wrap{max-width:820px;margin:0 auto;text-align:center}
-  .result-wrap .done{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;background:var(--grey);border-radius:999px;padding:7px 16px;margin-bottom:18px}
-  .result-wrap .done i{font-style:normal}
-  .result-wrap h1{font-size:30px;font-weight:800;letter-spacing:-0.03em;margin-bottom:8px}
-  .result-wrap>p{font-size:15px;color:var(--muted);margin-bottom:30px}
-  .player{border-radius:20px;overflow:hidden;background:var(--grey2);aspect-ratio:16/9}
-  .player.vert{aspect-ratio:9/16;max-width:360px;margin:0 auto}
-  .player video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
-  .result-actions{display:flex;justify-content:center;gap:12px;margin-top:26px;flex-wrap:wrap}
+  /* review */
+  .review-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+  .review-head h1{font-size:28px;font-weight:800;letter-spacing:-0.03em}
+  .review-head .sub{margin-top:5px;font-size:14px;color:var(--muted)}
+  .bigplayer{border-radius:20px;overflow:hidden;background:var(--grey2);aspect-ratio:16/9;max-width:860px;margin:0 auto 10px}
+  .bigplayer.vert{aspect-ratio:9/16;max-width:340px}
+  .bigplayer video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+  .player-row{display:flex;justify-content:center;gap:10px;margin-bottom:30px}
+  .sect{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:30px 0 12px}
+  .clips{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px}
+  .clip{flex:none;width:200px;background:var(--grey);border-radius:14px;overflow:hidden;cursor:grab;border:2px solid transparent}
+  .clip.playing{border-color:var(--ink)}
+  .clip.dragging{opacity:.4}
+  .clip .cthumb{position:relative;aspect-ratio:16/10;background:var(--grey2)}
+  .clip .cthumb img,.clip .cthumb video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+  .clip .cstate{position:absolute;top:8px;left:8px;font-size:10.5px;font-weight:700;background:rgba(255,255,255,.92);padding:3px 9px;border-radius:999px}
+  .clip .cbody{padding:10px 12px 12px}
+  .clip .cname{font-size:13px;font-weight:700;margin-bottom:8px}
+  .clip .cacts{display:flex;gap:6px;flex-wrap:wrap}
+  .cact{font-size:11.5px;font-weight:600;background:#fff;border-radius:999px;padding:5px 11px;color:var(--ink)}
+  .cact.on{background:var(--ink);color:#fff}
+  .cact:disabled{color:#bbb;cursor:not-allowed}
+  .spin{display:inline-block;width:11px;height:11px;border:2px solid #d6d6d6;border-top-color:var(--ink);border-radius:50%;animation:rot .8s linear infinite;vertical-align:-1px}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .final-box{background:var(--grey);border-radius:var(--radius);padding:22px;max-width:860px;margin:8px auto 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .final-box .ftext{font-size:14px;color:var(--muted);max-width:440px}
+  .final-box .ftext b{color:var(--ink)}
 
   @media(max-width:640px){
     .dash-head h1{font-size:26px}
@@ -191,42 +222,55 @@
 
 <!-- ================= DASHBOARD ================= -->
 <section id="dashboard" class="view">
-  <nav class="nav">
-    <div class="nav-inner">
-      <div class="logo"><div class="mark">T</div><div class="word">toura</div></div>
-      <div class="nav-right">
-        <div class="user-chip"><div class="avatar" id="avatar">·</div><span id="userName"></span></div>
-        <button class="navlink" onclick="signOut()">Sign out</button>
-      </div>
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
+    <div class="nav-right">
+      <button class="navlink" onclick="goMusic()">Music</button>
+      <div class="user-chip"><div class="avatar" id="avatar">·</div><span id="userName"></span></div>
+      <button class="navlink" onclick="signOut()">Sign out</button>
     </div>
-  </nav>
+  </div></nav>
   <div class="wrap">
     <div class="dash-head">
-      <div>
-        <h1 id="greeting">Good afternoon</h1>
-        <p>Your walkthroughs.</p>
-      </div>
+      <div><h1 id="greeting">Good afternoon</h1><p>Your walkthroughs.</p></div>
       <button class="btn" onclick="goNew()">New walkthrough</button>
     </div>
     <div class="grid" id="projectGrid"></div>
   </div>
 </section>
 
+<!-- ================= MUSIC ================= -->
+<section id="music" class="view">
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
+    <div class="nav-right"><button class="navlink" onclick="goDash()">Dashboard</button></div>
+  </div></nav>
+  <div class="wrap">
+    <div class="dash-head">
+      <div><h1>Music</h1><p>Soundtracks for your walkthroughs.</p></div>
+      <button class="btn" onclick="pickMusicFile()">Upload music</button>
+      <input type="file" id="musicInput" accept="audio/mpeg,audio/wav,audio/mp3,.mp3,.wav" hidden>
+    </div>
+    <div class="music-tabs">
+      <button class="on" data-t="favs" onclick="setMusicTab('favs',this)">Favorites</button>
+      <button data-t="toura" onclick="setMusicTab('toura',this)">Toura picks</button>
+      <button data-t="mine" onclick="setMusicTab('mine',this)">My uploads</button>
+    </div>
+    <div class="tracks" id="trackList"></div>
+  </div>
+</section>
+
 <!-- ================= NEW WALKTHROUGH ================= -->
 <section id="new" class="view">
-  <nav class="nav">
-    <div class="nav-inner">
-      <div class="logo"><div class="mark">T</div><div class="word">toura</div></div>
-      <div class="nav-right">
-        <button class="navlink" onclick="goDash()">Cancel</button>
-      </div>
-    </div>
-  </nav>
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
+    <div class="nav-right"><button class="navlink" onclick="goDash()">Cancel</button></div>
+  </div></nav>
   <div class="wrap">
     <div class="flow">
       <button class="back" onclick="goDash()">&larr; Back</button>
       <h1>New walkthrough</h1>
-      <p>Upload, describe, generate.</p>
+      <p>Photos → route → music → generate.</p>
 
       <div class="step">
         <div class="step-head"><span class="step-num">01</span><h2>Property</h2></div>
@@ -236,44 +280,51 @@
       </div>
 
       <div class="step">
-        <div class="step-head"><span class="step-num">02</span><h2>Floor plans</h2><span class="opt">optional</span></div>
-        <div class="step-sub">Ground floor first, then upper floors.</div>
+        <div class="step-head"><span class="step-num">02</span><h2>Photos</h2></div>
+        <div class="step-sub">The photos for your walkthrough — you'll set the order next.</div>
         <div class="step-body">
-          <div class="drop" id="planDrop">
-            <div class="ico">▦</div>
-            <p>Upload floor plans</p>
-            <span>PNG or JPG — drag &amp; drop or click</span>
-          </div>
-          <input type="file" id="planInput" accept="image/*" multiple hidden>
-          <div class="previews" id="planPreviews"></div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-head"><span class="step-num">03</span><h2>Photos</h2></div>
-        <div class="step-sub">Each photo becomes an @image you can use in your prompt.</div>
-        <div class="step-body">
-          <div class="drop" id="photoDrop">
+          <div class="bigdrop" id="photoDrop">
             <div class="ico">▧</div>
-            <p>Upload photos</p>
-            <span>In the order of your walkthrough</span>
+            <p>Choose files or drop your photos here</p>
+            <span>JPEG or PNG · drag &amp; drop anywhere in this box</span>
           </div>
           <input type="file" id="photoInput" accept="image/*" multiple hidden>
-          <div class="previews" id="photoPreviews"></div>
         </div>
       </div>
 
-      <div class="step">
-        <div class="step-head"><span class="step-num">04</span><h2>Prompt</h2></div>
-        <div class="step-sub">Reference photos with @image1, @image2 — every photo you mention travels along (max 9).</div>
+      <div class="step" id="routeStep" style="display:none">
+        <div class="step-head"><span class="step-num">03</span><h2>Route</h2></div>
+        <div class="step-sub">Drag photos into the order of your walkthrough. Click the dot between two photos to cut the route into separate clips — each clip becomes one continuous shot.</div>
+        <div class="step-body">
+          <div class="route" id="routeStrip"></div>
+          <div class="route-hint" id="routeHint"></div>
+          <div class="clip-tags" id="clipTags"></div>
+        </div>
+      </div>
+
+      <div class="step" id="musicStep" style="display:none">
+        <div class="step-head"><span class="step-num">04</span><h2>Music</h2></div>
+        <div class="step-sub">A calm soundtrack under your final video — or none.</div>
+        <div class="step-body">
+          <div class="mpick" id="mpick">
+            <button class="mopt on" data-m="none">No music</button>
+            <button class="mopt" data-m="toura">Toura picks</button>
+            <button class="mopt" data-m="favs">Favorites</button>
+            <button class="mopt" data-m="mine">My uploads</button>
+          </div>
+          <div class="mlist" id="mlist"></div>
+        </div>
+      </div>
+
+      <div class="step" id="promptStep" style="display:none">
+        <div class="step-head"><span class="step-num">05</span><h2>Prompt</h2></div>
+        <div class="step-sub">Toura wrote this for you based on your route — adjust the style if you like.</div>
         <div class="step-body">
           <div class="editor">
-            <div class="chips" id="chips"></div>
-            <textarea id="prompt" placeholder="Slow cinematic dolly through @image1, warm morning light…"></textarea>
-            <div class="editor-hint">Click an image chip to insert it at the cursor.</div>
+            <textarea id="prompt"></textarea>
+            <div class="editor-hint">Describes the camera style for every clip. <button type="button" onclick="resetPrompt()">Reset to Toura's suggestion</button></div>
             <div class="setrow">
-              <div class="setgroup">
-                <label>Duration</label>
+              <div class="setgroup"><label>Clip length</label>
                 <div class="pills" id="durPills">
                   <button class="pill on" data-v="auto">Auto</button>
                   <button class="pill" data-v="5">5s</button>
@@ -281,16 +332,13 @@
                   <button class="pill" data-v="15">15s</button>
                 </div>
               </div>
-              <div class="setgroup">
-                <label>Aspect</label>
+              <div class="setgroup"><label>Aspect</label>
                 <div class="pills" id="arPills">
                   <button class="pill on" data-v="16:9">16:9</button>
                   <button class="pill" data-v="9:16">9:16</button>
-                  <button class="pill" data-v="auto">Auto</button>
                 </div>
               </div>
-              <div class="setgroup">
-                <label>Quality</label>
+              <div class="setgroup"><label>Quality</label>
                 <div class="pills" id="qPills">
                   <button class="pill" data-v="480p">480p</button>
                   <button class="pill on" data-v="720p">720p</button>
@@ -298,7 +346,6 @@
               </div>
             </div>
           </div>
-          <div class="suggest">Not sure? <button type="button" onclick="useSuggested()">Use the suggested prompt</button></div>
         </div>
       </div>
 
@@ -310,366 +357,503 @@
   </div>
 </section>
 
-<!-- ================= GENERATING ================= -->
-<section id="generating" class="view">
-  <div class="gen-box">
-    <div class="mark">T</div>
-    <h2>Generating your walkthrough</h2>
-    <div class="gen-stage" id="genStage">Submitting…</div>
-    <div class="bar"><i></i></div>
-    <div class="gen-pct" id="genPct">This usually takes a few minutes.</div>
-    <button class="navlink gen-cancel" onclick="cancelGenerate()">Back to editor</button>
-  </div>
-</section>
-
-<!-- ================= RESULT ================= -->
-<section id="result" class="view">
-  <nav class="nav">
-    <div class="nav-inner">
-      <div class="logo"><div class="mark">T</div><div class="word">toura</div></div>
-      <div class="nav-right">
-        <button class="navlink" onclick="goDash()">Dashboard</button>
-      </div>
-    </div>
-  </nav>
+<!-- ================= REVIEW / PROJECT ================= -->
+<section id="review" class="view">
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
+    <div class="nav-right"><button class="navlink" onclick="goDash()">Dashboard</button></div>
+  </div></nav>
   <div class="wrap">
-    <div class="result-wrap">
-      <div class="done"><i>✓</i> Ready</div>
-      <h1 id="resultTitle">Your walkthrough</h1>
-      <p>Cinematic, generated by Toura AI.</p>
-      <div class="player" id="playerBox"></div>
-      <div class="result-actions">
-        <a class="btn" id="downloadBtn" href="#" target="_blank" rel="noopener" download="toura-walkthrough.mp4">Download</a>
-        <button class="btn ghost" onclick="goNew()">New walkthrough</button>
+    <div class="review-head">
+      <div>
+        <h1 id="rvTitle">Walkthrough</h1>
+        <div class="sub" id="rvSub"></div>
       </div>
+      <button class="btn ghost small" onclick="goNew()">New walkthrough</button>
     </div>
+
+    <div class="bigplayer" id="rvPlayer"></div>
+    <div class="player-row">
+      <button class="btn ghost small" id="playAllBtn" onclick="playAll()">▶ Play all</button>
+    </div>
+
+    <div class="sect">Clips — drag to reorder · lock the good ones · regenerate the rest</div>
+    <div class="clips" id="clipRow"></div>
+
+    <div class="sect">Music</div>
+    <div class="mpick" id="rvMpick">
+      <button class="mopt" data-m="none">No music</button>
+      <button class="mopt" data-m="toura">Toura picks</button>
+      <button class="mopt" data-m="favs">Favorites</button>
+      <button class="mopt" data-m="mine">My uploads</button>
+    </div>
+    <div class="mlist" id="rvMlist"></div>
+
+    <div class="sect">Final video</div>
+    <div class="final-box" id="finalBox"></div>
   </div>
 </section>
 
 <div class="toast" id="toast"></div>
+<audio id="bgm" preload="none"></audio>
 
 <script>
 /* toura — frontend. All real work (accounts, rendering) happens on the Toura server. */
-
-let user = null;
-let plans = [];
-let photos = [];
-let projects = [];
-let polling = null;
+let user = null, projects = [], musicLib = { catalog:[], mine:[], favs:[] };
+let photos = [];          // {url(dataURL)} in ROUTE order
+let cuts = new Set();     // cut AFTER index i → new clip starts at i+1
+let promptDirty = false;
+let currentProject = null;
+let rvPoll = null, playAllIdx = -1;
+let pickedMusic = null;   // {name,url} for the new-walkthrough flow
 
 const $ = id => document.getElementById(id);
 function show(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   $(id).classList.add('active');
   window.scrollTo(0,0);
+  if(id !== 'review'){ clearInterval(rvPoll); stopAll(); }
 }
 let toastT;
-function toast(msg, ms=4000){
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.add('on');
-  clearTimeout(toastT);
-  toastT = setTimeout(()=>t.classList.remove('on'), ms);
+function toast(msg, ms=4200){
+  const t=$('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), ms);
 }
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
 async function api(path, opts={}){
-  const r = await fetch(path, {
-    headers: {'Content-Type':'application/json'},
-    credentials: 'same-origin',
-    ...opts,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
+  const r = await fetch(path, { headers:{'Content-Type':'application/json'}, credentials:'same-origin', ...opts, body: opts.body?JSON.stringify(opts.body):undefined });
   const data = await r.json().catch(()=>({}));
-  if(!r.ok) throw Object.assign(new Error(data.error || ('Error '+r.status)), {status:r.status});
+  if(!r.ok) throw Object.assign(new Error(data.error||('Error '+r.status)), {status:r.status});
   return data;
 }
 
 /* ============ auth ============ */
-let authMode = 'in';
+let authMode='in';
 function setAuthMode(m){
-  authMode = m;
-  $('tabIn').classList.toggle('on', m==='in');
-  $('tabUp').classList.toggle('on', m==='up');
-  $('aName').style.display = m==='up' ? '' : 'none';
-  $('aName').required = m==='up';
-  $('authBtn').textContent = m==='up' ? 'Create account' : 'Sign in';
-  $('authTitle').textContent = m==='up' ? 'Create your account' : 'Welcome to toura';
-  $('authErr').textContent = '';
+  authMode=m;
+  $('tabIn').classList.toggle('on',m==='in'); $('tabUp').classList.toggle('on',m==='up');
+  $('aName').style.display=m==='up'?'':'none'; $('aName').required=m==='up';
+  $('authBtn').textContent=m==='up'?'Create account':'Sign in';
+  $('authTitle').textContent=m==='up'?'Create your account':'Welcome to toura';
+  $('authErr').textContent='';
 }
 $('authForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  $('authErr').textContent = '';
-  $('authBtn').disabled = true;
+  e.preventDefault(); $('authErr').textContent=''; $('authBtn').disabled=true;
   try{
-    const body = { email: $('aEmail').value.trim(), password: $('aPass').value };
-    if(authMode==='up') body.name = $('aName').value.trim();
-    const { user: u } = await api('/api/auth/'+(authMode==='up'?'signup':'signin'), {method:'POST', body});
+    const body={email:$('aEmail').value.trim(), password:$('aPass').value};
+    if(authMode==='up') body.name=$('aName').value.trim();
+    const {user:u}=await api('/api/auth/'+(authMode==='up'?'signup':'signin'),{method:'POST',body});
     await enter(u);
-  }catch(err){
-    $('authErr').textContent = err.message;
-  }finally{
-    $('authBtn').disabled = false;
-  }
+  }catch(err){ $('authErr').textContent=err.message; }
+  finally{ $('authBtn').disabled=false; }
 });
 async function enter(u){
-  user = u;
-  $('userName').textContent = u.name.split(' ')[0];
-  $('avatar').textContent = u.name[0].toUpperCase();
-  const h = new Date().getHours();
-  const g = h<12 ? 'Good morning' : h<18 ? 'Good afternoon' : 'Good evening';
-  $('greeting').textContent = `${g}, ${u.name.split(' ')[0]}`;
-  await loadProjects();
+  user=u;
+  $('userName').textContent=u.name.split(' ')[0];
+  $('avatar').textContent=u.name[0].toUpperCase();
+  const h=new Date().getHours();
+  $('greeting').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+u.name.split(' ')[0];
+  await Promise.all([loadProjects(), loadMusic()]);
   goDash();
 }
 async function signOut(){
-  try{ await api('/api/auth/signout', {method:'POST'}); }catch{}
-  user = null; projects = [];
-  $('aEmail').value=''; $('aPass').value=''; $('aName').value='';
-  setAuthMode('in');
-  show('auth');
+  try{ await api('/api/auth/signout',{method:'POST'}); }catch{}
+  user=null; projects=[];
+  $('aEmail').value='';$('aPass').value='';$('aName').value='';
+  setAuthMode('in'); show('auth');
 }
 (async function(){
-  try{
-    const { user: u } = await api('/api/auth/me');
-    if(u){ await enter(u); return; }
-  }catch{}
+  try{ const {user:u}=await api('/api/auth/me'); if(u){ await enter(u); return; } }catch{}
   show('auth');
 })();
 
 /* ============ dashboard ============ */
-async function loadProjects(){
-  try{ projects = (await api('/api/projects')).projects || []; }
-  catch(err){ if(err.status===401){ show('auth'); } projects = []; }
-}
-function goDash(){ renderProjects(); show('dashboard'); }
+async function loadProjects(){ try{ projects=(await api('/api/projects')).projects||[]; }catch(e){ if(e.status===401)show('auth'); projects=[]; } }
+async function goDash(){ await loadProjects(); renderProjects(); show('dashboard'); }
 function goNew(){ resetFlow(); show('new'); }
 
 function renderProjects(){
-  const grid = $('projectGrid');
-  grid.innerHTML = '';
-  const add = document.createElement('div');
-  add.className = 'card new';
-  add.onclick = goNew;
-  add.innerHTML = '<div class="inner"><div class="plus">+</div><h3>New walkthrough</h3><span>Photos → prompt → video</span></div>';
+  const grid=$('projectGrid'); grid.innerHTML='';
+  const add=document.createElement('div');
+  add.className='card new'; add.onclick=goNew;
+  add.innerHTML='<div class="inner"><div class="plus">+</div><h3>New walkthrough</h3><span>Photos → route → video</span></div>';
   grid.appendChild(add);
   projects.forEach(p=>{
-    const c = document.createElement('div');
-    c.className = 'card';
-    const thumb = p.poster
-      ? `<img src="${esc(p.poster)}" alt=""><div class="play"><i>▶</i></div><span class="badge">Ready</span>`
-      : `<video src="${esc(p.video)}#t=0.5" muted playsinline preload="metadata"></video><div class="play"><i>▶</i></div><span class="badge">Ready</span>`;
-    c.innerHTML = `<div class="thumb">${thumb}</div><div class="card-body"><h3>${esc(p.name)}</h3><span>${esc(p.meta)}</span></div>`;
-    c.style.cursor = 'pointer';
-    c.onclick = ()=>openResult(p);
+    const c=document.createElement('div'); c.className='card'; c.style.cursor='pointer';
+    const badge=p.ready?'Ready':'Rendering';
+    const thumb=p.poster?`<img src="${esc(p.poster)}" alt=""><div class="play-ico"><i>▶</i></div>`:`<span class="ph">▧</span>`;
+    c.innerHTML=`<div class="thumb">${thumb}<span class="badge">${badge}</span></div><div class="card-body"><h3>${esc(p.name)}</h3><span>${p.clipCount} clip${p.clipCount>1?'s':''}${p.merged?' · final video':''}</span></div>`;
+    c.onclick=()=>openProject(p.id);
     grid.appendChild(c);
   });
 }
 
-/* ============ uploads ============ */
-function fileToDataUrl(file, maxW=1280){
-  return new Promise(res=>{
-    const img = new Image();
-    img.onload = ()=>{
-      const scale = Math.min(1, maxW/img.width);
-      const cv = document.createElement('canvas');
-      cv.width = Math.round(img.width*scale);
-      cv.height = Math.round(img.height*scale);
-      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-      res(cv.toDataURL('image/jpeg', .85));
+/* ============ music library ============ */
+async function loadMusic(){ try{ musicLib=await api('/api/music'); }catch{} }
+function trackById(id){ return [...musicLib.catalog,...musicLib.mine].find(t=>t.id===id); }
+function goMusic(){ renderTracks(); show('music'); }
+let musicTab='favs';
+function setMusicTab(t,btn){
+  musicTab=t;
+  document.querySelectorAll('.music-tabs button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); renderTracks();
+}
+function tracksForTab(t){
+  if(t==='toura') return musicLib.catalog;
+  if(t==='mine') return musicLib.mine;
+  return [...musicLib.catalog,...musicLib.mine].filter(x=>musicLib.favs.includes(x.id));
+}
+function renderTracks(){
+  const el=$('trackList'); el.innerHTML='';
+  const list=tracksForTab(musicTab);
+  if(!list.length){
+    el.innerHTML=`<div class="empty-note">${musicTab==='favs'?'No favorites yet — tap the ♥ on any track.':musicTab==='toura'?'No Toura picks yet.':'Upload calm, license-free tracks with the button above.'}</div>`;
+    return;
+  }
+  list.forEach(t=>{
+    const row=document.createElement('div'); row.className='track';
+    const fav=musicLib.favs.includes(t.id);
+    row.innerHTML=`<button class="tplay">▶</button><div class="tname">${esc(t.name)}<div class="tby">${t.by==='toura'?'Toura pick':'Your upload'}</div></div>
+      <button class="theart ${fav?'on':''}">${fav?'♥':'♡'}</button>${t.by==='me'||(t.by==='toura'&&musicLib.admin)?'<button class="trm">Remove</button>':''}`;
+    row.querySelector('.tplay').onclick=()=>previewTrack(t, row.querySelector('.tplay'));
+    row.querySelector('.theart').onclick=async ()=>{
+      const on=!musicLib.favs.includes(t.id);
+      try{ musicLib.favs=(await api('/api/music',{method:'POST',body:{action:'fav',id:t.id,on}})).favs; renderTracks(); }catch(e){ toast(e.message); }
     };
-    img.onerror = ()=>res(null);
-    img.src = URL.createObjectURL(file);
+    const rm=row.querySelector('.trm');
+    if(rm) rm.onclick=async ()=>{ try{ await api('/api/music',{method:'POST',body:{action:'remove',id:t.id}}); await loadMusic(); renderTracks(); }catch(e){ toast(e.message); } };
+    el.appendChild(row);
   });
 }
-function bindDrop(dropId, inputId, list, previewId, tagFn){
-  const drop = $(dropId), input = $(inputId);
-  drop.onclick = ()=>input.click();
-  input.onchange = ()=>{ addFiles(input.files, list, previewId, tagFn); input.value=''; };
-  drop.ondragover = e=>{ e.preventDefault(); drop.classList.add('drag'); };
-  drop.ondragleave = ()=>drop.classList.remove('drag');
-  drop.ondrop = e=>{ e.preventDefault(); drop.classList.remove('drag'); addFiles(e.dataTransfer.files, list, previewId, tagFn); };
+let previewBtn=null;
+function previewTrack(t,btn){
+  const a=$('bgm');
+  if(previewBtn===btn && !a.paused){ a.pause(); btn.textContent='▶'; previewBtn=null; return; }
+  if(previewBtn) previewBtn.textContent='▶';
+  a.src=t.url; a.currentTime=0; a.play().catch(()=>toast('Could not play this track.'));
+  btn.textContent='⏸'; previewBtn=btn;
+  a.onended=()=>{ btn.textContent='▶'; previewBtn=null; };
 }
-async function addFiles(files, list, previewId, tagFn){
+function pickMusicFile(){ $('musicInput').click(); }
+$('musicInput').onchange=async ()=>{
+  const f=$('musicInput').files[0]; $('musicInput').value='';
+  if(!f) return;
+  if(f.size>4*1024*1024){ toast('Max 4 MB per track — use a compressed MP3.'); return; }
+  const data=await new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(f); });
+  try{
+    await api('/api/music',{method:'POST',body:{action:'upload',name:f.name.replace(/\.\w+$/,''),data}});
+    await loadMusic(); renderTracks(); toast('Track uploaded.');
+  }catch(e){ toast(e.message,6000); }
+};
+
+/* ============ new walkthrough: photos + route ============ */
+function bindBigDrop(){
+  const drop=$('photoDrop'), input=$('photoInput');
+  drop.onclick=()=>input.click();
+  input.onchange=()=>{ addPhotos(input.files); input.value=''; };
+  drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('drag'); };
+  drop.ondragleave=()=>drop.classList.remove('drag');
+  drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('drag'); addPhotos(e.dataTransfer.files); };
+}
+bindBigDrop();
+function fileToDataUrl(file,maxW=1024){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const s=Math.min(1,maxW/img.width);
+      const cv=document.createElement('canvas');
+      cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      res(cv.toDataURL('image/jpeg',.8));
+    };
+    img.onerror=()=>res(null);
+    img.src=URL.createObjectURL(file);
+  });
+}
+async function addPhotos(files){
   for(const f of [...files]){
     if(!f.type.startsWith('image/')) continue;
-    const url = await fileToDataUrl(f);
-    if(url) list.push({name:f.name, url});
+    if(photos.length>=18){ toast('Max 18 photos per walkthrough.'); break; }
+    const url=await fileToDataUrl(f);
+    if(url) photos.push({url});
   }
-  renderPreviews(list, previewId, tagFn);
-  renderChips();
-  updateGenerate();
+  renderRoute(); updateFlow();
 }
-function renderPreviews(list, previewId, tagFn){
-  const el = $(previewId);
-  el.innerHTML = '';
-  list.forEach((f,i)=>{
-    const d = document.createElement('div');
-    d.className = 'pv';
-    d.innerHTML = `<img src="${f.url}" alt=""><span class="tag">${tagFn(i,f)}</span><button class="rm" title="Remove">✕</button>`;
-    d.querySelector('.rm').onclick = e=>{
-      e.stopPropagation();
-      list.splice(i,1);
-      renderPreviews(list, previewId, tagFn);
-      renderChips();
-      updateGenerate();
+function segmentsFromRoute(){
+  const segs=[]; let cur=[];
+  photos.forEach((p,i)=>{
+    cur.push(p);
+    if(cuts.has(i) && i<photos.length-1){ segs.push(cur); cur=[]; }
+  });
+  if(cur.length) segs.push(cur);
+  return segs;
+}
+let dragIdx=null;
+function renderRoute(){
+  const strip=$('routeStrip'); strip.innerHTML='';
+  // clean up stale cuts
+  [...cuts].forEach(i=>{ if(i>=photos.length-1) cuts.delete(i); });
+  const segs=segmentsFromRoute();
+  let segNo=1, posInSeg=0, segStart=0;
+  photos.forEach((p,i)=>{
+    if(i===segStart){ posInSeg=0; }
+    const card=document.createElement('div');
+    card.className='rcard'; card.draggable=true;
+    card.innerHTML=`<img src="${p.url}" alt=""><span class="rnum">Clip ${segNo} · ${posInSeg+1}</span><button class="rrm">−</button>`;
+    card.querySelector('.rrm').onclick=e=>{ e.stopPropagation(); photos.splice(i,1); shiftCuts(i); renderRoute(); updateFlow(); };
+    card.ondragstart=()=>{ dragIdx=i; card.classList.add('dragging'); };
+    card.ondragend=()=>{ dragIdx=null; card.classList.remove('dragging'); };
+    card.ondragover=e=>e.preventDefault();
+    card.ondrop=e=>{
+      e.preventDefault();
+      if(dragIdx===null||dragIdx===i) return;
+      const [moved]=photos.splice(dragIdx,1);
+      photos.splice(i,0,moved);
+      renderRoute(); updateFlow();
     };
-    el.appendChild(d);
+    strip.appendChild(card);
+    posInSeg++;
+    if(i<photos.length-1){
+      const gap=document.createElement('div');
+      gap.className='rgap'+(cuts.has(i)?' cut':'');
+      gap.title=cuts.has(i)?'Remove cut — merge into one clip':'Cut here — start a new clip';
+      gap.innerHTML='<span class="gdot"></span>';
+      gap.onclick=()=>{ cuts.has(i)?cuts.delete(i):cuts.add(i); renderRoute(); updateFlow(); };
+      strip.appendChild(gap);
+      if(cuts.has(i)){ segNo++; segStart=i+1; }
+    }
   });
-}
-const planTag  = i => i===0 ? 'Ground floor' : `Floor ${i}`;
-const photoTag = i => `@image${i+1}`;
-bindDrop('planDrop','planInput',plans,'planPreviews',planTag);
-bindDrop('photoDrop','photoInput',photos,'photoPreviews',photoTag);
-
-/* ============ prompt editor ============ */
-function renderChips(){
-  const el = $('chips');
-  el.innerHTML = '';
-  const used = referencedImages();
-  photos.forEach((f,i)=>{
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'chip' + (used.includes(i) ? ' used' : '');
-    b.innerHTML = `<img src="${f.url}" alt="">@image${i+1}`;
-    b.onclick = ()=>insertToken(`@image${i+1}`);
-    el.appendChild(b);
+  const tags=$('clipTags'); tags.innerHTML='';
+  segs.forEach((seg,n)=>{
+    const t=document.createElement('span'); t.className='clip-tag';
+    t.textContent=`Clip ${n+1} — ${seg.length} photo${seg.length>1?'s':''}, one continuous shot`;
+    tags.appendChild(t);
   });
+  $('routeHint').textContent=photos.length
+    ? (segs.length>1?`${segs.length} clips will be generated and combined into one video.`:'One continuous clip. Click a dot between photos to split — e.g. when you move to another floor.')
+    : '';
 }
-function insertToken(tok){
-  const ta = $('prompt');
-  const s = ta.selectionStart ?? ta.value.length;
-  const e = ta.selectionEnd ?? ta.value.length;
-  const before = ta.value.slice(0,s), after = ta.value.slice(e);
-  const pad1 = before && !/\s$/.test(before) ? ' ' : '';
-  const pad2 = after && !/^\s/.test(after) ? ' ' : '';
-  ta.value = before + pad1 + tok + pad2 + after;
-  ta.focus();
-  const pos = (before+pad1+tok+pad2).length;
-  ta.setSelectionRange(pos,pos);
-  renderChips();
-}
-$('prompt').addEventListener('input', renderChips);
-function referencedImages(){
-  const found = [];
-  const re = /@image(\d+)/g;
-  let m;
-  while((m = re.exec($('prompt').value))){
-    const idx = parseInt(m[1],10)-1;
-    if(idx>=0 && idx<photos.length && !found.includes(idx)) found.push(idx);
-  }
-  return found;
-}
-function useSuggested(){
-  const n = Math.min(photos.length, 9) || 1;
-  const route = Array.from({length:n}, (_,i)=>`@image${i+1}`);
-  const path = n === 1
-    ? `starting from ${route[0]}`
-    : `Start in ${route[0]}, then glide naturally through ${route.slice(1).join(', ')}, in that order.`;
-  $('prompt').value =
-    `Cinematic real estate walkthrough, one continuous shot. ${path} Slow, gimbal-smooth dolly movement revealing each room's depth and natural light. Shallow depth of field, warm true-to-life color grading, subtle lens flare at the windows. Eye-level camera, straight verticals, luxurious pacing. No hallucinations: use only the rooms, furniture and architecture visible in the source photos. No people, no text overlays.`;
-  renderChips();
+function shiftCuts(removedIdx){
+  const next=new Set();
+  cuts.forEach(i=>{ if(i<removedIdx) next.add(i); else if(i>removedIdx) next.add(i-1); });
+  cuts=next;
 }
 
-const settings = { duration:'auto', aspect:'16:9', quality:'720p' };
-function bindPills(id, key){
-  $(id).querySelectorAll('.pill').forEach(b=>{
-    b.onclick = ()=>{
-      $(id).querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+/* ============ new walkthrough: music picker ============ */
+let mpickTab='none';
+function bindMpick(rootId, listId, onSel, getSel){
+  $(rootId).querySelectorAll('.mopt').forEach(b=>{
+    b.onclick=()=>{
+      $(rootId).querySelectorAll('.mopt').forEach(x=>x.classList.remove('on'));
       b.classList.add('on');
-      settings[key] = b.dataset.v;
+      const m=b.dataset.m;
+      if(m==='none'){ onSel(null); renderMlist(listId,[],onSel,getSel); }
+      else renderMlist(listId, tracksForTab(m), onSel, getSel);
     };
   });
 }
-bindPills('durPills','duration');
-bindPills('arPills','aspect');
-bindPills('qPills','quality');
+function renderMlist(listId, list, onSel, getSel){
+  const el=$(listId); el.innerHTML='';
+  if(!list.length){ el.innerHTML= listId==='mlist'&&mpickTab!=='none'?'':''; return; }
+  list.forEach(t=>{
+    const row=document.createElement('div');
+    row.className='mrow'+(getSel()&&getSel().url===t.url?' sel':'');
+    row.innerHTML=`<button class="tplay">▶</button><span>${esc(t.name)}</span>`;
+    row.querySelector('.tplay').onclick=e=>{ e.stopPropagation(); previewTrack(t,row.querySelector('.tplay')); };
+    row.onclick=()=>{ onSel({name:t.name,url:t.url}); renderMlist(listId,list,onSel,getSel); };
+    el.appendChild(row);
+  });
+}
+bindMpick('mpick','mlist', m=>{ pickedMusic=m; }, ()=>pickedMusic);
 
-function updateGenerate(){
-  const ok = photos.length >= 1;
-  $('generateBtn').disabled = !ok;
-  $('genNote').textContent = ok ? 'Ready to generate.' : 'Add photos to generate.';
+/* ============ new walkthrough: prompt + settings ============ */
+const settings={duration:'auto',aspect:'16:9',quality:'720p'};
+function bindPills(id,key){
+  $(id).querySelectorAll('.pill').forEach(b=>{
+    b.onclick=()=>{ $(id).querySelectorAll('.pill').forEach(x=>x.classList.remove('on')); b.classList.add('on'); settings[key]=b.dataset.v; };
+  });
+}
+bindPills('durPills','duration'); bindPills('arPills','aspect'); bindPills('qPills','quality');
+
+function suggestedPrompt(){
+  const segs=segmentsFromRoute();
+  const multi=segs.length>1;
+  return `Calm, gimbal-smooth camera gliding at eye level through the home, following the photo order exactly. Warm natural light, true-to-life colors, straight verticals, luxurious pacing${multi?'. Keep the same style across every clip':''}. No people, no text.`;
+}
+function resetPrompt(){ $('prompt').value=suggestedPrompt(); promptDirty=false; }
+$('prompt').addEventListener('input',()=>{ promptDirty=true; });
+function updateFlow(){
+  const has=photos.length>0;
+  $('routeStep').style.display=has?'':'none';
+  $('musicStep').style.display=has?'':'none';
+  $('promptStep').style.display=has?'':'none';
+  if(has && !promptDirty) $('prompt').value=suggestedPrompt();
+  const segs=segmentsFromRoute();
+  const tooBig=segs.some(s=>s.length>9);
+  $('generateBtn').disabled=!has||tooBig;
+  $('genNote').textContent=!has?'Add photos to generate.':tooBig?'Max 9 photos per clip — add a cut to split the route.':`${segs.length} clip${segs.length>1?'s':''} will be generated.`;
 }
 function resetFlow(){
-  plans.length = 0; photos.length = 0;
-  $('planPreviews').innerHTML = '';
-  $('photoPreviews').innerHTML = '';
-  $('chips').innerHTML = '';
-  $('propName').value = '';
-  $('prompt').value = '';
-  updateGenerate();
+  photos=[]; cuts=new Set(); pickedMusic=null; promptDirty=false;
+  $('routeStrip').innerHTML=''; $('clipTags').innerHTML=''; $('routeHint').textContent='';
+  $('mlist').innerHTML=''; $('propName').value=''; $('prompt').value='';
+  document.querySelectorAll('#mpick .mopt').forEach((b,i)=>b.classList.toggle('on',i===0));
+  updateFlow();
 }
 
 /* ============ generate ============ */
 async function startGenerate(){
-  const prompt = $('prompt').value.trim();
-  // Send every photo referenced in the prompt (max 9); default to the first photo.
-  const refs = referencedImages();
-  const chosen = (refs.length ? refs : [0]).slice(0, 9);
-  show('generating');
-  $('genStage').textContent = 'Submitting…';
-  $('generateBtn').disabled = true;
+  const segs=segmentsFromRoute();
+  $('generateBtn').disabled=true;
+  $('genNote').textContent='Uploading photos & starting clips…';
   try{
-    const { id } = await api('/api/generate', {method:'POST', body:{
-      name: $('propName').value.trim(),
-      prompt,
-      duration: settings.duration,
-      aspect: settings.aspect,
-      quality: settings.quality,
-      images: chosen.map(i=>photos[i].url),
+    const {id}=await api('/api/generate',{method:'POST',body:{
+      name:$('propName').value.trim(),
+      segments:segs.map(s=>({images:s.map(p=>p.url)})),
+      stylePrompt:$('prompt').value.trim(),
+      music:pickedMusic,
+      duration:settings.duration, aspect:settings.aspect, quality:settings.quality,
     }});
-    poll(id);
+    openProject(id);
   }catch(err){
-    toast(err.message, 6000);
-    show('new');
-  }finally{
-    $('generateBtn').disabled = false;
-    updateGenerate();
+    toast(err.message,7000);
+    $('generateBtn').disabled=false; updateFlow();
   }
 }
-let pollBackground = false;
-function poll(id){
-  clearInterval(polling);
-  pollBackground = false;
-  const labels = { queued:'Queued…', in_progress:'Rendering cinematic camera moves…' };
-  polling = setInterval(async ()=>{
-    try{
-      const st = await api('/api/status?id='+encodeURIComponent(id));
-      if(st.status === 'completed'){
-        clearInterval(polling);
-        projects.unshift(st.project);
-        if(pollBackground){
-          toast('Your walkthrough is ready.', 5000);
-          if($('dashboard').classList.contains('active')) renderProjects();
-        } else {
-          openResult(st.project);
-        }
-      } else if(st.status === 'failed'){
-        clearInterval(polling);
-        toast(st.error || 'The render failed — please try again.', 6000);
-        if(!pollBackground) show('new');
-      } else if(!pollBackground){
-        $('genStage').textContent = labels[st.status] || 'Working…';
-      }
-    }catch(err){
-      if(!pollBackground) $('genStage').textContent = 'Reconnecting…';
-    }
-  }, 5000);
-}
-function cancelGenerate(){
-  pollBackground = true;
-  toast('Your video keeps rendering — it will appear on your dashboard.', 5000);
-  goDash();
-}
 
-/* ============ result ============ */
-function openResult(p){
-  $('resultTitle').textContent = p.name;
-  const box = $('playerBox');
-  box.classList.toggle('vert', p.aspect === '9:16');
-  box.innerHTML = `<video src="${esc(p.video)}" ${p.poster?`poster="${esc(p.poster)}"`:''} controls playsinline></video>`;
-  $('downloadBtn').href = p.video;
-  show('result');
+/* ============ review / project ============ */
+async function openProject(id){
+  show('review');
+  $('rvTitle').textContent='Loading…'; $('rvSub').textContent=''; $('clipRow').innerHTML=''; $('rvPlayer').innerHTML=''; $('finalBox').innerHTML='';
+  await refreshProject(id);
+  clearInterval(rvPoll);
+  rvPoll=setInterval(async ()=>{
+    if(!currentProject) return;
+    const pending=currentProject.clips.some(c=>c.status==='queued'||c.status==='in_progress')||currentProject.mergedPending;
+    if(pending) await refreshProject(id);
+  },5000);
+}
+async function refreshProject(id){
+  try{
+    const {project}=await api('/api/status?id='+encodeURIComponent(id));
+    currentProject=project;
+    renderReview();
+  }catch(err){ if(err.status===404){ toast('Project not found.'); goDash(); } }
+}
+function renderReview(){
+  const p=currentProject;
+  $('rvTitle').textContent=p.name;
+  const done=p.clips.filter(c=>c.status==='done').length;
+  const failed=p.clips.filter(c=>c.status==='failed').length;
+  const pending=p.clips.length-done-failed;
+  $('rvSub').textContent=pending?`Rendering ${pending} of ${p.clips.length} clips… this page updates automatically.`:
+    `${done} clip${done!==1?'s':''} ready${failed?` · ${failed} failed`:''}${p.music?` · ♪ ${p.music.name}`:''}`;
+  $('rvPlayer').classList.toggle('vert',p.aspect==='9:16');
+
+  // big player: merged > first done clip > poster
+  const player=$('rvPlayer');
+  if(!player.querySelector('video')){
+    const first=p.clips.find(c=>c.video);
+    if(p.merged||first){
+      player.innerHTML=`<video id="rvVideo" src="${esc(p.merged||first.video)}" controls playsinline ${first&&first.poster?`poster="${esc(first.poster)}"`:''}></video>`;
+    } else if(p.clips[0]?.poster){
+      player.innerHTML=`<img src="${esc(p.clips[0].poster)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+    }
+  }
+
+  // clips row
+  const row=$('clipRow'); row.innerHTML='';
+  p.clips.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='clip'; el.draggable=c.status==='done';
+    const state=c.status==='done'?(c.locked?'✓ Locked':'Ready'):c.status==='failed'?'Failed':'<span class="spin"></span> Rendering';
+    const thumb=c.video?`<video src="${esc(c.video)}#t=0.4" muted playsinline preload="metadata"></video>`:c.poster?`<img src="${esc(c.poster)}" alt="">`:'';
+    el.innerHTML=`<div class="cthumb">${thumb}<span class="cstate">${state}</span></div>
+      <div class="cbody"><div class="cname">Clip ${i+1}</div><div class="cacts">
+        ${c.status==='done'?`<button class="cact" data-a="play">▶ Play</button>
+        <button class="cact ${c.locked?'on':''}" data-a="lock">${c.locked?'Locked':'Keep'}</button>`:''}
+        ${(c.status==='done'||c.status==='failed')&&!c.locked?`<button class="cact" data-a="regen">↺ Redo</button>`:''}
+        ${c.video?`<a class="cact" href="${esc(c.video)}" target="_blank" rel="noopener" download="toura-clip-${i+1}.mp4">↓</a>`:''}
+      </div></div>`;
+    el.querySelectorAll('.cact').forEach(b=>{
+      const a=b.dataset.a;
+      if(a==='play') b.onclick=()=>playClip(i);
+      if(a==='lock') b.onclick=()=>doAction({action:'lock',cid:c.cid,locked:!c.locked});
+      if(a==='regen') b.onclick=()=>{ if(confirm('Regenerate this clip? This uses rendering credits.')) doAction({action:'regenerate',cid:c.cid,stylePrompt:c.stylePrompt}); };
+    });
+    el.ondragstart=()=>{ dragIdx=i; el.classList.add('dragging'); };
+    el.ondragend=()=>{ dragIdx=null; el.classList.remove('dragging'); };
+    el.ondragover=e=>e.preventDefault();
+    el.ondrop=async e=>{
+      e.preventDefault();
+      if(dragIdx===null||dragIdx===i) return;
+      const order=p.clips.map(c=>c.cid);
+      const [m]=order.splice(dragIdx,1); order.splice(i,0,m);
+      await doAction({action:'reorder',order});
+    };
+    row.appendChild(el);
+  });
+
+  // music picker (review)
+  bindMpick('rvMpick','rvMlist', async m=>{ await doAction({action:'music',music:m}); }, ()=>p.music);
+  document.querySelectorAll('#rvMpick .mopt').forEach(b=>b.classList.toggle('on', b.dataset.m==='none'&&!p.music));
+
+  // final box
+  const fb=$('finalBox');
+  const ready=p.clips.filter(c=>c.status==='done').length;
+  if(p.mergedPending){
+    fb.innerHTML=`<div class="ftext"><span class="spin"></span> Combining your clips${p.music?' and adding music':''}… this page updates automatically.</div>`;
+  } else if(p.merged){
+    fb.innerHTML=`<div class="ftext"><b>Your final video is ready.</b> ${p.clips.length>1?`${ready} clips combined`:'1 clip'}${p.music?` with “${esc(p.music.name)}”`:''}.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn small" href="${esc(p.merged)}" target="_blank" rel="noopener" download="toura-walkthrough.mp4">Download final video</a>
+        <button class="btn ghost small" onclick="doAction({action:'merge'})">Rebuild</button>
+      </div>`;
+  } else {
+    fb.innerHTML=`<div class="ftext">${ready?`<b>${ready} clip${ready>1?'s':''} ready.</b> Combine them${p.music?' with your music':''} into one video to download and share.`:'Waiting for clips to finish…'}</div>
+      <button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'merge'})">Create final video</button>`;
+  }
+}
+async function doAction(body){
+  try{
+    const {project}=await api('/api/project',{method:'POST',body:{id:currentProject.id,...body}});
+    currentProject=project;
+    $('rvPlayer').innerHTML='';
+    renderReview();
+  }catch(err){ toast(err.message,6000); }
+}
+function playClip(i){
+  stopAll();
+  const c=currentProject.clips[i];
+  if(!c?.video) return;
+  $('rvPlayer').innerHTML=`<video id="rvVideo" src="${esc(c.video)}" controls playsinline autoplay></video>`;
+  document.querySelectorAll('.clip').forEach((el,j)=>el.classList.toggle('playing',j===i));
+}
+function playAll(){
+  const clips=currentProject.clips.filter(c=>c.video);
+  if(!clips.length) return;
+  if(currentProject.merged){
+    $('rvPlayer').innerHTML=`<video id="rvVideo" src="${esc(currentProject.merged)}" controls playsinline autoplay></video>`;
+    return;
+  }
+  playAllIdx=0;
+  const a=$('bgm');
+  if(currentProject.music){ a.src=currentProject.music.url; a.currentTime=0; a.play().catch(()=>{}); }
+  const playNext=()=>{
+    if(playAllIdx>=clips.length){ stopAll(); return; }
+    const c=clips[playAllIdx];
+    $('rvPlayer').innerHTML=`<video id="rvVideo" src="${esc(c.video)}" playsinline autoplay muted></video>`;
+    const v=$('rvVideo');
+    v.onended=()=>{ playAllIdx++; playNext(); };
+    document.querySelectorAll('.clip').forEach((el,j)=>el.classList.toggle('playing', currentProject.clips[j]===c));
+  };
+  playNext();
+  toast('Preview — music is baked in when you create the final video.');
+}
+function stopAll(){
+  playAllIdx=-1;
+  const a=$('bgm'); a.pause();
+  document.querySelectorAll('.clip').forEach(el=>el.classList.remove('playing'));
 }
 </script>
 </body>

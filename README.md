@@ -1,53 +1,47 @@
 # Toura — AI walkthrough videos
 
-De complete Toura-app: makelaars maken een account aan, uploaden plattegronden en foto's, schrijven een prompt met @image-verwijzingen en genereren een cinematic walkthrough-video. Alle rendering loopt via **jouw centrale Higgsfield-key op de server** — gebruikers zien of merken niets van Higgsfield.
+De complete Toura-app: makelaars maken een account aan, uploaden plattegronden en foto's, schrijven een prompt met @image-verwijzingen en genereren een cinematic walkthrough-video met **Seedance 2.0 via fal.ai**. Alle rendering loopt via **jouw centrale fal-key op de server** — je betaalt puur per gegenereerde video, geen abonnement. Gebruikers zien alleen Toura.
 
 ## Hoe het werkt
 
-Frontend (`public/index.html`) → Toura API (`api/`) → Higgsfield Cloud.
+Frontend (`public/index.html`) → Toura API (`api/`) → fal.ai (Seedance 2.0 + ffmpeg).
 
-De API regelt accounts (veilig gehasht wachtwoord, sessie-cookie), slaat projecten op in een database, host geüploade foto's, stuurt render-opdrachten naar Higgsfield en archiveert de klaar-gerenderde video zodat hij nooit verloopt.
+De flow voor makelaars: foto's uploaden (drag & drop) → **route** bepalen door foto's te slepen en met "cuts" op te knippen in clips (elke clip = één doorlopend shot, max 9 foto's) → **muziek** kiezen (Toura picks, favorieten of eigen upload) → automatisch voorgestelde prompt → Generate. Daarna in het review-scherm: clips herordenen, goede clips locken, mislukte opnieuw genereren, los downloaden, en met één knop samenvoegen tot een **final video met muziek** (via fal ffmpeg).
+
+De API regelt accounts (gehasht wachtwoord, sessie-cookie), projecten in de database, foto/muziek-hosting, render-opdrachten en archiveert klare video's zodat ze nooit verlopen.
 
 ## Online zetten (Vercel) — stap voor stap
 
-Eenmalig, duurt ± 15 minuten. Je hebt nodig: een gratis [GitHub](https://github.com)-account, een gratis [Vercel](https://vercel.com)-account en een [Higgsfield Cloud](https://cloud.higgsfield.ai) API-key.
+Eenmalig, ± 15 minuten. Nodig: gratis [GitHub](https://github.com)- en [Vercel](https://vercel.com)-accounts en een [fal.ai](https://fal.ai)-account met tegoed.
 
-**Stap 1 — Zet dit project op GitHub.**
-Ga naar github.com → "New repository" → naam `toura-app` → "Create". Kies daarna "uploading an existing file" en sleep alle bestanden uit deze map erin (inclusief de mappen `api`, `lib`, `public`). Klik "Commit changes".
+**Stap 1 — Zet dit project op GitHub.** New repository → `toura-app` → upload alle bestanden en mappen → Commit changes.
 
-**Stap 2 — Importeer in Vercel.**
-Ga naar vercel.com → "Add New… → Project" → kies je `toura-app`-repository → "Deploy". De eerste versie staat nu online, maar kan nog geen accounts bewaren of video's renderen — dat regelen stap 3 en 4.
+**Stap 2 — Importeer in Vercel.** Add New → Project → kies de repository → Deploy.
 
-**Stap 3 — Voeg de database en opslag toe.**
-In je Vercel-project: tabblad **Storage** → "Create Database" → kies **Upstash (Redis/KV)** → aanmaken en aan dit project koppelen. Doe hetzelfde voor **Blob** ("Create Blob Store"). Vercel vult de bijbehorende instellingen automatisch in.
+**Stap 3 — Database en opslag.** Tabblad Storage → Create Database → **Redis** (prefix: `KV`) → koppel aan het project. Daarna Create → **Blob** (access: public) → koppel.
 
-**Stap 4 — Voeg je geheime sleutels toe.**
-Tabblad **Settings → Environment Variables**, voeg toe:
+**Stap 4 — Geheime sleutels.** Settings → Environment Variables:
 
 | Naam | Waarde |
 |---|---|
-| `HIGGSFIELD_API_KEY` | je key van cloud.higgsfield.ai |
-| `HIGGSFIELD_API_SECRET` | je secret van cloud.higgsfield.ai |
+| `FAL_KEY` | je API-key van fal.ai/dashboard/keys |
 | `SESSION_SECRET` | zelfbedachte lange willekeurige tekst (32+ tekens) |
+| `ADMIN_EMAIL` | jouw Toura-loginmail — muziek die dit account uploadt verschijnt voor álle gebruikers als "Toura picks" |
 
-**Stap 5 — Redeploy.**
-Tabblad **Deployments** → drie puntjes bij de bovenste → "Redeploy". Klaar: je app werkt volledig, voor iedereen hetzelfde.
+**Stap 5 — Redeploy.** Deployments → ⋯ bij de bovenste → Redeploy. Klaar.
 
-**Stap 6 (later) — Eigen domein.**
-Settings → Domains → voeg `toura.ai` toe en volg de DNS-instructies van je registrar.
+**Stap 6 (later) — Eigen domein.** Settings → Domains → `toura.ai` toevoegen.
 
 ## Lokaal testen
 
 ```
 node dev-server.js          # → http://localhost:3000
-```
-Zonder database-instellingen draait alles in het geheugen (accounts verdwijnen bij herstart). Volledige testflow zonder credits te gebruiken:
-```
-bash test/run-e2e.sh        # 17 checks, gesimuleerde Higgsfield-server
+bash test/run-e2e.sh        # 20 checks, gesimuleerde fal-server, geen kosten
 ```
 
 ## Goed om te weten
 
-- **Kosten**: elke video kost Higgsfield-credits van jouw account. Bouw dus snel een limiet of credits-systeem per gebruiker in voordat je de app breed deelt — nu kan elke ingelogde gebruiker onbeperkt genereren.
-- **Model**: standaard `higgsfield-ai/dop/standard`. Ander model? Zet env var `HF_MODEL`.
+- **Kosten**: elke video kost fal-tegoed (Seedance 2.0 fast, ± enkele dubbeltjes per 720p-clip). Er zit nog géén limiet per gebruiker in — bouw een credits-systeem in voordat je de app breed deelt.
+- **Model wisselen**: standaard `bytedance/seedance-2.0/fast/reference-to-video`. Hogere kwaliteit? Zet env var `FAL_MODEL` op `bytedance/seedance-2.0/reference-to-video`.
+- **Instellingen in de app**: duur Auto/5/10/15s, aspect 16:9/9:16/Auto, kwaliteit 480p/720p, audio automatisch aan.
 - E-mailverificatie en wachtwoord-reset zijn nog niet ingebouwd.

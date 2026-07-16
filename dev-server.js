@@ -15,6 +15,8 @@ const ROUTES = {
   '/api/projects':     './api/projects.js',
   '/api/generate':     './api/generate.js',
   '/api/status':       './api/status.js',
+  '/api/project':      './api/project.js',
+  '/api/music':        './api/music.js',
 };
 const MIME = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.jpg':'image/jpeg', '.svg':'image/svg+xml', '.ico':'image/x-icon' };
 

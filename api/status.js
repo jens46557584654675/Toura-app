@@ -1,7 +1,7 @@
-import { db } from '../lib/db.js';
 import { getSession } from '../lib/auth.js';
-import { jobStatus, jobResult } from '../lib/fal.js';
+import { falStatus, falResult, falSubmit, MODELS } from '../lib/fal.js';
 import { archiveVideo } from '../lib/blob.js';
+import { getProject, saveProjects } from '../lib/projects.js';
 
 export default async function handler(req, res){
   const s = getSession(req);
@@ -9,42 +9,53 @@ export default async function handler(req, res){
   const id = String(req.query?.id || '');
   if(!id) return res.status(400).json({ error: 'Missing id' });
 
-  const job = await db.get(`job:${id}`);
-  if(!job) return res.status(404).json({ error: 'Unknown job' });
-  if(job.email !== s.email) return res.status(403).json({ error: 'Not your job' });
-  if(job.done) return job.failed
-    ? res.json({ status: 'failed', error: job.error || 'The render failed.' })
-    : res.json({ status: 'completed', project: job.project });
+  const { list, idx, project } = await getProject(s.email, id);
+  if(!project) return res.status(404).json({ error: 'Unknown project' });
 
+  let changed = false;
   try{
-    const st = await jobStatus(id);
-    if(st.status === 'COMPLETED'){
-      let out;
-      try{
-        out = await jobResult(id);
-      }catch(err){
-        await db.set(`job:${id}`, { ...job, done: true, failed: true, error: 'The render failed — please try again.' });
-        return res.json({ status: 'failed', error: 'The render failed — please try again.' });
+    // 1. Poll pending clips
+    for(const clip of project.clips){
+      if(clip.status !== 'queued' && clip.status !== 'in_progress') continue;
+      const st = await falStatus(MODELS.video, clip.falId);
+      if(st.status === 'COMPLETED'){
+        try{
+          const out = await falResult(MODELS.video, clip.falId);
+          clip.video = await archiveVideo(out.video?.url);
+          clip.status = 'done';
+        }catch{
+          clip.status = 'failed';
+        }
+        changed = true;
+      } else {
+        const next = st.status === 'IN_PROGRESS' ? 'in_progress' : 'queued';
+        if(next !== clip.status){ clip.status = next; changed = true; }
       }
-      const video = await archiveVideo(out.video?.url);
-      const project = {
-        id,
-        name: job.name,
-        meta: (job.duration === 'auto' ? 'Ready' : `0:${String(job.duration).padStart(2, '0')} · Ready`),
-        video,
-        poster: job.poster,
-        aspect: job.aspect,
-        ready: true,
-        created: job.created,
-      };
-      const list = (await db.get(`projects:${s.email}`)) || [];
-      list.unshift(project);
-      await db.set(`projects:${s.email}`, list.slice(0, 200));
-      await db.set(`job:${id}`, { ...job, done: true, project });
-      return res.json({ status: 'completed', project });
     }
-    res.json({ status: st.status === 'IN_PROGRESS' ? 'in_progress' : 'queued' });
+    // 2. Poll pending merge
+    const mp = project.mergedPending;
+    if(mp){
+      const model = mp.phase === 'audio' ? MODELS.audio : MODELS.merge;
+      const st = await falStatus(model, mp.falId);
+      if(st.status === 'COMPLETED'){
+        const out = await falResult(model, mp.falId);
+        const url = out.video?.url;
+        if(mp.phase === 'video' && project.music?.url){
+          // Video merged — now lay the music underneath
+          const falId = await falSubmit(MODELS.audio, { video_url: url, audio_url: project.music.url });
+          project.mergedPending = { phase: 'audio', falId };
+        } else {
+          project.merged = await archiveVideo(url);
+          project.mergedPending = null;
+        }
+        changed = true;
+      }
+    }
   }catch(err){
-    res.status(502).json({ error: 'Status check failed: ' + err.message });
+    // transient fal error — return current state, client keeps polling
   }
+  if(changed){ list[idx] = project; await saveProjects(s.email, list); }
+
+  const { email, ...pub } = project;
+  res.json({ project: pub });
 }
