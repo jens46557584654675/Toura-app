@@ -265,7 +265,7 @@
 
       <div class="step">
         <div class="step-head"><span class="step-num">04</span><h2>Prompt</h2></div>
-        <div class="step-sub">Reference photos with @image1, @image2 — the first one is your start frame.</div>
+        <div class="step-sub">Reference photos with @image1, @image2 — every photo you mention travels along (max 9).</div>
         <div class="step-body">
           <div class="editor">
             <div class="chips" id="chips"></div>
@@ -275,9 +275,10 @@
               <div class="setgroup">
                 <label>Duration</label>
                 <div class="pills" id="durPills">
-                  <button class="pill" data-v="3">3s</button>
-                  <button class="pill on" data-v="5">5s</button>
+                  <button class="pill on" data-v="auto">Auto</button>
+                  <button class="pill" data-v="5">5s</button>
                   <button class="pill" data-v="10">10s</button>
+                  <button class="pill" data-v="15">15s</button>
                 </div>
               </div>
               <div class="setgroup">
@@ -285,13 +286,14 @@
                 <div class="pills" id="arPills">
                   <button class="pill on" data-v="16:9">16:9</button>
                   <button class="pill" data-v="9:16">9:16</button>
+                  <button class="pill" data-v="auto">Auto</button>
                 </div>
               </div>
               <div class="setgroup">
                 <label>Quality</label>
                 <div class="pills" id="qPills">
+                  <button class="pill" data-v="480p">480p</button>
                   <button class="pill on" data-v="720p">720p</button>
-                  <button class="pill" data-v="1080p">1080p</button>
                 </div>
               </div>
             </div>
@@ -559,22 +561,27 @@ function referencedImages(){
   return found;
 }
 function useSuggested(){
+  const n = Math.min(photos.length, 9) || 1;
+  const route = Array.from({length:n}, (_,i)=>`@image${i+1}`);
+  const path = n === 1
+    ? `starting from ${route[0]}`
+    : `Start in ${route[0]}, then glide naturally through ${route.slice(1).join(', ')}, in that order.`;
   $('prompt').value =
-    "Cinematic real estate walkthrough starting from @image1. Slow, gimbal-smooth dolly-in revealing the room's depth and natural light. Shallow depth of field, warm true-to-life color grading, subtle lens flare at the windows. Eye-level camera, straight verticals, luxurious pacing. No people, no text overlays.";
+    `Cinematic real estate walkthrough, one continuous shot. ${path} Slow, gimbal-smooth dolly movement revealing each room's depth and natural light. Shallow depth of field, warm true-to-life color grading, subtle lens flare at the windows. Eye-level camera, straight verticals, luxurious pacing. No hallucinations: use only the rooms, furniture and architecture visible in the source photos. No people, no text overlays.`;
   renderChips();
 }
 
-const settings = { duration:5, aspect:'16:9', quality:'720p' };
-function bindPills(id, key, cast){
+const settings = { duration:'auto', aspect:'16:9', quality:'720p' };
+function bindPills(id, key){
   $(id).querySelectorAll('.pill').forEach(b=>{
     b.onclick = ()=>{
       $(id).querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
       b.classList.add('on');
-      settings[key] = cast ? cast(b.dataset.v) : b.dataset.v;
+      settings[key] = b.dataset.v;
     };
   });
 }
-bindPills('durPills','duration', v=>parseInt(v,10));
+bindPills('durPills','duration');
 bindPills('arPills','aspect');
 bindPills('qPills','quality');
 
@@ -596,8 +603,9 @@ function resetFlow(){
 /* ============ generate ============ */
 async function startGenerate(){
   const prompt = $('prompt').value.trim();
+  // Send every photo referenced in the prompt (max 9); default to the first photo.
   const refs = referencedImages();
-  const startIdx = refs.length ? refs[0] : 0;
+  const chosen = (refs.length ? refs : [0]).slice(0, 9);
   show('generating');
   $('genStage').textContent = 'Submitting…';
   $('generateBtn').disabled = true;
@@ -608,7 +616,7 @@ async function startGenerate(){
       duration: settings.duration,
       aspect: settings.aspect,
       quality: settings.quality,
-      image: photos[startIdx].url,
+      images: chosen.map(i=>photos[i].url),
     }});
     poll(id);
   }catch(err){
