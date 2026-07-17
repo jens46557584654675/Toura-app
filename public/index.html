@@ -405,7 +405,7 @@
 let user=null, projects=[], musicLib={catalog:[],mine:[],favs:[]};
 let photos=[];            // {id, url} in ROUTE order (url = dataURL or hosted URL)
 let cuts=new Set();       // cut AFTER index i
-let segCfgs=[];           // per segment: {prompt,duration,pacing,cid,status,video,sig,changed,rendering}
+let segCfgs=[];           // per segment: {prompt,duration,cid,status,video,sig,changed,rendering}
 let editorProjectId=null;
 let settingsLocked=false;
 let currentProject=null;
@@ -649,7 +649,7 @@ function syncSegments(){
       const changed=best.sig!==sig;
       return {...best,sig,changed:changed||best.changed};
     }
-    return {prompt:'',duration:10,pacing:'normal',cid:null,status:null,video:null,sig,changed:false};
+    return {prompt:'',duration:10,cid:null,status:null,video:null,sig,changed:false};
   });
   // clean up clips whose photos were removed from the route
   const keptCids=new Set(segCfgs.filter(c=>c.cid).map(c=>c.cid));
@@ -757,15 +757,10 @@ function renderClips(){
       </div>
       <div class="cset">
         <label>What happens in this clip? <span style="text-transform:none;font-weight:500">(optional)</span></label>
-        <textarea data-f="prompt" placeholder="e.g. glide from the hallway into the living room, end at the window…">${esc(cfg.prompt)}</textarea>
+        <textarea data-f="prompt">${esc(cfg.prompt)}</textarea>
         <label>Length</label>
         <div class="range-wrap"><input type="range" data-f="dur" min="2" max="15" step="1" value="${cfg.duration}"><span class="range-val">${cfg.duration}s</span></div>
-        <label>Camera speed</label>
-        <div class="pills" data-f="pace">
-          <button class="pill ${cfg.pacing==='slow'?'on':''}" data-v="slow">Slow</button>
-          <button class="pill ${cfg.pacing==='normal'?'on':''}" data-v="normal">Normal</button>
-          <button class="pill ${cfg.pacing==='fast'?'on':''}" data-v="fast">Fast</button>
-        </div>
+        <div class="locknote" style="margin-top:6px">Shorter clip = faster movement through the rooms.</div>
         <div class="crow">
           <button class="btn small" data-f="render" ${seg.length>9||cfg.rendering?'disabled':''}>${cfg.cid?'↺ Re-render':'Render clip'}</button>
           ${cfg.video?`<a class="btn ghost small" href="${esc(cfg.video)}" target="_blank" rel="noopener" download="toura-clip-${i+1}.mp4">↓</a>`:''}
@@ -775,9 +770,6 @@ function renderClips(){
     row.querySelector('[data-f=prompt]').oninput=e=>{ cfg.prompt=e.target.value; };
     const rng=row.querySelector('[data-f=dur]');
     rng.oninput=()=>{ cfg.duration=parseInt(rng.value,10); rng.nextElementSibling.textContent=cfg.duration+'s'; };
-    row.querySelectorAll('[data-f=pace] .pill').forEach(b=>{
-      b.onclick=()=>{ row.querySelectorAll('[data-f=pace] .pill').forEach(x=>x.classList.remove('on')); b.classList.add('on'); cfg.pacing=b.dataset.v; };
-    });
     row.querySelector('[data-f=render]').onclick=()=>renderClip(i);
     wrap.appendChild(row);
   });
@@ -793,7 +785,7 @@ async function renderClip(i){
     if(!editorProjectId){
       const {id}=await api('/api/generate',{method:'POST',body:{
         name:$('propName').value.trim(),
-        segments:[{images,prompt:cfg.prompt,duration:cfg.duration,pacing:cfg.pacing}],
+        segments:[{images,prompt:cfg.prompt,duration:cfg.duration}],
         stylePrompt:'', music:null,
         duration:cfg.duration, aspect:settings.aspect, quality:settings.quality,
       }});
@@ -804,14 +796,14 @@ async function renderClip(i){
       cfg.cid=project.clips[0].cid;
       cfg.status=project.clips[0].status;
     } else if(cfg.cid){
-      const body={id:editorProjectId,action:'regenerate',cid:cfg.cid,stylePrompt:cfg.prompt,pacing:cfg.pacing,duration:cfg.duration};
+      const body={id:editorProjectId,action:'regenerate',cid:cfg.cid,stylePrompt:cfg.prompt,duration:cfg.duration};
       if(cfg.changed) body.images=images;
       const {project}=await api('/api/project',{method:'POST',body});
       currentProject=project;
       cfg.status='queued'; cfg.video=null; cfg.changed=false;
     } else {
       const {project}=await api('/api/project',{method:'POST',body:{
-        id:editorProjectId,action:'addclip',images,stylePrompt:cfg.prompt,pacing:cfg.pacing,duration:cfg.duration,
+        id:editorProjectId,action:'addclip',images,stylePrompt:cfg.prompt,duration:cfg.duration,
       }});
       currentProject=project;
       cfg.cid=project.clips[project.clips.length-1].cid;
@@ -896,7 +888,7 @@ function editorFromProject(p){
   let idx=0;
   segCfgs=p.clips.map(clip=>{
     const ids=clip.images.map(()=>photos[idx++].id);
-    return {prompt:clip.stylePrompt||'',duration:parseInt(clip.duration,10)||10,pacing:clip.pacing||'normal',
+    return {prompt:clip.stylePrompt||'',duration:parseInt(clip.duration,10)||10,
       cid:clip.cid,status:clip.status,video:clip.video,sig:ids.join('|'),changed:false};
   });
   editorProjectId=p.id; settingsLocked=true; currentProject=p;
