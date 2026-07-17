@@ -3,6 +3,19 @@ import { falGet, falSubmit, jobUrls, MODELS } from '../lib/fal.js';
 import { archiveVideo } from '../lib/blob.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
+// Final-video pipeline: merge clips → (music) → (1080p upscale) → done.
+async function nextMergePhase(project, currentUrl, justFinished){
+  if(justFinished === 'video' && project.music?.url){
+    const job = await falSubmit(MODELS.audio, { video_url: currentUrl, audio_url: project.music.url });
+    return { phase: 'audio', ...job };
+  }
+  if(justFinished !== 'upscale' && project.quality === '1080p'){
+    const job = await falSubmit(MODELS.upscale, { video_url: currentUrl, upscale_factor: 1.5 });
+    return { phase: 'upscale', ...job };
+  }
+  return null; // done
+}
+
 export default async function handler(req, res){
   const s = getSession(req);
   if(!s) return res.status(401).json({ error: 'Not signed in' });
@@ -33,19 +46,18 @@ export default async function handler(req, res){
         if(next !== clip.status){ clip.status = next; changed = true; }
       }
     }
-    // 2. Poll pending merge
+    // 2. Poll pending merge pipeline
     const mp = project.mergedPending;
     if(mp){
-      const model = mp.phase === 'audio' ? MODELS.audio : MODELS.merge;
+      const model = mp.phase === 'audio' ? MODELS.audio : mp.phase === 'upscale' ? MODELS.upscale : MODELS.merge;
       const urls = jobUrls(model, mp);
       const st = await falGet(urls.status);
       if(st.status === 'COMPLETED'){
         const out = await falGet(urls.result);
         const url = out.video?.url;
-        if(mp.phase === 'video' && project.music?.url){
-          // Video merged — now lay the music underneath
-          const job = await falSubmit(MODELS.audio, { video_url: url, audio_url: project.music.url });
-          project.mergedPending = { phase: 'audio', ...job };
+        const next = await nextMergePhase(project, url, mp.phase);
+        if(next){
+          project.mergedPending = next;
         } else {
           project.merged = await archiveVideo(url);
           project.mergedPending = null;

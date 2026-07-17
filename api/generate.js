@@ -1,12 +1,11 @@
 import crypto from 'crypto';
 import { getSession } from '../lib/auth.js';
-import { falConfigured, falSubmit, clipPrompt, MODELS } from '../lib/fal.js';
+import { falConfigured, falSubmit, clipPrompt, clampDuration, MODELS } from '../lib/fal.js';
 import { hostImage } from '../lib/blob.js';
 import { loadProjects, saveProjects } from '../lib/projects.js';
 
-const ALLOWED_DURATIONS = ['auto','4','5','6','7','8','9','10','11','12','13','14','15'];
 const ALLOWED_ASPECTS = ['auto','16:9','9:16','1:1','4:3','3:4','21:9'];
-const ALLOWED_RES = ['480p','720p'];
+const ALLOWED_QUALITY = ['480p','720p','1080p'];
 
 export default async function handler(req, res){
   if(req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -21,31 +20,34 @@ export default async function handler(req, res){
     if(!Array.isArray(seg.images) || seg.images.length < 1) return res.status(400).json({ error: 'Every clip needs at least one photo.' });
     if(seg.images.length > 9) return res.status(400).json({ error: 'Up to 9 photos per clip.' });
   }
-  const dur = ALLOWED_DURATIONS.includes(String(duration)) ? String(duration) : 'auto';
-  const ar  = ALLOWED_ASPECTS.includes(aspect) ? aspect : '16:9';
-  const q   = ALLOWED_RES.includes(quality) ? quality : '720p';
+  const dur = clampDuration(duration);
+  const ar  = ALLOWED_ASPECTS.includes(aspect) ? aspect : 'auto';
+  const q   = ALLOWED_QUALITY.includes(quality) ? quality : '1080p';
+  const renderRes = q === '1080p' ? '720p' : q; // Seedance renders max 720p; 1080p is upscaled at the end
+  const hasMusic = !!(music && music.url);
 
   try{
     const clips = [];
     for(const seg of segments){
       const hosted = [];
       for(const img of seg.images) hosted.push(await hostImage(img));
-      const prompt = clipPrompt(stylePrompt, hosted.length);
+      const prompt = clipPrompt(stylePrompt, hosted.length, 'normal');
       const job = await falSubmit(MODELS.video, {
         prompt,
         image_urls: hosted,
         duration: dur,
         aspect_ratio: ar,
-        resolution: q,
-        generate_audio: true,
+        resolution: renderRes,
+        // With a soundtrack chosen, render silent clips so ONE track runs continuously.
+        generate_audio: !hasMusic,
       });
       clips.push({
         cid: crypto.randomUUID(),
-        falId: job.falId,
-        statusUrl: job.statusUrl,
-        resultUrl: job.resultUrl,
+        falId: job.falId, statusUrl: job.statusUrl, resultUrl: job.resultUrl,
         prompt,
         stylePrompt: String(stylePrompt || '').slice(0, 2000),
+        pacing: 'normal',
+        duration: dur,
         images: hosted,
         poster: hosted[0].startsWith('data:') ? null : hosted[0],
         status: 'queued',
@@ -58,7 +60,7 @@ export default async function handler(req, res){
       email: s.email,
       name: String(name || '').trim().slice(0, 120) || 'Untitled walkthrough',
       duration: dur, aspect: ar, quality: q,
-      music: music && music.url ? { name: String(music.name || 'Track').slice(0, 80), url: String(music.url) } : null,
+      music: hasMusic ? { name: String(music.name || 'Track').slice(0, 80), url: String(music.url) } : null,
       merged: null,
       mergedPending: null,
       clips,
