@@ -190,6 +190,45 @@
   .final-box .ftext{font-size:14px;color:var(--muted);max-width:440px}
   .final-box .ftext b{color:var(--ink)}
 
+  /* slider */
+  .range-wrap{display:flex;align-items:center;gap:14px;background:#fff;border-radius:999px;padding:10px 18px}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:200px;height:5px;border-radius:999px;background:var(--grey2);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--ink);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--ink);border:none;cursor:pointer}
+  .range-val{font-size:14px;font-weight:700;min-width:32px;text-align:right}
+
+  /* aspect icons */
+  .ar-ico{display:inline-block;border:1.5px solid currentColor;border-radius:2.5px;vertical-align:-1px;margin-left:7px}
+  .ar-ico.h{width:15px;height:9px}
+  .ar-ico.v{width:9px;height:15px;vertical-align:-3.5px}
+
+  /* rename pencil */
+  .pencil{font-size:15px;color:var(--muted);padding:4px 8px}
+  .pencil:hover{color:var(--ink)}
+  .thumb .pencil{position:absolute;right:8px;top:8px;background:rgba(255,255,255,.92);border-radius:999px;font-size:12px;padding:5px 10px;z-index:2;color:var(--ink)}
+
+  /* extra clip card */
+  .clip.add{border:1.5px dashed #d6d6d6;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:210px}
+  .clip.add:hover{border-color:var(--ink)}
+  .clip.add .inner{text-align:center;padding:16px;color:var(--muted);font-size:13px;font-weight:600;line-height:1.5}
+  .clip.add .plus{width:38px;height:38px;border-radius:50%;background:var(--grey);display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 8px;color:var(--ink)}
+
+  /* edit clip modal */
+  .overlay{position:fixed;inset:0;background:rgba(17,17,17,.4);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+  .overlay.on{display:flex}
+  .emodal{background:#fff;border-radius:20px;max-width:900px;width:100%;max-height:92vh;overflow:auto;padding:24px;display:grid;grid-template-columns:1.15fr 1fr;gap:22px}
+  .emodal .evid{border-radius:14px;overflow:hidden;background:var(--grey2);align-self:start}
+  .emodal .evid video,.emodal .evid img{width:100%;display:block}
+  .emodal h3{font-size:18px;font-weight:800;margin-bottom:4px}
+  .emodal .ehint{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .emodal label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+  .emodal textarea{width:100%;background:var(--grey);border:1px solid transparent;border-radius:12px;padding:12px 14px;min-height:88px;resize:vertical;outline:none;line-height:1.5;font-size:14px}
+  .emodal textarea:focus{border-color:#cfcfcf;background:#fff}
+  .emodal .pills{background:var(--grey)}
+  .emodal .range-wrap{background:var(--grey)}
+  .emodal .erow{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+
+  @media(max-width:720px){.emodal{grid-template-columns:1fr}}
   @media(max-width:640px){
     .dash-head h1{font-size:26px}
     .step-body,.step-sub,.gen-row{margin-left:0}
@@ -248,7 +287,10 @@
   <div class="wrap">
     <div class="dash-head">
       <div><h1>Music</h1><p>Soundtracks for your walkthroughs.</p></div>
-      <button class="btn" onclick="pickMusicFile()">Upload music</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn ghost" id="genMusicBtn" style="display:none" onclick="generateMusic()">✦ Generate with AI</button>
+        <button class="btn" onclick="pickMusicFile()">Upload music</button>
+      </div>
       <input type="file" id="musicInput" accept="audio/mpeg,audio/wav,audio/mp3,.mp3,.wav" hidden>
     </div>
     <div class="music-tabs">
@@ -316,32 +358,29 @@
         </div>
       </div>
 
-      <div class="step" id="promptStep" style="display:none">
-        <div class="step-head"><span class="step-num">05</span><h2>Prompt</h2></div>
-        <div class="step-sub">Toura wrote this for you based on your route — adjust the style if you like.</div>
+      <div class="step" id="settingsStep" style="display:none">
+        <div class="step-head"><span class="step-num">05</span><h2>Settings</h2></div>
         <div class="step-body">
           <div class="editor">
-            <textarea id="prompt"></textarea>
-            <div class="editor-hint">Describes the camera style for every clip. <button type="button" onclick="resetPrompt()">Reset to Toura's suggestion</button></div>
             <div class="setrow">
               <div class="setgroup"><label>Clip length</label>
-                <div class="pills" id="durPills">
-                  <button class="pill on" data-v="auto">Auto</button>
-                  <button class="pill" data-v="5">5s</button>
-                  <button class="pill" data-v="10">10s</button>
-                  <button class="pill" data-v="15">15s</button>
+                <div class="range-wrap">
+                  <input type="range" id="durRange" min="2" max="15" step="1" value="10">
+                  <span class="range-val" id="durVal">10s</span>
                 </div>
               </div>
               <div class="setgroup"><label>Aspect</label>
                 <div class="pills" id="arPills">
-                  <button class="pill on" data-v="16:9">16:9</button>
-                  <button class="pill" data-v="9:16">9:16</button>
+                  <button class="pill on" data-v="auto">Auto</button>
+                  <button class="pill" data-v="16:9">16:9<span class="ar-ico h"></span></button>
+                  <button class="pill" data-v="9:16">9:16<span class="ar-ico v"></span></button>
                 </div>
               </div>
               <div class="setgroup"><label>Quality</label>
                 <div class="pills" id="qPills">
                   <button class="pill" data-v="480p">480p</button>
-                  <button class="pill on" data-v="720p">720p</button>
+                  <button class="pill" data-v="720p">720p</button>
+                  <button class="pill on" data-v="1080p">1080p</button>
                 </div>
               </div>
             </div>
@@ -366,10 +405,13 @@
   <div class="wrap">
     <div class="review-head">
       <div>
-        <h1 id="rvTitle">Walkthrough</h1>
+        <div style="display:flex;align-items:center;gap:4px">
+          <h1 id="rvTitle">Walkthrough</h1>
+          <button class="pencil" title="Rename project" onclick="renameProject()">✎</button>
+        </div>
         <div class="sub" id="rvSub"></div>
       </div>
-      <button class="btn ghost small" onclick="goNew()">New walkthrough</button>
+      <button class="btn ghost small" onclick="goDash()">Dashboard</button>
     </div>
 
     <div class="bigplayer" id="rvPlayer"></div>
@@ -393,6 +435,36 @@
     <div class="final-box" id="finalBox"></div>
   </div>
 </section>
+
+<input type="file" id="addClipInput" accept="image/*" multiple hidden>
+
+<!-- edit clip modal -->
+<div class="overlay" id="editOverlay">
+  <div class="emodal">
+    <div class="evid" id="editVid"></div>
+    <div>
+      <h3 id="editTitle">Edit clip</h3>
+      <div class="ehint">Adjust and regenerate — the current version stays until the new one is ready.</div>
+      <label>What would you like different?</label>
+      <textarea id="editPrompt" placeholder="e.g. brighter light, reveal the kitchen more slowly, start closer to the window…"></textarea>
+      <label>Camera speed</label>
+      <div class="pills" id="editPace">
+        <button class="pill" data-v="slow">Slow</button>
+        <button class="pill on" data-v="normal">Normal</button>
+        <button class="pill" data-v="fast">Fast</button>
+      </div>
+      <label>Clip length</label>
+      <div class="range-wrap">
+        <input type="range" id="editDur" min="2" max="15" step="1" value="10">
+        <span class="range-val" id="editDurVal">10s</span>
+      </div>
+      <div class="erow">
+        <button class="btn ghost small" onclick="closeEdit()">Cancel</button>
+        <button class="btn small" onclick="submitEdit()">Regenerate clip</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <audio id="bgm" preload="none"></audio>
@@ -482,14 +554,45 @@ function renderProjects(){
     const c=document.createElement('div'); c.className='card'; c.style.cursor='pointer';
     const badge=p.ready?'Ready':'Rendering';
     const thumb=p.poster?`<img src="${esc(p.poster)}" alt=""><div class="play-ico"><i>▶</i></div>`:`<span class="ph">▧</span>`;
-    c.innerHTML=`<div class="thumb">${thumb}<span class="badge">${badge}</span></div><div class="card-body"><h3>${esc(p.name)}</h3><span>${p.clipCount} clip${p.clipCount>1?'s':''}${p.merged?' · final video':''}</span></div>`;
+    c.innerHTML=`<div class="thumb">${thumb}<span class="badge">${badge}</span><button class="pencil" title="Rename">✎</button></div><div class="card-body"><h3>${esc(p.name)}</h3><span>${p.clipCount} clip${p.clipCount>1?'s':''}${p.merged?' · final video':''}</span></div>`;
     c.onclick=()=>openProject(p.id);
+    c.querySelector('.pencil').onclick=async e=>{
+      e.stopPropagation();
+      const n=window.prompt('Project name', p.name);
+      if(!n||n.trim()===p.name) return;
+      try{ await api('/api/project',{method:'POST',body:{id:p.id,action:'rename',name:n.trim()}}); await loadProjects(); renderProjects(); }
+      catch(err){ toast(err.message); }
+    };
     grid.appendChild(c);
   });
 }
 
 /* ============ music library ============ */
-async function loadMusic(){ try{ musicLib=await api('/api/music'); }catch{} }
+async function loadMusic(){
+  try{
+    musicLib=await api('/api/music');
+    $('genMusicBtn').style.display=musicLib.admin?'':'none';
+  }catch{}
+}
+let genPollT=null;
+async function generateMusic(){
+  const desc=window.prompt('Describe the music — genre, mood, instruments.\ne.g. "soft ambient piano, warm and calm, subtle strings"');
+  if(!desc||!desc.trim()) return;
+  try{
+    await api('/api/music',{method:'POST',body:{action:'generate',prompt:desc.trim(),name:desc.trim().slice(0,40)}});
+    musicLib.genPending=true; renderTracks();
+    toast('Generating a 30-second track… (±1 minute)');
+    clearInterval(genPollT);
+    genPollT=setInterval(async ()=>{
+      await loadMusic();
+      if(!musicLib.genPending){
+        clearInterval(genPollT);
+        renderTracks();
+        toast('Track added to Toura picks.');
+      }
+    },4000);
+  }catch(err){ toast(err.message,6000); }
+}
 function trackById(id){ return [...musicLib.catalog,...musicLib.mine].find(t=>t.id===id); }
 function goMusic(){ renderTracks(); show('music'); }
 let musicTab='favs';
@@ -505,8 +608,12 @@ function tracksForTab(t){
 }
 function renderTracks(){
   const el=$('trackList'); el.innerHTML='';
+  if(musicLib.genPending){
+    el.innerHTML='<div class="empty-note"><span class="spin"></span> AI is composing your track… it appears here automatically.</div>';
+  }
   const list=tracksForTab(musicTab);
   if(!list.length){
+    if(musicLib.genPending) return;
     el.innerHTML=`<div class="empty-note">${musicTab==='favs'?'No favorites yet — tap the ♥ on any track.':musicTab==='toura'?'No Toura picks yet.':'Upload calm, license-free tracks with the button above.'}</div>`;
     return;
   }
@@ -666,37 +773,32 @@ function renderMlist(listId, list, onSel, getSel){
 }
 bindMpick('mpick','mlist', m=>{ pickedMusic=m; }, ()=>pickedMusic);
 
-/* ============ new walkthrough: prompt + settings ============ */
-const settings={duration:'auto',aspect:'16:9',quality:'720p'};
+/* ============ new walkthrough: settings ============ */
+const settings={duration:10,aspect:'auto',quality:'1080p'};
 function bindPills(id,key){
   $(id).querySelectorAll('.pill').forEach(b=>{
     b.onclick=()=>{ $(id).querySelectorAll('.pill').forEach(x=>x.classList.remove('on')); b.classList.add('on'); settings[key]=b.dataset.v; };
   });
 }
-bindPills('durPills','duration'); bindPills('arPills','aspect'); bindPills('qPills','quality');
-
-function suggestedPrompt(){
-  const segs=segmentsFromRoute();
-  const multi=segs.length>1;
-  return `Calm, gimbal-smooth camera gliding at eye level through the home, following the photo order exactly. Warm natural light, true-to-life colors, straight verticals, luxurious pacing${multi?'. Keep the same style across every clip':''}. No people, no text.`;
-}
-function resetPrompt(){ $('prompt').value=suggestedPrompt(); promptDirty=false; }
-$('prompt').addEventListener('input',()=>{ promptDirty=true; });
+bindPills('arPills','aspect'); bindPills('qPills','quality');
+$('durRange').addEventListener('input',()=>{
+  settings.duration=parseInt($('durRange').value,10);
+  $('durVal').textContent=settings.duration+'s';
+});
 function updateFlow(){
   const has=photos.length>0;
   $('routeStep').style.display=has?'':'none';
   $('musicStep').style.display=has?'':'none';
-  $('promptStep').style.display=has?'':'none';
-  if(has && !promptDirty) $('prompt').value=suggestedPrompt();
+  $('settingsStep').style.display=has?'':'none';
   const segs=segmentsFromRoute();
   const tooBig=segs.some(s=>s.length>9);
   $('generateBtn').disabled=!has||tooBig;
   $('genNote').textContent=!has?'Add photos to generate.':tooBig?'Max 9 photos per clip — add a cut to split the route.':`${segs.length} clip${segs.length>1?'s':''} will be generated.`;
 }
 function resetFlow(){
-  photos=[]; cuts=new Set(); pickedMusic=null; promptDirty=false;
+  photos=[]; cuts=new Set(); pickedMusic=null;
   $('routeStrip').innerHTML=''; $('clipTags').innerHTML=''; $('routeHint').textContent='';
-  $('mlist').innerHTML=''; $('propName').value=''; $('prompt').value='';
+  $('mlist').innerHTML=''; $('propName').value='';
   document.querySelectorAll('#mpick .mopt').forEach((b,i)=>b.classList.toggle('on',i===0));
   updateFlow();
 }
@@ -710,7 +812,7 @@ async function startGenerate(){
     const {id}=await api('/api/generate',{method:'POST',body:{
       name:$('propName').value.trim(),
       segments:segs.map(s=>({images:s.map(p=>p.url)})),
-      stylePrompt:$('prompt').value.trim(),
+      stylePrompt:'',
       music:pickedMusic,
       duration:settings.duration, aspect:settings.aspect, quality:settings.quality,
     }});
@@ -772,14 +874,14 @@ function renderReview(){
       <div class="cbody"><div class="cname">Clip ${i+1}</div><div class="cacts">
         ${c.status==='done'?`<button class="cact" data-a="play">▶ Play</button>
         <button class="cact ${c.locked?'on':''}" data-a="lock">${c.locked?'Locked':'Keep'}</button>`:''}
-        ${(c.status==='done'||c.status==='failed')&&!c.locked?`<button class="cact" data-a="regen">↺ Redo</button>`:''}
+        ${(c.status==='done'||c.status==='failed')&&!c.locked?`<button class="cact" data-a="edit">✎ Edit</button>`:''}
         ${c.video?`<a class="cact" href="${esc(c.video)}" target="_blank" rel="noopener" download="toura-clip-${i+1}.mp4">↓</a>`:''}
       </div></div>`;
     el.querySelectorAll('.cact').forEach(b=>{
       const a=b.dataset.a;
       if(a==='play') b.onclick=()=>playClip(i);
       if(a==='lock') b.onclick=()=>doAction({action:'lock',cid:c.cid,locked:!c.locked});
-      if(a==='regen') b.onclick=()=>{ if(confirm('Regenerate this clip? This uses rendering credits.')) doAction({action:'regenerate',cid:c.cid,stylePrompt:c.stylePrompt}); };
+      if(a==='edit') b.onclick=()=>openEdit(i);
     });
     el.ondragstart=()=>{ dragIdx=i; el.classList.add('dragging'); };
     el.ondragend=()=>{ dragIdx=null; el.classList.remove('dragging'); };
@@ -793,6 +895,15 @@ function renderReview(){
     };
     row.appendChild(el);
   });
+
+  // extra clip card
+  if(p.clips.length < 8){
+    const add=document.createElement('div');
+    add.className='clip add';
+    add.innerHTML='<div class="inner"><div class="plus">+</div>Extra clip<br><span style="font-weight:500">upload photos</span></div>';
+    add.onclick=()=>$('addClipInput').click();
+    row.appendChild(add);
+  }
 
   // music picker (review)
   bindMpick('rvMpick','rvMlist', async m=>{ await doAction({action:'music',music:m}); }, ()=>p.music);
@@ -854,6 +965,68 @@ function stopAll(){
   playAllIdx=-1;
   const a=$('bgm'); a.pause();
   document.querySelectorAll('.clip').forEach(el=>el.classList.remove('playing'));
+}
+
+/* ============ rename ============ */
+function renameProject(){
+  if(!currentProject) return;
+  const n=window.prompt('Project name', currentProject.name);
+  if(!n||!n.trim()||n.trim()===currentProject.name) return;
+  doAction({action:'rename',name:n.trim()});
+}
+
+/* ============ extra clip ============ */
+$('addClipInput').onchange=async ()=>{
+  const files=[...$('addClipInput').files].filter(f=>f.type.startsWith('image/')).slice(0,9);
+  $('addClipInput').value='';
+  if(!files.length||!currentProject) return;
+  if(!confirm(`Generate 1 extra clip from ${files.length} photo${files.length>1?'s':''}? This uses rendering credits.`)) return;
+  const images=[];
+  for(const f of files){ const u=await fileToDataUrl(f); if(u) images.push(u); }
+  toast('Starting your extra clip…');
+  await doAction({action:'addclip',images});
+};
+
+/* ============ edit clip modal ============ */
+let editCid=null, editPacing='normal';
+$('editDur').addEventListener('input',()=>{ $('editDurVal').textContent=$('editDur').value+'s'; });
+$('editPace').querySelectorAll('.pill').forEach(b=>{
+  b.onclick=()=>{
+    $('editPace').querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    editPacing=b.dataset.v;
+  };
+});
+function openEdit(i){
+  const c=currentProject.clips[i];
+  if(!c) return;
+  editCid=c.cid;
+  editPacing=c.pacing||'normal';
+  $('editTitle').textContent=`Edit clip ${i+1}`;
+  $('editVid').innerHTML=c.video
+    ? `<video src="${esc(c.video)}" controls playsinline muted></video>`
+    : c.poster ? `<img src="${esc(c.poster)}" alt="">` : '';
+  $('editPrompt').value=c.stylePrompt||'';
+  const d=parseInt(c.duration||currentProject.duration||'10',10)||10;
+  $('editDur').value=Math.min(15,Math.max(2,d));
+  $('editDurVal').textContent=$('editDur').value+'s';
+  $('editPace').querySelectorAll('.pill').forEach(b=>b.classList.toggle('on',b.dataset.v===editPacing));
+  $('editOverlay').classList.add('on');
+}
+function closeEdit(){ $('editOverlay').classList.remove('on'); editCid=null; }
+$('editOverlay').addEventListener('click',e=>{ if(e.target===$('editOverlay')) closeEdit(); });
+async function submitEdit(){
+  if(!editCid) return;
+  if(!confirm('Regenerate this clip with the new settings? This uses rendering credits.')) return;
+  const body={
+    action:'regenerate',
+    cid:editCid,
+    stylePrompt:$('editPrompt').value.trim(),
+    pacing:editPacing,
+    duration:parseInt($('editDur').value,10),
+  };
+  closeEdit();
+  await doAction(body);
 }
 </script>
 </body>
