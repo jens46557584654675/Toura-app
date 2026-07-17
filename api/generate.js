@@ -31,11 +31,14 @@ export default async function handler(req, res){
     for(const seg of segments){
       const hosted = [];
       for(const img of seg.images) hosted.push(await hostImage(img));
-      const prompt = clipPrompt(stylePrompt, hosted.length, 'normal');
+      const segStyle = String(seg.prompt ?? stylePrompt ?? '').slice(0, 2000);
+      const segPace = ['slow','normal','fast'].includes(seg.pacing) ? seg.pacing : 'normal';
+      const segDur = seg.duration != null ? clampDuration(seg.duration) : dur;
+      const prompt = clipPrompt(segStyle, hosted.length, segPace);
       const job = await falSubmit(MODELS.video, {
         prompt,
         image_urls: hosted,
-        duration: dur,
+        duration: segDur,
         aspect_ratio: ar,
         resolution: renderRes,
         // With a soundtrack chosen, render silent clips so ONE track runs continuously.
@@ -45,9 +48,9 @@ export default async function handler(req, res){
         cid: crypto.randomUUID(),
         falId: job.falId, statusUrl: job.statusUrl, resultUrl: job.resultUrl,
         prompt,
-        stylePrompt: String(stylePrompt || '').slice(0, 2000),
-        pacing: 'normal',
-        duration: dur,
+        stylePrompt: segStyle,
+        pacing: segPace,
+        duration: segDur,
         images: hosted,
         poster: hosted[0].startsWith('data:') ? null : hosted[0],
         status: 'queued',

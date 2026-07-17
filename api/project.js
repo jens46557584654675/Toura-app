@@ -35,6 +35,14 @@ export default async function handler(req, res){
       const style = req.body.stylePrompt != null ? String(req.body.stylePrompt).slice(0, 2000) : clip.stylePrompt;
       const pacing = ['slow','normal','fast'].includes(req.body.pacing) ? req.body.pacing : (clip.pacing || 'normal');
       const dur = req.body.duration != null ? clampDuration(req.body.duration) : (clip.duration || project.duration);
+      // Optionally replace the clip's photos (route was changed)
+      if(Array.isArray(req.body.images) && req.body.images.length){
+        if(req.body.images.length > 9) return res.status(400).json({ error: 'Up to 9 photos per clip.' });
+        const hosted = [];
+        for(const img of req.body.images) hosted.push(await hostImage(img));
+        clip.images = hosted;
+        clip.poster = hosted[0].startsWith('data:') ? null : hosted[0];
+      }
       clip.stylePrompt = style;
       clip.pacing = pacing;
       clip.duration = dur;
@@ -60,12 +68,14 @@ export default async function handler(req, res){
       if(project.clips.length >= 8) return res.status(400).json({ error: 'Max 8 clips per walkthrough.' });
       const hosted = [];
       for(const img of images) hosted.push(await hostImage(img));
-      const style = project.clips[0]?.stylePrompt || '';
-      const prompt = clipPrompt(style, hosted.length, 'normal');
+      const style = req.body.stylePrompt != null ? String(req.body.stylePrompt).slice(0, 2000) : (project.clips[0]?.stylePrompt || '');
+      const pacing = ['slow','normal','fast'].includes(req.body.pacing) ? req.body.pacing : 'normal';
+      const dur = req.body.duration != null ? clampDuration(req.body.duration) : project.duration;
+      const prompt = clipPrompt(style, hosted.length, pacing);
       const job = await falSubmit(MODELS.video, {
         prompt,
         image_urls: hosted,
-        duration: project.duration,
+        duration: dur,
         aspect_ratio: project.aspect,
         resolution: renderRes,
         generate_audio: !project.music,
@@ -73,12 +83,23 @@ export default async function handler(req, res){
       project.clips.push({
         cid: crypto.randomUUID(),
         falId: job.falId, statusUrl: job.statusUrl, resultUrl: job.resultUrl,
-        prompt, stylePrompt: style, pacing: 'normal', duration: project.duration,
+        prompt, stylePrompt: style, pacing, duration: dur,
         images: hosted,
         poster: hosted[0].startsWith('data:') ? null : hosted[0],
         status: 'queued', video: null, locked: false,
       });
       project.merged = null;
+
+    } else if(action === 'removeclip'){
+      const i = project.clips.findIndex(c => c.cid === req.body.cid);
+      if(i < 0) return res.status(404).json({ error: 'Unknown clip' });
+      project.clips.splice(i, 1);
+      project.merged = null;
+      if(!project.clips.length){
+        list.splice(idx, 1);
+        await saveProjects(s.email, list);
+        return res.json({ ok: true, deleted: true });
+      }
 
     } else if(action === 'music'){
       const m = req.body.music;
