@@ -10,7 +10,9 @@ async function nextMergePhase(project, currentUrl, justFinished){
     return { phase: 'audio', ...job };
   }
   if(justFinished !== 'upscale' && project.quality === '1080p'){
-    const job = await falSubmit(MODELS.upscale, { video_url: currentUrl, upscale_factor: 1.5 });
+    // keep the non-upscaled original so users can download it too
+    project.mergedBase = await archiveVideo(currentUrl);
+    const job = await falSubmit(MODELS.upscale, { video_url: project.mergedBase, upscale_factor: 1.5 });
     return { phase: 'upscale', ...job };
   }
   return null; // done

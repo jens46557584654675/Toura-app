@@ -23,7 +23,9 @@ export default async function handler(req, res){
   const dur = clampDuration(duration);
   const ar  = ALLOWED_ASPECTS.includes(aspect) ? aspect : 'auto';
   const q   = ALLOWED_QUALITY.includes(quality) ? quality : '1080p';
-  const renderRes = q === '1080p' ? '720p' : q; // Seedance renders max 720p; 1080p is upscaled at the end
+  // Draft mode renders cheap 480p previews; final quality maxes at 720p (1080p = upscale at the end)
+  const draft = !!req.body.draft;
+  const renderRes = draft ? '480p' : (q === '1080p' ? '720p' : q);
   const hasMusic = !!(music && music.url);
 
   try{
@@ -49,6 +51,7 @@ export default async function handler(req, res){
         prompt,
         stylePrompt: segStyle,
         duration: segDur,
+        res: renderRes,
         images: hosted,
         poster: hosted[0].startsWith('data:') ? null : hosted[0],
         status: 'queued',
@@ -57,6 +60,7 @@ export default async function handler(req, res){
       });
     }
     const project = {
+      renders: clips.length,
       id: crypto.randomUUID(),
       email: s.email,
       name: String(name || '').trim().slice(0, 120) || 'Untitled walkthrough',

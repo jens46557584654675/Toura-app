@@ -4,6 +4,9 @@ import { falConfigured, falSubmit, clipPrompt, clampDuration, MODELS } from '../
 import { hostImage } from '../lib/blob.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
+const RENDER_LIMIT = parseInt(process.env.TOURA_RENDER_LIMIT || '30', 10);
+const isAdmin = email => email && email === String(process.env.ADMIN_EMAIL || '').toLowerCase();
+
 export default async function handler(req, res){
   if(req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const s = getSession(req);
@@ -11,7 +14,13 @@ export default async function handler(req, res){
   const { id, action } = req.body || {};
   const { list, idx, project } = await getProject(s.email, String(id || ''));
   if(!project) return res.status(404).json({ error: 'Unknown project' });
-  const renderRes = project.quality === '1080p' ? '720p' : project.quality;
+  const draft = !!req.body.draft;
+  const renderRes = draft ? '480p' : (project.quality === '1080p' ? '720p' : project.quality);
+  const checkBudget = () => {
+    if(isAdmin(s.email)) return null;
+    if((project.renders || 0) >= RENDER_LIMIT) return `Render limit reached for this walkthrough (${RENDER_LIMIT} renders).`;
+    return null;
+  };
 
   try{
     if(action === 'reorder'){
@@ -29,6 +38,8 @@ export default async function handler(req, res){
 
     } else if(action === 'regenerate'){
       if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
+      const budgetErr = checkBudget();
+      if(budgetErr) return res.status(402).json({ error: budgetErr });
       const clip = project.clips.find(c => c.cid === req.body.cid);
       if(!clip) return res.status(404).json({ error: 'Unknown clip' });
       if(clip.locked) return res.status(400).json({ error: 'This clip is locked.' });
@@ -54,12 +65,16 @@ export default async function handler(req, res){
         generate_audio: !project.music,
       });
       clip.falId = job.falId; clip.statusUrl = job.statusUrl; clip.resultUrl = job.resultUrl;
+      clip.res = renderRes;
       clip.status = 'queued';
       clip.video = null;
       project.merged = null;
+      project.renders = (project.renders || 0) + 1;
 
     } else if(action === 'addclip'){
       if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
+      const budgetErr = checkBudget();
+      if(budgetErr) return res.status(402).json({ error: budgetErr });
       const images = req.body.images;
       if(!Array.isArray(images) || images.length < 1) return res.status(400).json({ error: 'No photos provided.' });
       if(images.length > 9) return res.status(400).json({ error: 'Up to 9 photos per clip.' });
@@ -80,12 +95,13 @@ export default async function handler(req, res){
       project.clips.push({
         cid: crypto.randomUUID(),
         falId: job.falId, statusUrl: job.statusUrl, resultUrl: job.resultUrl,
-        prompt, stylePrompt: style, duration: dur,
+        prompt, stylePrompt: style, duration: dur, res: renderRes,
         images: hosted,
         poster: hosted[0].startsWith('data:') ? null : hosted[0],
         status: 'queued', video: null, locked: false,
       });
       project.merged = null;
+      project.renders = (project.renders || 0) + 1;
 
     } else if(action === 'removeclip'){
       const i = project.clips.findIndex(c => c.cid === req.body.cid);
@@ -115,6 +131,7 @@ export default async function handler(req, res){
         const job = await falSubmit(MODELS.audio, { video_url: videos[0], audio_url: project.music.url });
         project.mergedPending = { phase: 'audio', ...job };
       } else if(project.quality === '1080p'){
+        project.mergedBase = videos[0]; // keep the non-upscaled original
         const job = await falSubmit(MODELS.upscale, { video_url: videos[0], upscale_factor: 1.5 });
         project.mergedPending = { phase: 'upscale', ...job };
       } else {
