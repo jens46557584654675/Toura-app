@@ -32,9 +32,8 @@ export default async function handler(req, res){
       const hosted = [];
       for(const img of seg.images) hosted.push(await hostImage(img));
       const segStyle = String(seg.prompt ?? stylePrompt ?? '').slice(0, 2000);
-      const segPace = ['slow','normal','fast'].includes(seg.pacing) ? seg.pacing : 'normal';
       const segDur = seg.duration != null ? clampDuration(seg.duration) : dur;
-      const prompt = clipPrompt(segStyle, hosted.length, segPace);
+      const prompt = clipPrompt(segStyle, hosted.length);
       const job = await falSubmit(MODELS.video, {
         prompt,
         image_urls: hosted,
@@ -49,7 +48,6 @@ export default async function handler(req, res){
         falId: job.falId, statusUrl: job.statusUrl, resultUrl: job.resultUrl,
         prompt,
         stylePrompt: segStyle,
-        pacing: segPace,
         duration: segDur,
         images: hosted,
         poster: hosted[0].startsWith('data:') ? null : hosted[0],

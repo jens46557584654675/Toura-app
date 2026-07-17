@@ -33,7 +33,6 @@ export default async function handler(req, res){
       if(!clip) return res.status(404).json({ error: 'Unknown clip' });
       if(clip.locked) return res.status(400).json({ error: 'This clip is locked.' });
       const style = req.body.stylePrompt != null ? String(req.body.stylePrompt).slice(0, 2000) : clip.stylePrompt;
-      const pacing = ['slow','normal','fast'].includes(req.body.pacing) ? req.body.pacing : (clip.pacing || 'normal');
       const dur = req.body.duration != null ? clampDuration(req.body.duration) : (clip.duration || project.duration);
       // Optionally replace the clip's photos (route was changed)
       if(Array.isArray(req.body.images) && req.body.images.length){
@@ -44,9 +43,8 @@ export default async function handler(req, res){
         clip.poster = hosted[0].startsWith('data:') ? null : hosted[0];
       }
       clip.stylePrompt = style;
-      clip.pacing = pacing;
       clip.duration = dur;
-      clip.prompt = clipPrompt(style, clip.images.length, pacing);
+      clip.prompt = clipPrompt(style, clip.images.length);
       const job = await falSubmit(MODELS.video, {
         prompt: clip.prompt,
         image_urls: clip.images,
@@ -68,10 +66,9 @@ export default async function handler(req, res){
       if(project.clips.length >= 8) return res.status(400).json({ error: 'Max 8 clips per walkthrough.' });
       const hosted = [];
       for(const img of images) hosted.push(await hostImage(img));
-      const style = req.body.stylePrompt != null ? String(req.body.stylePrompt).slice(0, 2000) : (project.clips[0]?.stylePrompt || '');
-      const pacing = ['slow','normal','fast'].includes(req.body.pacing) ? req.body.pacing : 'normal';
+      const style = req.body.stylePrompt != null ? String(req.body.stylePrompt).slice(0, 2000) : '';
       const dur = req.body.duration != null ? clampDuration(req.body.duration) : project.duration;
-      const prompt = clipPrompt(style, hosted.length, pacing);
+      const prompt = clipPrompt(style, hosted.length);
       const job = await falSubmit(MODELS.video, {
         prompt,
         image_urls: hosted,
@@ -83,7 +80,7 @@ export default async function handler(req, res){
       project.clips.push({
         cid: crypto.randomUUID(),
         falId: job.falId, statusUrl: job.statusUrl, resultUrl: job.resultUrl,
-        prompt, stylePrompt: style, pacing, duration: dur,
+        prompt, stylePrompt: style, duration: dur,
         images: hosted,
         poster: hosted[0].startsWith('data:') ? null : hosted[0],
         status: 'queued', video: null, locked: false,
