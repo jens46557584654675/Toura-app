@@ -200,6 +200,14 @@
   .mrow.sel{border-color:var(--ink)}
   .mrow .tplay{width:30px;height:30px;border-radius:50%;background:var(--grey);font-size:11px;flex:none;padding-left:2px}
   .mrow span{font-size:14px;font-weight:600}
+  .clips{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px}
+  .clipcard{flex:none;width:250px;background:var(--grey);border-radius:14px;overflow:hidden}
+  .clipcard .cv{aspect-ratio:16/10;background:var(--grey2);display:flex;align-items:center;justify-content:center;position:relative}
+  .clipcard video,.clipcard .cv img{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+  .clipcard .cc{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:12.5px;font-weight:700}
+  .clipcard .cc a{font-weight:600;color:var(--muted);text-decoration:none}
+  .clipcard .cc a:hover{color:var(--ink)}
+  .clipcard .cc .cres{font-weight:500;color:var(--muted)}
   .final-box{background:var(--grey);border-radius:var(--radius);padding:22px;max-width:860px;margin:8px auto 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .final-box .ftext{font-size:14px;color:var(--muted);max-width:440px}
   .final-box .ftext b{color:var(--ink)}
@@ -349,6 +357,15 @@
       <div class="step" id="clipsStep" style="display:none">
         <div class="step-head"><span class="step-num">05</span><h2>Clips</h2></div>
         <div class="step-sub">Each clip becomes one continuous shot (max 15s). Set the style per clip and render it — you can re-render as often as you like.</div>
+        <div class="step-body" style="margin-bottom:14px">
+          <div class="editor-box" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px">
+            <div class="pills" id="draftPills">
+              <button class="pill on" data-v="1">Draft · 480p</button>
+              <button class="pill" data-v="0">Final quality</button>
+            </div>
+            <span class="locknote" style="margin:0">Drafts cost about half. Happy with a clip? Switch to final quality and re-render it once.</span>
+          </div>
+        </div>
         <div class="step-body" id="clipRows"></div>
       </div>
 
@@ -378,9 +395,10 @@
       </div>
     </div>
 
-    <div class="bigplayer" id="rvPlayer"></div>
-    <div class="player-row">
-      <button class="btn ghost small" id="playAllBtn" onclick="playAll()">▶ Play all clips</button>
+    <div class="sect">Clips</div>
+    <div class="clips" id="rvClips"></div>
+    <div class="player-row" style="justify-content:flex-start">
+      <button class="btn ghost small" id="playAllBtn" onclick="playAll()">▶ Play all clips in a row</button>
     </div>
 
     <div class="sect">Music</div>
@@ -393,6 +411,7 @@
     <div class="mlist" id="rvMlist"></div>
 
     <div class="sect">Final video</div>
+    <div class="bigplayer" id="rvPlayer"></div>
     <div class="final-box" id="finalBox"></div>
   </div>
 </section>
@@ -649,7 +668,7 @@ function syncSegments(){
       const changed=best.sig!==sig;
       return {...best,sig,changed:changed||best.changed};
     }
-    return {prompt:'',duration:10,cid:null,status:null,video:null,sig,changed:false};
+    return {prompt:'',duration:8,cid:null,status:null,video:null,sig,changed:false};
   });
   // clean up clips whose photos were removed from the route
   const keptCids=new Set(segCfgs.filter(c=>c.cid).map(c=>c.cid));
@@ -738,15 +757,30 @@ function shiftCuts(removedIdx){
 }
 
 /* ============ editor: clip rows ============ */
+let draftMode=true;
+const RATE={'480p':0.14,'720p':0.28,'1080p':0.28}; // ± € per second of rendered video
+function costEstimate(dur){
+  const rate=draftMode?RATE['480p']:RATE[settings.quality]||RATE['720p'];
+  return '±€'+(dur*rate).toFixed(2).replace('.',',');
+}
+$('draftPills').querySelectorAll('.pill').forEach(b=>{
+  b.onclick=()=>{
+    $('draftPills').querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    draftMode=b.dataset.v==='1';
+    renderClips();
+  };
+});
 function renderClips(){
   const wrap=$('clipRows'); wrap.innerHTML='';
   const segs=segments();
   segs.forEach((seg,i)=>{
     const cfg=segCfgs[i];
     const row=document.createElement('div'); row.className='cliprow';
+    const resTag=cfg.res?(cfg.res==='480p'?' · 480p draft':' · '+cfg.res):'';
     const statusTxt=cfg.rendering||cfg.status==='queued'||cfg.status==='in_progress'
       ? '<span class="spin"></span> Rendering…'
-      : cfg.status==='done' ? (cfg.changed?'Ready — photos changed, re-render to update':'Ready')
+      : cfg.status==='done' ? (cfg.changed?'Ready — photos changed, re-render to update':'Ready'+resTag)
       : cfg.status==='failed' ? 'Failed — try again'
       : 'Not rendered yet';
     row.innerHTML=`
@@ -762,7 +796,7 @@ function renderClips(){
         <div class="range-wrap"><input type="range" data-f="dur" min="2" max="15" step="1" value="${cfg.duration}"><span class="range-val">${cfg.duration}s</span></div>
         <div class="locknote" style="margin-top:6px">Shorter clip = faster movement through the rooms.</div>
         <div class="crow">
-          <button class="btn small" data-f="render" ${seg.length>9||cfg.rendering?'disabled':''}>${cfg.cid?'↺ Re-render':'Render clip'}</button>
+          <button class="btn small" data-f="render" ${seg.length>9||cfg.rendering?'disabled':''}>${cfg.cid?'↺ Re-render':'Render clip'} <span style="font-weight:500;opacity:.75">${costEstimate(cfg.duration)}</span></button>
           ${cfg.video?`<a class="btn ghost small" href="${esc(cfg.video)}" target="_blank" rel="noopener" download="toura-clip-${i+1}.mp4">↓</a>`:''}
         </div>
         ${seg.length>9?'<div class="locknote">Max 9 photos per clip — add a cut in the route.</div>':''}
@@ -778,7 +812,7 @@ async function renderClip(i){
   const segs=segments();
   const seg=segs[i], cfg=segCfgs[i];
   if(!seg||cfg.rendering) return;
-  if(cfg.cid&&!confirm('Re-render this clip? This uses rendering credits.')) return;
+  if(cfg.cid&&!confirm(`Re-render this clip (${costEstimate(cfg.duration)})?`)) return;
   cfg.rendering=true; renderClips();
   const images=seg.map(pi=>photos[pi].url);
   try{
@@ -786,7 +820,7 @@ async function renderClip(i){
       const {id}=await api('/api/generate',{method:'POST',body:{
         name:$('propName').value.trim(),
         segments:[{images,prompt:cfg.prompt,duration:cfg.duration}],
-        stylePrompt:'', music:null,
+        stylePrompt:'', music:null, draft:draftMode,
         duration:cfg.duration, aspect:settings.aspect, quality:settings.quality,
       }});
       editorProjectId=id;
@@ -795,19 +829,22 @@ async function renderClip(i){
       currentProject=project;
       cfg.cid=project.clips[0].cid;
       cfg.status=project.clips[0].status;
+      cfg.res=project.clips[0].res;
     } else if(cfg.cid){
-      const body={id:editorProjectId,action:'regenerate',cid:cfg.cid,stylePrompt:cfg.prompt,duration:cfg.duration};
+      const body={id:editorProjectId,action:'regenerate',cid:cfg.cid,stylePrompt:cfg.prompt,duration:cfg.duration,draft:draftMode};
       if(cfg.changed) body.images=images;
       const {project}=await api('/api/project',{method:'POST',body});
       currentProject=project;
       cfg.status='queued'; cfg.video=null; cfg.changed=false;
+      cfg.res=draftMode?'480p':(settings.quality==='1080p'?'720p':settings.quality);
     } else {
       const {project}=await api('/api/project',{method:'POST',body:{
-        id:editorProjectId,action:'addclip',images,stylePrompt:cfg.prompt,duration:cfg.duration,
+        id:editorProjectId,action:'addclip',images,stylePrompt:cfg.prompt,duration:cfg.duration,draft:draftMode,
       }});
       currentProject=project;
       cfg.cid=project.clips[project.clips.length-1].cid;
       cfg.status='queued';
+      cfg.res=project.clips[project.clips.length-1].res;
     }
     if($('propName').value.trim()&&currentProject&&currentProject.name!==$('propName').value.trim()){
       try{ await api('/api/project',{method:'POST',body:{id:editorProjectId,action:'rename',name:$('propName').value.trim()}}); }catch{}
@@ -833,7 +870,7 @@ function startEditorPoll(){
         if(!cfg.cid) continue;
         const clip=project.clips.find(c=>c.cid===cfg.cid);
         if(clip&&(clip.status!==cfg.status||clip.video!==cfg.video)){
-          cfg.status=clip.status; cfg.video=clip.video; changed=true;
+          cfg.status=clip.status; cfg.video=clip.video; cfg.res=clip.res||cfg.res; changed=true;
         }
       }
       if(changed){ renderClips(); updateFinalRow(); }
@@ -843,9 +880,12 @@ function startEditorPoll(){
 function updateFinalRow(){
   const rendered=segCfgs.filter(c=>c.status==='done').length;
   const pending=segCfgs.some(c=>c.cid&&(c.status==='queued'||c.status==='in_progress'));
+  const drafts=segCfgs.filter(c=>c.status==='done'&&c.res==='480p'&&settings.quality!=='480p').length;
   $('finalRow').style.display=segCfgs.length?'':'none';
   $('finalBtn').disabled=!rendered||pending;
-  $('finalNote').textContent=pending?'Clips are rendering…':rendered?`${rendered} of ${segCfgs.length} clips ready.`:'Render your clips first.';
+  $('finalNote').textContent=pending?'Clips are rendering…'
+    :drafts?`${rendered} of ${segCfgs.length} ready — ${drafts} still 480p draft. Switch to Final quality and re-render before the final video.`
+    :rendered?`${rendered} of ${segCfgs.length} clips ready.`:'Render your clips first.';
 }
 function applySettingsLock(){
   $('settingsLock').style.display=settingsLocked?'':'none';
@@ -888,7 +928,7 @@ function editorFromProject(p){
   let idx=0;
   segCfgs=p.clips.map(clip=>{
     const ids=clip.images.map(()=>photos[idx++].id);
-    return {prompt:clip.stylePrompt||'',duration:parseInt(clip.duration,10)||10,
+    return {prompt:clip.stylePrompt||'',duration:parseInt(clip.duration,10)||8,res:clip.res||null,
       cid:clip.cid,status:clip.status,video:clip.video,sig:ids.join('|'),changed:false};
   });
   editorProjectId=p.id; settingsLocked=true; currentProject=p;
@@ -953,16 +993,29 @@ function renderReview(){
     `${done} clip${done!==1?'s':''} ready${p.music?` · ♪ ${p.music.name}`:''}${p.quality==='1080p'?' · 1080p':''}`;
   $('rvPlayer').classList.toggle('vert',p.aspect==='9:16');
 
+  // clips side by side
+  const cl=$('rvClips'); cl.innerHTML='';
+  p.clips.forEach((c,i)=>{
+    const card=document.createElement('div'); card.className='clipcard';
+    const inner=c.video
+      ? `<video src="${esc(c.video)}#t=0.3" controls playsinline preload="metadata"></video>`
+      : c.poster ? `<img src="${esc(c.poster)}" alt=""><span class="badge"><span class="spin"></span></span>`
+      : `<span class="spin"></span>`;
+    card.innerHTML=`<div class="cv">${inner}</div>
+      <div class="cc"><span>Clip ${i+1} <span class="cres">${c.res?'· '+c.res:''}</span></span>
+      ${c.video?`<a href="${esc(c.video)}" target="_blank" rel="noopener" download="toura-clip-${i+1}.mp4">↓ Download</a>`:''}</div>`;
+    cl.appendChild(card);
+  });
+
+  // final video player (only the merged result)
   const player=$('rvPlayer');
-  const first=p.clips.find(c=>c.video);
-  if(p.merged||first){
-    const src=p.merged||first.video;
+  if(p.merged){
     const cur=player.querySelector('video');
-    if(!cur||cur.dataset.src!==src){
-      player.innerHTML=`<video data-src="${esc(src)}" src="${esc(src)}" controls playsinline ${first&&first.poster?`poster="${esc(first.poster)}"`:''}></video>`;
+    if(!cur||cur.dataset.src!==p.merged){
+      player.innerHTML=`<video data-src="${esc(p.merged)}" src="${esc(p.merged)}" controls playsinline></video>`;
     }
-  } else if(p.clips[0]?.poster){
-    player.innerHTML=`<img src="${esc(p.clips[0].poster)}" alt="">`;
+  } else {
+    player.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px;font-weight:500;padding:20px;text-align:center">${p.mergedPending?'<span class="spin"></span>&nbsp; Building your final video…':'No final video yet — combine your clips below.'}</div>`;
   }
 
   bindMpick('rvMpick','rvMlist',async m=>{ await doAction({action:'music',music:m}); },()=>p.music);
@@ -974,9 +1027,13 @@ function renderReview(){
     const phase=p.mergedPending.phase;
     fb.innerHTML=`<div class="ftext"><span class="spin"></span> ${phase==='upscale'?'Upscaling to 1080p…':phase==='audio'?'Adding your music…':'Combining your clips…'} this page updates automatically.</div>`;
   } else if(p.merged){
-    fb.innerHTML=`<div class="ftext"><b>Your final video is ready.</b> ${p.clips.length>1?`${ready} clips combined`:'1 clip'}${p.music?` with “${esc(p.music.name)}”`:''}${p.quality==='1080p'?' · 1080p':''}.</div>
+    const alt=p.quality==='1080p'&&p.mergedBase&&p.mergedBase!==p.merged
+      ? `<a class="btn ghost small" href="${esc(p.mergedBase)}" target="_blank" rel="noopener" download="toura-walkthrough-720p.mp4">↓ 720p (no upscale)</a>`
+      : '';
+    fb.innerHTML=`<div class="ftext"><b>Your final video is ready.</b> ${p.clips.length>1?`${ready} clips combined`:'1 clip'}${p.music?` with “${esc(p.music.name)}”`:''}${p.quality==='1080p'?' · upscaled to 1080p':''}.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn small" href="${esc(p.merged)}" target="_blank" rel="noopener" download="toura-walkthrough.mp4">Download final video</a>
+        <a class="btn small" href="${esc(p.merged)}" target="_blank" rel="noopener" download="toura-walkthrough.mp4">Download${p.quality==='1080p'?' 1080p':''}</a>
+        ${alt}
         <button class="btn ghost small" onclick="doAction({action:'merge'})">Rebuild</button>
       </div>`;
   } else {
