@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { getSession } from '../lib/auth.js';
-import { falConfigured, falSubmit, clipPrompt, clampDuration, MODELS } from '../lib/fal.js';
+import { falConfigured, falSubmit, clipPrompt, clampDuration, renderCost, RENDER_BUDGET, MODELS } from '../lib/fal.js';
 import { hostImage } from '../lib/blob.js';
 import { loadProjects, saveProjects } from '../lib/projects.js';
 
@@ -23,9 +23,8 @@ export default async function handler(req, res){
   const dur = clampDuration(duration);
   const ar  = ALLOWED_ASPECTS.includes(aspect) ? aspect : 'auto';
   const q   = ALLOWED_QUALITY.includes(quality) ? quality : '1080p';
-  // Draft mode renders cheap 480p previews; final quality maxes at 720p (1080p = upscale at the end)
-  const draft = !!req.body.draft;
-  const renderRes = draft ? '480p' : (q === '1080p' ? '720p' : q);
+  // Working clips always render at 480p; finalizing a clip re-renders it at 720p.
+  const renderRes = '480p';
   const hasMusic = !!(music && music.url);
 
   try{
@@ -42,8 +41,8 @@ export default async function handler(req, res){
         duration: segDur,
         aspect_ratio: ar,
         resolution: renderRes,
-        // With a soundtrack chosen, render silent clips so ONE track runs continuously.
-        generate_audio: !hasMusic,
+        // Clips are always silent — music is added on the final video.
+        generate_audio: false,
       });
       clips.push({
         cid: crypto.randomUUID(),
@@ -61,6 +60,7 @@ export default async function handler(req, res){
     }
     const project = {
       renders: clips.length,
+      spend: clips.reduce((t, c) => t + renderCost(c.duration, c.res), 0),
       id: crypto.randomUUID(),
       email: s.email,
       name: String(name || '').trim().slice(0, 120) || 'Untitled walkthrough',

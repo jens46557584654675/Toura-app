@@ -29,23 +29,27 @@ export default async function handler(req, res){
 
   let changed = false;
   try{
-    // 1. Poll pending clips
+    // 1. Poll pending clips (480p working versions AND 720p finalized versions)
     for(const clip of project.clips){
-      if(clip.status !== 'queued' && clip.status !== 'in_progress') continue;
-      const urls = jobUrls(MODELS.video, clip);
-      const st = await falGet(urls.status);
-      if(st.status === 'COMPLETED'){
-        try{
-          const out = await falGet(urls.result);
-          clip.video = await archiveVideo(out.video?.url);
-          clip.status = 'done';
-        }catch{
-          clip.status = 'failed';
+      const jobs = [];
+      if(clip.status === 'queued' || clip.status === 'in_progress') jobs.push(clip);
+      if(clip.final && (clip.final.status === 'queued' || clip.final.status === 'in_progress')) jobs.push(clip.final);
+      for(const job of jobs){
+        const urls = jobUrls(MODELS.video, job);
+        const st = await falGet(urls.status);
+        if(st.status === 'COMPLETED'){
+          try{
+            const out = await falGet(urls.result);
+            job.video = await archiveVideo(out.video?.url);
+            job.status = 'done';
+          }catch{
+            job.status = 'failed';
+          }
+          changed = true;
+        } else {
+          const next = st.status === 'IN_PROGRESS' ? 'in_progress' : 'queued';
+          if(next !== job.status){ job.status = next; changed = true; }
         }
-        changed = true;
-      } else {
-        const next = st.status === 'IN_PROGRESS' ? 'in_progress' : 'queued';
-        if(next !== clip.status){ clip.status = next; changed = true; }
       }
     }
     // 2. Poll pending merge pipeline
