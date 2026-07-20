@@ -49,9 +49,11 @@ export default async function handler(req, res){
         project.mergedPending = null;
         if(mp.phase === 'audio') project.export = url;
         else if(mp.phase === 'final') project.final = url;
-        else if(mp.phase === 'outro'){
-          // The outro is concatenated first; the soundtrack has to span the
-          // result, so it is mixed in as a second job rather than the same one.
+        else if(mp.phase === 'export' || mp.phase === 'outro'){
+          // Clips (+ outro) are concatenated first; the soundtrack has to span
+          // the result, so it is mixed in as a second job rather than the same
+          // one. 'outro' is the pre-2026-07 phase name, kept for jobs already
+          // queued in Redis when this shipped.
           if(project.music){
             const job = await falSubmit(MODELS.audio, { video_url: url, audio_url: project.music.url });
             project.mergedPending = { phase: 'audio', ...job };

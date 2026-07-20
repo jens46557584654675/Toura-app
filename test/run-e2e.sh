@@ -144,10 +144,12 @@ check "regenerated clip done" '"status":"done".*"status":"done"' "$R"
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"reorder\",\"order\":[\"$CID2\",\"$CID\"]}")
 check "reorder clips" "\"cid\":\"$CID2\"" "$R"
 
-# --- merge + music ---
+# --- export: the single merge step ---
+# The concept merge action still exists for old projects but the UI no longer
+# calls it; export stitches the clips itself.
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"merge\"}")
 # Match the object, not the bare key — "mergedPending":null contains the key too.
-check "merge started" '"mergedPending":{' "$R"
+check "legacy concept merge still works" '"mergedPending":{' "$R"
 
 # Polling status is what advances the merge pipeline, so poll rather than sleep.
 R=$(poll_status '"concept":"http')
@@ -163,7 +165,7 @@ check "branding outro enabled" '"outro":true' "$R"
 
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"export\"}")
 check "export started" '"mergedPending":{' "$R"
-check "export starts with the outro merge" '"phase":"outro"' "$R"
+check "export merges the clips itself" '"phase":"export"' "$R"
 
 # The stub names results per model, so "fake-audio" proves the export really went
 # through merge-audio-video. A bare "http" would also pass the music-less
@@ -174,8 +176,36 @@ check "export ready (video + music)" '"export":"https://example.com/fake-audio' 
 # Ask the stub what fal was actually sent: the outro merge must include the
 # branding clip and pin the output shape to the listing video (index 0).
 CALLS=$(curl -s localhost:9999/_calls)
-check "outro merge sent the branding clip to fal" "$BRAND_URL" "$CALLS"
-check "outro merge pins aspect to the listing video" '"resolution_aspect_ratio_video_index":0' "$CALLS"
+check "export merge sent the branding clip to fal" "$BRAND_URL" "$CALLS"
+check "export merge pins aspect to the listing video" '"resolution_aspect_ratio_video_index":0' "$CALLS"
+
+# The export merge must carry both clips AND the outro — 3 urls. This is what
+# proves export stitches the clips itself instead of reusing a concept merge.
+PARTS=$(echo "$CALLS" | python3 -c "
+import sys,json
+merges=[c for c in json.load(sys.stdin)['calls'] if c['kind']=='merge']
+print(len(merges[-1]['input'].get('video_urls',[])) if merges else 0)
+")
+check "export merge carries both clips and the outro" '^3$' "$PARTS"
+
+# --- billing ---
+R=$(curl -s -b $J localhost:3000/api/billing)
+check "billing lists three plans" '"starter".*"office".*"pro"' "$R"
+check "new account starts on trial" '"status":"trial"' "$R"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/billing -H 'Content-Type: application/json' -d '{"action":"choose","plan":"office"}')
+check "choosing a plan is recorded" '"plan":"office"' "$R"
+# Nothing is paid yet, so it must not read as an active subscription.
+check "chosen plan is pending, not active" '"status":"pending"' "$R"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/billing -H 'Content-Type: application/json' -d '{"action":"choose","plan":"free-forever"}')
+check "unknown plan rejected" 'Unknown plan' "$R"
+
+R=$(curl -s -b $J localhost:3000/api/billing)
+check "plan persisted" '"plan":"office"' "$R"
+
+R=$(curl -s localhost:3000/api/billing)
+check "billing requires auth" 'Not signed in' "$R"
 
 R=$(curl -s "localhost:3000/api/status?id=$PID")
 check "status requires auth" 'Not signed in' "$R"

@@ -10,27 +10,43 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#111; --muted:#8a8a8a; --grey:#f4f4f4; --grey2:#ececec; --line:#e7e7e7; --radius:16px; }
+  :root{
+    --ink:#111; --muted:#8a8a8a; --grey:#f4f4f4; --grey2:#ececec; --line:#e7e7e7; --radius:16px;
+    --bg:#fff;              /* page background */
+    --card:#fff;            /* raised surface on top of --grey blocks */
+    --on-ink:#fff;          /* text/icons sitting on an --ink coloured fill */
+    --navbg:rgba(255,255,255,.92);
+    --pill:rgba(255,255,255,.92);   /* small floating labels over media */
+    --dash:#d6d6d6;         /* dashed drop/drag outlines */
+    --edge:#cfcfcf;         /* subtle input borders */
+  }
+  /* Dark theme — darker greys, never a pure inversion (media keeps its colours). */
+  body[data-theme=dark]{
+    --ink:#f1f1f1; --muted:#9b9b9b; --grey:#1e1e1e; --grey2:#282828; --line:#2e2e2e;
+    --bg:#131313; --card:#1c1c1c; --on-ink:#131313;
+    --navbg:rgba(19,19,19,.92); --pill:rgba(28,28,28,.92);
+    --dash:#3a3a3a; --edge:#3f3f3f;
+  }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
-  body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:var(--ink);-webkit-font-smoothing:antialiased}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
   input,textarea{font-family:inherit;font-size:15px;color:var(--ink)}
-  ::placeholder{color:#b5b5b5}
+  ::placeholder{color:var(--muted);opacity:.7}
   .view{display:none;min-height:100vh}
   .view.active{display:block}
   .logo{display:flex;align-items:center;gap:10px;user-select:none;cursor:pointer}
   .logo .mark{width:34px;height:34px;border-radius:10px;background:var(--grey);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}
   .logo .word{font-weight:800;font-size:19px;letter-spacing:-0.03em}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;transition:opacity .15s;text-decoration:none}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:var(--on-ink);font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;transition:opacity .15s;text-decoration:none}
   .btn:hover{opacity:.85}
   .btn:disabled{background:var(--grey2);color:#b0b0b0;cursor:not-allowed}
   .btn.ghost{background:var(--grey);color:var(--ink)}
   .btn.small{padding:9px 18px;font-size:13.5px}
   .field{width:100%;background:var(--grey);border:1px solid transparent;border-radius:12px;padding:14px 16px;margin-bottom:10px;outline:none;transition:border .15s}
-  .field:focus{border-color:#cfcfcf;background:#fff}
+  .field:focus{border-color:var(--edge);background:var(--card)}
   .err{font-size:13px;color:#c0392b;min-height:18px;margin-top:2px}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:14px;font-weight:500;padding:12px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--on-ink);font-size:14px;font-weight:500;padding:12px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   .spin{display:inline-block;width:11px;height:11px;border:2px solid #d6d6d6;border-top-color:var(--ink);border-radius:50%;animation:rot .8s linear infinite;vertical-align:-1px}
   @keyframes rot{to{transform:rotate(360deg)}}
@@ -45,29 +61,36 @@
   .auth-card>p{font-size:14px;color:var(--muted);margin-bottom:24px}
   .tabs{display:flex;background:var(--grey);border-radius:999px;padding:4px;margin-bottom:18px}
   .tabs button{flex:1;padding:9px 0;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted)}
-  .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .auth-card .btn{width:100%;margin-top:8px}
   .auth-foot{margin-top:26px;font-size:13px;color:var(--muted)}
   .auth-foot a{color:var(--ink);text-decoration:none;font-weight:600}
 
   /* shell */
-  .nav{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
+  .nav{position:sticky;top:0;background:var(--navbg);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
   .nav-inner{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
   .nav-right{display:flex;align-items:center;gap:16px}
   .user-chip{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--grey);border-radius:999px;padding:7px 14px 7px 7px}
-  .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
   /* profile menu */
   .usermenu{position:relative}
   .usermenu>.user-chip{cursor:pointer;transition:background .15s}
   .usermenu>.user-chip:hover{background:var(--grey2)}
   .usermenu .caret{font-size:9px;color:var(--muted);margin-left:2px}
-  .umenu{position:absolute;top:calc(100% + 10px);right:0;min-width:190px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.10);padding:6px;display:none;z-index:20}
+  .umenu{position:absolute;top:calc(100% + 10px);right:0;min-width:250px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.10);padding:6px;display:none;z-index:20}
   .usermenu.open .umenu{display:block}
   .umenu .uhead{padding:10px 14px 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
   .umenu .uhead b{display:block;font-size:14px}
   .umenu .uhead span{font-size:12px;color:var(--muted);word-break:break-all}
-  .umenu button{display:block;width:100%;text-align:left;padding:10px 14px;border-radius:9px;font-size:14px;font-weight:500;color:var(--ink)}
+  .umenu button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px 14px;border-radius:9px;font-size:14px;font-weight:500;color:var(--ink)}
   .umenu button:hover{background:var(--grey)}
+  .umenu button svg{flex:none;opacity:.75}
+  .umenu button span{flex:1}
+  /* dark-mode switch */
+  .uswitch{flex:none!important;width:30px;height:17px;border-radius:999px;background:var(--grey2);position:relative;transition:background .15s}
+  .uswitch::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .uswitch[data-on="1"]{background:var(--ink)}
+  .uswitch[data-on="1"]::after{transform:translateX(13px)}
   .umenu .usep{height:1px;background:var(--line);margin:6px 0}
   .umenu button.danger{color:#c0392b}
   /* branding page */
@@ -75,33 +98,51 @@
   .bcard h3{font-size:15px;font-weight:700;margin-bottom:4px}
   .bcard .bhint{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.55}
   .bslot{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-  .bprev{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;align-items:center;justify-content:center;min-width:120px;min-height:80px}
+  .bprev{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;align-items:center;justify-content:center;min-width:120px;min-height:80px}
   .bprev img{max-width:150px;max-height:70px;display:block}
   .bprev video{max-height:120px;border-radius:6px;display:block}
   .bempty{color:var(--muted);font-size:13px}
   .bvids{display:flex;gap:18px;flex-wrap:wrap}
   .bvid{flex:1;min-width:240px}
   .bvid .blab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+  /* account rows */
+  .arow{display:flex;align-items:center;gap:18px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .arow:last-child{border-bottom:none}
+  .alab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;width:110px;flex:none}
+  .aval{font-size:14.5px;font-weight:600;word-break:break-all}
+  /* billing plans */
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+  .plan{background:var(--grey);border:1.5px solid transparent;border-radius:var(--radius);padding:26px 24px;display:flex;flex-direction:column;gap:14px}
+  .plan.on{border-color:var(--ink);background:var(--card)}
+  .plan .pname{font-size:16px;font-weight:700}
+  .plan .pprice{font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .plan .pprice small{font-size:14px;font-weight:600;color:var(--muted)}
+  .plan .pblurb{font-size:13.5px;color:var(--muted);line-height:1.55;flex:1}
+  .plan .btn{width:100%}
+  .plan .pcur{text-align:center;font-size:13px;font-weight:700;color:var(--muted);padding:14px 0}
   /* branding options in step 4 */
   .bopts{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
   .bopt{display:flex;align-items:center;gap:10px;background:var(--grey);border:1.5px solid transparent;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer;text-align:left}
-  .bopt.on{border-color:var(--ink);background:#fff}
+  .bopt.on{border-color:var(--ink);background:var(--card)}
   .bopt[disabled]{opacity:.5;cursor:not-allowed}
   .bopt .bsub{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
-  .bopt .bbox{width:18px;height:18px;border-radius:5px;border:1.5px solid #cfcfcf;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .bopt .bbox{width:18px;height:18px;border-radius:5px;border:1.5px solid #cfcfcf;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--on-ink)}
   .bopt.on .bbox{background:var(--ink);border-color:var(--ink)}
   .tclip.touro{outline:2px dashed #cfcfcf;outline-offset:2px}
   .wrap{max-width:1120px;margin:0 auto;padding:40px 24px 90px}
 
   /* progress bar */
-  .steps{display:flex;align-items:center;gap:0;margin:0 0 36px;flex-wrap:wrap}
-  .pstep{display:flex;align-items:center;gap:9px;padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
-  .pstep .pnum{width:22px;height:22px;border-radius:50%;background:var(--grey);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700}
-  .pstep.on{background:var(--grey);color:var(--ink)}
-  .pstep.on .pnum{background:var(--ink);color:#fff}
-  .pstep.done .pnum{background:var(--ink);color:#fff}
+  .steps{display:flex;align-items:center;gap:6px;margin:0 0 36px;flex-wrap:wrap}
+  /* Every step is a grey bubble so the bar reads as one element; the active
+     step is set apart by the black circle and heavier text, not by the bubble. */
+  .pstep{display:flex;align-items:center;gap:9px;padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;background:var(--grey);transition:background .15s,color .15s}
+  .pstep:hover:not(.off){background:var(--grey2)}
+  .pstep .pnum{width:22px;height:22px;border-radius:50%;background:var(--grey2);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700}
+  .pstep.on{background:var(--grey);color:var(--ink);font-weight:800}
+  .pstep.on .pnum{background:var(--ink);color:var(--on-ink)}
+  .pstep.done .pnum{background:var(--ink);color:var(--on-ink)}
   .pstep.off{opacity:.45;cursor:not-allowed}
-  .parrow{color:#d0d0d0;font-size:13px;padding:0 4px}
+  .parrow{color:var(--muted);opacity:.5;font-size:13px;padding:0 4px}
   .stepbar-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px}
   .back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--muted)}
   .back:hover{color:var(--ink)}
@@ -110,7 +151,7 @@
   .dash-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:26px}
   .dash-head h1{font-size:34px;font-weight:800;letter-spacing:-0.03em}
   .dash-head p{margin-top:6px;font-size:15px;color:var(--muted)}
-  .bigdrop{border:1.5px dashed #d6d6d6;border-radius:var(--radius);padding:64px 24px;text-align:center;cursor:pointer;transition:.15s;background:#fff}
+  .bigdrop{border:1.5px dashed var(--dash);border-radius:var(--radius);padding:64px 24px;text-align:center;cursor:pointer;transition:.15s;background:var(--card)}
   .bigdrop:hover,.bigdrop.drag{border-color:var(--ink);background:#fafafa}
   .bigdrop .ico{font-size:30px;margin-bottom:12px}
   .bigdrop p{font-size:16px;font-weight:700}
@@ -126,23 +167,23 @@
   .card-body{padding:14px 16px 16px}
   .card-body h3{font-size:15px;font-weight:600;margin-bottom:3px}
   .card-body span{font-size:13px;color:var(--muted)}
-  .badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#fff;color:var(--ink)}
+  .badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--card);color:var(--ink)}
   .play-ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-  .play-ico i{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;padding-left:3px}
+  .play-ico i{width:44px;height:44px;border-radius:50%;background:var(--pill);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;padding-left:3px}
   .pencil{font-size:15px;color:var(--muted);padding:4px 8px}
   .pencil:hover{color:var(--ink)}
-  .thumb .pencil{position:absolute;right:8px;top:8px;background:rgba(255,255,255,.92);border-radius:999px;font-size:12px;padding:5px 10px;z-index:2;color:var(--ink)}
+  .thumb .pencil{position:absolute;right:8px;top:8px;background:var(--pill);border-radius:999px;font-size:12px;padding:5px 10px;z-index:2;color:var(--ink)}
 
   /* upload popup */
   .overlay{position:fixed;inset:0;background:rgba(17,17,17,.4);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
   .overlay.on{display:flex}
-  .upmodal{background:#fff;border-radius:20px;max-width:960px;width:100%;max-height:92vh;overflow:auto;padding:26px;display:flex;flex-direction:column;gap:18px}
+  .upmodal{background:var(--card);border-radius:20px;max-width:960px;width:100%;max-height:92vh;overflow:auto;padding:26px;display:flex;flex-direction:column;gap:18px}
   .upmodal .uphead{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start}
   .upmodal .upname{flex:1;min-width:240px}
   .upmodal .upname label,.upmodal .upaspect label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
   .aspects{display:flex;gap:8px}
   .aopt{display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--grey);border:1.5px solid transparent;border-radius:12px;padding:10px 16px;font-size:12px;font-weight:700;color:var(--muted)}
-  .aopt.on{border-color:var(--ink);color:var(--ink);background:#fff}
+  .aopt.on{border-color:var(--ink);color:var(--ink);background:var(--card)}
   .aopt .ascr{border:2px solid currentColor;border-radius:3px}
   .aopt .ascr.a{width:22px;height:16px;border-style:dashed}
   .aopt .ascr.h{width:26px;height:15px}
@@ -151,17 +192,17 @@
   .uppv{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--grey)}
   .uppv img{width:100%;height:100%;object-fit:cover}
   .uppv .rm{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(17,17,17,.75);color:#fff;font-size:11px;line-height:22px;text-align:center}
-  .upadd{aspect-ratio:3/4;border:1.5px dashed #d6d6d6;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted);cursor:pointer}
+  .upadd{aspect-ratio:3/4;border:1.5px dashed var(--dash);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted);cursor:pointer}
   .upadd:hover{border-color:var(--ink);color:var(--ink)}
   .upfoot{display:flex;justify-content:flex-end;gap:10px}
 
   /* music library page */
   .music-tabs{display:inline-flex;background:var(--grey);border-radius:999px;padding:4px;margin-bottom:22px}
   .music-tabs button{padding:9px 22px;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted)}
-  .music-tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .music-tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .tracks{max-width:640px}
   .track{display:flex;align-items:center;gap:14px;background:var(--grey);border-radius:14px;padding:12px 16px;margin-bottom:10px}
-  .track .tplay{width:36px;height:36px;border-radius:50%;background:#fff;font-size:13px;flex:none;padding-left:2px}
+  .track .tplay{width:36px;height:36px;border-radius:50%;background:var(--card);font-size:13px;flex:none;padding-left:2px}
   .track .tname{flex:1;font-size:14.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .track .tby{font-size:12px;color:var(--muted)}
   .track .theart{font-size:17px;color:#c9c9c9;flex:none}
@@ -175,10 +216,10 @@
   .step-sub{font-size:14px;color:var(--muted);margin-bottom:16px}
   .route{background:var(--grey);border-radius:var(--radius);padding:18px;display:flex;align-items:center;overflow-x:auto}
   .route:empty{display:none}
-  .rcard{position:relative;flex:none;width:118px;border-radius:12px;overflow:hidden;cursor:grab;background:#fff;transition:transform .12s}
+  .rcard{position:relative;flex:none;width:118px;border-radius:12px;overflow:hidden;cursor:grab;background:var(--card);transition:transform .12s}
   .rcard:active{cursor:grabbing}
   .rcard img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;pointer-events:none}
-  .rcard .rnum{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:700;background:rgba(255,255,255,.92);padding:3px 8px;border-radius:999px}
+  .rcard .rnum{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:700;background:var(--pill);padding:3px 8px;border-radius:999px}
   .rcard .rrm{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:rgba(17,17,17,.8);color:#fff;font-size:12px;line-height:20px;text-align:center}
   .rcard.dragging{opacity:.35;transform:scale(.95) rotate(2deg)}
   .rph{flex:none;width:118px;aspect-ratio:3/4;border-radius:12px;background:var(--grey2);border:2px dashed #bdbdbd;margin:0 4px}
@@ -202,10 +243,10 @@
   .cliprow .cvideo video{width:100%;display:block}
   .cset label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px}
   .cset label:first-child{margin-top:0}
-  .cset textarea{width:100%;background:#fff;border:1px solid transparent;border-radius:10px;padding:10px 12px;min-height:64px;resize:vertical;outline:none;font-size:13.5px;line-height:1.5}
+  .cset textarea{width:100%;background:var(--card);border:1px solid transparent;border-radius:10px;padding:10px 12px;min-height:64px;resize:vertical;outline:none;font-size:13.5px;line-height:1.5}
   .cset textarea:focus{border-color:#cfcfcf}
   .cset .crow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-  .range-wrap{display:flex;align-items:center;gap:12px;background:#fff;border-radius:999px;padding:10px 16px}
+  .range-wrap{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:999px;padding:10px 16px}
   input[type=range]{-webkit-appearance:none;appearance:none;width:170px;height:5px;border-radius:999px;background:var(--grey2);outline:none}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:19px;height:19px;border-radius:50%;background:var(--ink);cursor:pointer}
   input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:50%;background:var(--ink);border:none;cursor:pointer}
@@ -216,7 +257,8 @@
 
   /* final page */
   .fclips{display:flex;gap:14px;overflow-x:auto;padding:6px 2px 12px;align-items:stretch}
-  .fclip{position:relative;flex:none;width:230px;background:var(--grey);border-radius:14px;overflow:hidden;cursor:grab;transition:transform .12s}
+  .fclip{position:relative;flex:none;width:230px;background:var(--grey);border:1.5px dashed var(--dash);border-radius:14px;overflow:hidden;cursor:grab;transition:transform .12s,border-color .12s}
+  .fclip:hover{border-color:var(--muted)}
   .fclip:active{cursor:grabbing}
   .fclip.dragging{opacity:.35;transform:scale(.96) rotate(1.5deg)}
   .fclip .cv{aspect-ratio:16/10;background:var(--grey2)}
@@ -224,7 +266,7 @@
   .fclip .cc{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:12.5px;font-weight:700}
   .fclip .cres{font-weight:600;color:var(--muted);font-size:11.5px}
   .fclip .cres.up{color:var(--ink)}
-  .fclip .fedit{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);border-radius:999px;font-size:11px;font-weight:700;padding:5px 11px}
+  .fclip .fedit{position:absolute;top:8px;right:8px;background:var(--pill);border-radius:999px;font-size:11px;font-weight:700;padding:5px 11px}
   .fph{flex:none;width:230px;border-radius:14px;background:var(--grey2);border:2px dashed #bdbdbd;margin:0 3px}
   .stage{background:var(--grey);border-radius:var(--radius);padding:22px;margin-bottom:16px}
   .stage .shead{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
@@ -233,19 +275,33 @@
   .stage .splayer{border-radius:14px;overflow:hidden;background:#000;max-width:680px;margin-top:16px}
   .stage .splayer.vert{max-width:300px}
   .stage .splayer video{width:100%;display:block}
+  /* concept player: two stacked videos so the next clip is already decoded and
+     the hand-over at the end of a clip has no black flash */
+  .cvwrap{position:relative;max-width:680px;margin-top:16px}
+  .cvwrap.vert{max-width:300px}
+  .cvstack{position:relative;border-radius:14px;overflow:hidden;background:#000}
+  .cvstack video{width:100%;display:block}
+  .cvstack video.behind{position:absolute;inset:0;opacity:0;pointer-events:none}
+  .cvbar{display:flex;gap:4px;margin-top:10px}
+  .cvseg{height:4px;border-radius:999px;background:var(--grey2);flex:1;overflow:hidden}
+  .cvseg i{display:block;height:100%;width:0;background:var(--ink);border-radius:999px}
+  .cvseg.done i{width:100%}
+  .cvctl{display:flex;align-items:center;gap:14px;margin-top:12px}
+  .cvctl .cvbtn{width:38px;height:38px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+  .cvctl .cvnow{font-size:13px;color:var(--muted);font-weight:500}
 
   /* music step */
   .timeline{background:var(--grey);border-radius:var(--radius);padding:18px;display:flex;gap:8px;overflow-x:auto;align-items:center}
   .tclip{flex:none;position:relative;border-radius:10px;overflow:hidden;background:#000}
   .tclip video,.tclip img{height:96px;display:block;object-fit:cover;pointer-events:none}
-  .tclip .tdur{position:absolute;right:5px;bottom:5px;font-size:10px;font-weight:700;background:rgba(255,255,255,.92);padding:2px 7px;border-radius:999px}
+  .tclip .tdur{position:absolute;right:5px;bottom:5px;font-size:10px;font-weight:700;background:var(--pill);padding:2px 7px;border-radius:999px}
   .musicbar{display:flex;align-items:center;gap:14px;background:var(--grey);border-radius:var(--radius);padding:14px 18px;margin-top:14px;flex-wrap:wrap}
-  .musicbar .tplay{width:36px;height:36px;border-radius:50%;background:#fff;font-size:13px;flex:none;padding-left:2px}
+  .musicbar .tplay{width:36px;height:36px;border-radius:50%;background:var(--card);font-size:13px;flex:none;padding-left:2px}
   .musicbar .mname{font-size:14px;font-weight:700;flex:1;min-width:140px}
   .musicbar .mnone{color:var(--muted);font-weight:500}
   .mpick{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
   .mopt{padding:10px 20px;border-radius:999px;font-size:13.5px;font-weight:600;background:var(--grey);color:var(--muted)}
-  .mopt.on{background:var(--ink);color:#fff}
+  .mopt.on{background:var(--ink);color:var(--on-ink)}
   .mlist{max-width:560px}
   .mrow{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:1.5px solid transparent}
   .mrow:hover{background:var(--grey)}
@@ -383,6 +439,45 @@
   </div>
 </section>
 
+<!-- ================= MY ACCOUNT ================= -->
+<section id="account" class="view">
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
+    <div class="nav-right"></div>
+  </div></nav>
+  <div class="wrap">
+    <div class="dash-head">
+      <div><h1>My account</h1><p>Your details and subscription.</p></div>
+    </div>
+    <div class="bcard">
+      <h3>Details</h3>
+      <div class="arow"><span class="alab">Name</span><span class="aval" id="acName">—</span></div>
+      <div class="arow"><span class="alab">Email</span><span class="aval" id="acEmail">—</span></div>
+      <div class="arow"><span class="alab">Password</span><span class="aval"><button class="btn ghost small" onclick="toast('Password change is coming soon.')">Change password</button></span></div>
+    </div>
+    <div class="bcard">
+      <h3>Subscription</h3>
+      <div class="arow"><span class="alab">Current</span><span class="aval" id="acPlan">—</span></div>
+      <div style="margin-top:16px"><button class="btn small" onclick="goBilling()">View plans</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BILLING ================= -->
+<section id="billing" class="view">
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
+    <div class="nav-right"></div>
+  </div></nav>
+  <div class="wrap">
+    <div class="dash-head">
+      <div><h1>Billing</h1><p id="blSub">Choose the plan that fits your office.</p></div>
+    </div>
+    <div class="plans" id="planGrid"></div>
+    <p class="empty-note" id="blNote"></p>
+  </div>
+</section>
+
 <!-- ================= STEP 2: ROUTE & CLIPS ================= -->
 <section id="editor" class="view">
   <nav class="nav"><div class="nav-inner">
@@ -394,7 +489,9 @@
       <button class="back" onclick="goDash()">&larr; Back</button>
       <div id="stepsEditor"></div>
     </div>
-    <div class="dash-head" style="margin-bottom:22px"><div><h1 id="editorTitle">New walkthrough</h1></div></div>
+    <div class="dash-head" style="margin-bottom:22px"><div>
+      <div style="display:flex;align-items:center;gap:4px"><h1 id="editorTitle">New walkthrough</h1><button class="pencil" onclick="renameFromEditor()">✎</button></div>
+    </div></div>
 
     <div class="step">
       <div class="bigdrop" id="photoDrop">
@@ -607,19 +704,59 @@ $('authForm').addEventListener('submit',async e=>{
   finally{ $('authBtn').disabled=false; }
 });
 /* ---- profile menu (same markup in every nav, built once here) ---- */
+/* ---- theme ---- */
+// Explicit choice wins; otherwise follow the device setting.
+function isDark(){
+  const saved=localStorage.getItem('toura_theme');
+  if(saved) return saved==='dark';
+  return window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function applyTheme(){
+  document.body.setAttribute('data-theme',isDark()?'dark':'light');
+  document.querySelectorAll('.uswitch').forEach(s=>s.dataset.on=isDark()?'1':'0');
+}
+function toggleTheme(){
+  localStorage.setItem('toura_theme',isDark()?'light':'dark');
+  applyTheme();
+}
+applyTheme();
+// Follow the device only while the user has not chosen for themselves.
+window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{
+  if(!localStorage.getItem('toura_theme')) applyTheme();
+});
+
+/* Minimal 16px line icons, stroked in currentColor — no icon library. */
+const ICON={
+  home:'<path d="M3 9.2 8 4l5 5.2"/><path d="M4.4 8.6V13h7.2V8.6"/>',
+  user:'<circle cx="8" cy="5.6" r="2.4"/><path d="M3.4 13c0-2.3 2.1-3.6 4.6-3.6s4.6 1.3 4.6 3.6"/>',
+  note:'<circle cx="5.2" cy="11.4" r="1.9"/><path d="M7.1 11.4V3.4l5.5-1.1v7.6"/><circle cx="10.7" cy="9.9" r="1.9"/>',
+  tag:'<path d="M12.6 3.4 8.2 12a2 2 0 0 1-3.6-1.7l3.8-7.4a1.3 1.3 0 0 1 2.3 1.2L7.2 10.6"/>',
+  card:'<rect x="2" y="4" width="12" height="8" rx="1.6"/><path d="M2 6.9h12"/>',
+  moon:'<path d="M12.6 9.6A5 5 0 0 1 6.4 3.4a5 5 0 1 0 6.2 6.2Z"/>',
+  out:'<path d="M6.2 13H3.6V3h2.6"/><path d="M9.4 10.6 12 8 9.4 5.4"/><path d="M12 8H6.6"/>',
+};
+const icon=n=>`<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
+
 function paintUserMenus(){
   if(!user) return;
   const first=user.name.split(' ')[0], initial=user.name[0].toUpperCase();
+  const items=[
+    ['account','user','My account'],
+    ['dash','home','Dashboard'],
+    ['music','note','Music'],
+    ['branding','tag','Branding'],
+    ['billing','card','Billing'],
+  ];
   document.querySelectorAll('.nav-right').forEach(slot=>{
     slot.innerHTML=`<div class="usermenu">
       <div class="user-chip"><div class="avatar">${esc(initial)}</div><span>${esc(first)}</span><span class="caret">▼</span></div>
       <div class="umenu">
         <div class="uhead"><b>${esc(user.name)}</b><span>${esc(user.email)}</span></div>
-        <button data-go="dash">Dashboard</button>
-        <button data-go="music">Music</button>
-        <button data-go="branding">Branding</button>
+        ${items.map(([go,ic,label])=>`<button data-go="${go}">${icon(ic)}<span>${label}</span></button>`).join('')}
         <div class="usep"></div>
-        <button class="danger" data-go="out">Log out</button>
+        <button data-go="theme">${icon('moon')}<span>Dark mode</span><span class="uswitch" data-on="${isDark()?'1':'0'}"></span></button>
+        <div class="usep"></div>
+        <button class="danger" data-go="out">${icon('out')}<span>Log out</span></button>
       </div></div>`;
     const menu=slot.querySelector('.usermenu');
     menu.querySelector('.user-chip').onclick=e=>{
@@ -630,11 +767,15 @@ function paintUserMenus(){
     };
     menu.querySelectorAll('.umenu button').forEach(b=>{
       b.onclick=e=>{
-        e.stopPropagation(); closeUserMenus();
+        e.stopPropagation();
         const go=b.dataset.go;
+        if(go==='theme'){ toggleTheme(); return; } // keep the menu open so the switch is visible
+        closeUserMenus();
         if(go==='dash') goDash();
         else if(go==='music') goMusic();
         else if(go==='branding') goBranding();
+        else if(go==='billing') goBilling();
+        else if(go==='account') goAccount();
         else if(go==='out') signOut();
       };
     });
@@ -649,7 +790,7 @@ async function enter(u){
   paintUserMenus();
   const h=new Date().getHours();
   $('greeting').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+u.name.split(' ')[0];
-  await Promise.all([loadProjects(),loadMusic(),loadBranding()]);
+  await Promise.all([loadProjects(),loadMusic(),loadBranding(),loadBilling()]);
   goDash();
 }
 async function signOut(){
@@ -887,6 +1028,50 @@ $('musicInput').onchange=async()=>{
     await loadMusic(); renderTracks(); toast('Track uploaded.');
   }catch(e){ toast(e.message,6000); }
 };
+
+/* ============ billing + account ============ */
+// Prices live here and nowhere else in the UI — see CLAUDE.md.
+let billing={plans:[],subscription:{plan:null,status:'trial',since:null}};
+async function loadBilling(){
+  try{ billing=await api('/api/billing'); }catch{}
+}
+function planLabel(){
+  const s=billing.subscription;
+  const p=billing.plans.find(x=>x.id===s.plan);
+  if(!p) return 'Trial';
+  return `${p.name}${s.status==='pending'?' · awaiting payment':''}`;
+}
+function goBilling(){ renderBilling(); show('billing'); }
+function renderBilling(){
+  const g=$('planGrid'); g.innerHTML='';
+  const cur=billing.subscription;
+  billing.plans.forEach(p=>{
+    const active=cur.plan===p.id;
+    const el=document.createElement('div'); el.className='plan'+(active?' on':'');
+    el.innerHTML=`<div class="pname">${esc(p.name)}</div>
+      <div class="pprice">&euro;${p.price}<small> /month</small></div>
+      <div class="pblurb">${esc(p.blurb)}</div>
+      ${active?'<div class="pcur">Your plan</div>':`<button class="btn small">Choose plan</button>`}`;
+    const btn=el.querySelector('button');
+    if(btn) btn.onclick=()=>choosePlan(p);
+    g.appendChild(el);
+  });
+  $('blSub').textContent=cur.plan?`Your plan: ${planLabel()}.`:'You are on a free trial. Choose the plan that fits your office.';
+  $('blNote').textContent='Payments are not live yet — choosing a plan only records your preference.';
+}
+async function choosePlan(p){
+  try{
+    billing.subscription=(await api('/api/billing',{method:'POST',body:{action:'choose',plan:p.id}})).subscription;
+    renderBilling();
+    toast(`${p.name} noted — we will contact you when billing goes live.`,6000);
+  }catch(e){ toast(e.message,6000); }
+}
+function goAccount(){
+  $('acName').textContent=user?user.name:'—';
+  $('acEmail').textContent=user?user.email:'—';
+  $('acPlan').textContent=planLabel();
+  show('account');
+}
 
 /* ============ branding ============ */
 let branding={logo:null,videos:{landscape:null,portrait:null}};
@@ -1222,6 +1407,17 @@ async function doAction(body){
     return project;
   }catch(err){ toast(err.message,6000); }
 }
+// Step 2 has no server project until the first clip renders, so before that the
+// name only lives in the upload field.
+function renameFromEditor(){
+  const cur=currentProject?currentProject.name:($('upName').value.trim()||'New walkthrough');
+  const n=window.prompt('Project name',cur);
+  if(!n||!n.trim()||n.trim()===cur) return;
+  const name=n.trim().slice(0,120);
+  $('upName').value=name;
+  $('editorTitle').textContent=name;
+  if(editorProjectId) doAction({action:'rename',name}).catch(e=>toast(e.message));
+}
 function renameProject(){
   if(!currentProject) return;
   const n=window.prompt('Project name',currentProject.name);
@@ -1248,7 +1444,7 @@ function renderFinalPage(){
     const finPending=c.final&&(c.final.status==='queued'||c.final.status==='in_progress');
     el.innerHTML=`<div class="cv">${src}</div>
       <div class="cc"><span>Clip ${i+1}</span>
-      <span class="cres ${isFinal?'up':''}">${finPending?'<span class="spin"></span> 720p…':isFinal?'✓ 720p':c.status==='done'?'480p concept':'<span class="spin"></span>'}</span></div>
+      <span class="cres ${isFinal?'up':''}">${finPending?'<span class="spin"></span> 720p…':isFinal?'✓ 720p':c.status==='done'?'':'<span class="spin"></span>'}</span></div>
       <button class="fedit" title="Edit this clip">✎</button>`;
     el.querySelector('.fedit').onclick=e=>{ e.stopPropagation(); showStep('editor'); };
     el.ondragstart=e=>{
@@ -1284,71 +1480,149 @@ function renderFinalPage(){
     await doAction({action:'reorder',order});
   };
 
-  // concept stage
+  // concept stage — plays the clips back to back in the browser.
+  // Nothing is merged here, so previewing the order costs nothing at fal.
   const cs=$('conceptStage');
-  const conceptPending=p.mergedPending?.phase==='concept';
   const vert=p.aspect==='9:16';
-  if(conceptPending){
-    cs.innerHTML=`<div class="shead"><div><div class="sttl">1 · Concept video · 480p</div><div class="ssub"><span class="spin"></span> Building your concept…</div></div></div>`;
-  } else if(p.concept){
-    cs.innerHTML=`<div class="shead"><div><div class="sttl">1 · Concept video · 480p</div><div class="ssub">Check the flow and the order. Happy? Upgrade below. Something off? Reorder above or edit a clip.</div></div>
-      <button class="btn ghost small" onclick="doAction({action:'merge',kind:'concept'})">↺ Rebuild concept</button></div>
-      <div class="splayer ${vert?'vert':''}"><video src="${esc(p.concept)}" controls playsinline></video></div>`;
+  const sources=p.clips.map(c=>clipSrc(c)).filter(Boolean);
+  const allReady=sources.length===p.clips.length&&sources.length>0;
+  if(!sources.length){
+    cs.innerHTML=`<div class="shead"><div><div class="sttl">1 · Concept video</div><div class="ssub">Render your clips in the previous step to preview the walkthrough here.</div></div></div>`;
+    stopConceptPlayer();
   } else {
-    cs.innerHTML=`<div class="shead"><div><div class="sttl">1 · Concept video · 480p</div><div class="ssub">Stitch your clips into one video to check the flow — quick and low-cost.</div></div>
-      <button class="btn small" ${done?'':'disabled'} onclick="doAction({action:'merge',kind:'concept'})">Build concept video</button></div>`;
+    cs.innerHTML=`<div class="shead"><div><div class="sttl">1 · Concept video</div><div class="ssub">${allReady?'Your clips play back to back in the order below. Reorder the cards above and it updates instantly.':`Playing the ${sources.length} clip${sources.length>1?'s':''} that are ready — the rest appear as they finish.`}</div></div></div>
+      <div class="cvwrap ${vert?'vert':''}">
+        <div class="cvstack">
+          <video id="cvA" playsinline preload="auto" muted></video>
+          <video id="cvB" class="behind" playsinline preload="auto" muted></video>
+        </div>
+        <div class="cvbar" id="cvBar"></div>
+        <div class="cvctl">
+          <button class="cvbtn" id="cvPlay">▶</button>
+          <span class="cvnow" id="cvNow"></span>
+          <button class="btn ghost small" id="cvRestart">↺ Restart</button>
+        </div>
+      </div>`;
+    setupConceptPlayer(sources);
   }
 
-  // upgrade stage
+  // upgrade stage — renders individual clips at 720p. No merging happens here;
+  // the single merge is done once at Create export.
   const us=$('upgradeStage');
-  const finals=p.clips.filter(c=>c.final?.status==='done').length;
   const finPend=p.clips.filter(c=>c.final&&(c.final.status==='queued'||c.final.status==='in_progress')).length;
-  const finalMergePending=p.mergedPending?.phase==='final';
-  if(finalMergePending){
-    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub"><span class="spin"></span> Combining your 720p clips…</div></div></div>`;
-  } else if(p.final){
-    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub">Your video in full quality. Add music &amp; download in the next step.</div></div>
-      <button class="btn small" onclick="showStep('postprod')">Continue to music &rarr;</button></div>
-      <div class="splayer ${vert?'vert':''}"><video src="${esc(p.final)}" controls playsinline></video></div>`;
-  } else if(finPend){
+  const todo=p.clips.filter(c=>c.status==='done'&&!(c.final?.status==='done')).length;
+  if(finPend){
     us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub"><span class="spin"></span> Rendering ${finPend} clip${finPend>1?'s':''} in 720p — only new or changed clips are re-rendered.</div></div></div>`;
+  } else if(!todo&&p.clips.length&&done===p.clips.length){
+    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub">All clips are 720p. Add music &amp; download in the next step.</div></div>
+      <button class="btn small" onclick="showStep('postprod')">Continue to music &rarr;</button></div>`;
   } else {
-    const todo=p.clips.filter(c=>c.status==='done'&&!(c.final?.status==='done')).length;
-    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub">${todo?`Upgrades ${todo} clip${todo>1?'s':''} to 720p — clips that are already final stay untouched.`:`All clips are 720p — combine them into your final video.`}</div></div>
-      <button class="btn small" ${done===p.clips.length&&done>0?'':'disabled'} onclick="upgradeAll()">${todo?'Upgrade to 720p':'Build final video'}</button></div>`;
+    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub">Upgrades ${todo||p.clips.length} clip${(todo||p.clips.length)>1?'s':''} to 720p — clips that are already final stay untouched. Optional: you can export straight from the 480p clips.</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn small" ${done===p.clips.length&&done>0?'':'disabled'} onclick="upgradeAll()">Upgrade to 720p</button>
+        <button class="btn ghost small" ${done===p.clips.length&&done>0?'':'disabled'} onclick="showStep('postprod')">Skip to music &rarr;</button>
+      </div></div>`;
   }
 }
+// Best available source for a clip: the 720p final once it exists, else the 480p.
+function clipSrc(c){ return (c.final?.status==='done'&&c.final.video)||c.video||null; }
+// The export uses 720p only when every clip has a 720p version.
+function exportQuality(p){
+  if(!p.clips.length||!p.clips.every(c=>clipSrc(c))) return null;
+  return p.clips.every(c=>c.final?.status==='done')?'720p':'480p';
+}
+
+/* ---- client-side concept player ----
+   Two <video> elements take turns: while one plays, the next clip is already
+   loaded in the other, so switching clips is a class swap instead of a load. */
+let cvState=null;
+function stopConceptPlayer(){
+  if(cvState){ try{ cvState.a.pause(); cvState.b.pause(); }catch{} }
+  cvState=null;
+}
+function setupConceptPlayer(sources){
+  const a=$('cvA'), b=$('cvB');
+  if(!a||!b) return;
+  const sig=sources.join('|');
+  const wasPlaying=cvState&&!cvState.paused&&cvState.sig===sig;
+  const startAt=cvState&&cvState.sig===sig?cvState.idx:0;
+  cvState={a,b,sources,sig,idx:startAt,front:a,back:b,paused:!wasPlaying};
+
+  const bar=$('cvBar'); bar.innerHTML='';
+  sources.forEach(()=>{ const seg=document.createElement('div'); seg.className='cvseg'; seg.innerHTML='<i></i>'; bar.appendChild(seg); });
+
+  const paint=()=>{
+    [...bar.children].forEach((seg,i)=>{
+      seg.classList.toggle('done',i<cvState.idx);
+      seg.querySelector('i').style.width=i<cvState.idx?'100%':'0';
+    });
+    $('cvNow').textContent=`Clip ${cvState.idx+1} of ${sources.length}`;
+    $('cvPlay').textContent=cvState.paused?'▶':'❚❚';
+  };
+  const preloadNext=()=>{
+    const next=cvState.sources[cvState.idx+1];
+    if(next&&cvState.back.src!==next){ cvState.back.src=next; cvState.back.load(); }
+  };
+  const load=(i,play)=>{
+    cvState.idx=i;
+    cvState.front.src=cvState.sources[i];
+    cvState.front.load();
+    preloadNext();
+    paint();
+    if(play) cvState.front.play().catch(()=>{});
+  };
+  const advance=()=>{
+    if(cvState.idx+1>=cvState.sources.length){
+      cvState.paused=true; paint(); return;   // reached the end, stay on the last frame
+    }
+    // hand over to the element that already has the next clip loaded
+    const front=cvState.back, back=cvState.front;
+    front.classList.remove('behind'); back.classList.add('behind');
+    cvState.front=front; cvState.back=back;
+    cvState.idx++;
+    front.currentTime=0;
+    front.play().catch(()=>{});
+    preloadNext();
+    paint();
+  };
+  a.onended=advance; b.onended=advance;
+  // Progress within the current clip fills its segment.
+  const onTime=e=>{
+    if(e.target!==cvState.front) return;
+    const seg=bar.children[cvState.idx]; if(!seg) return;
+    const d=e.target.duration;
+    if(Number.isFinite(d)&&d>0) seg.querySelector('i').style.width=Math.min(100,(e.target.currentTime/d)*100)+'%';
+  };
+  a.ontimeupdate=onTime; b.ontimeupdate=onTime;
+
+  $('cvPlay').onclick=()=>{
+    if(cvState.paused){ cvState.paused=false; cvState.front.play().catch(()=>{}); }
+    else { cvState.paused=true; cvState.front.pause(); }
+    paint();
+  };
+  $('cvRestart').onclick=()=>{
+    if(cvState.front!==a){ a.classList.remove('behind'); b.classList.add('behind'); cvState.front=a; cvState.back=b; }
+    cvState.paused=false; load(0,true);
+  };
+  load(startAt,wasPlaying);
+}
+// Only re-renders individual clips at 720p. Stitching happens once, at export.
 async function upgradeAll(){
   const p=currentProject; if(!p) return;
   const todo=p.clips.filter(c=>c.status==='done'&&!(c.final?.status==='done'));
-  if(todo.length){
-    if(!confirm(`Render ${todo.length} clip${todo.length>1?'s':''} in final 720p quality?`)) return;
-    for(const c of todo){ await doAction({action:'finalize',cid:c.cid}); }
-    toast('Rendering 720p versions — the final video builds automatically.');
-    autoFinalMerge=true;
-  } else {
-    await doAction({action:'merge',kind:'final'});
-  }
+  if(!todo.length) return;
+  if(!confirm(`Render ${todo.length} clip${todo.length>1?'s':''} in final 720p quality?`)) return;
+  for(const c of todo){ await doAction({action:'finalize',cid:c.cid}); }
+  toast('Rendering 720p versions — the preview switches over as they finish.');
   startPoll();
 }
-let autoFinalMerge=false;
-setInterval(async()=>{
-  // auto-build the final 720p merge once all finals are done
-  if(!autoFinalMerge||!currentProject) return;
-  const p=currentProject;
-  const allFinal=p.clips.length&&p.clips.every(c=>c.final?.status==='done');
-  const anyPend=p.clips.some(c=>c.final&&(c.final.status==='queued'||c.final.status==='in_progress'));
-  if(allFinal&&!anyPend&&!p.final&&!p.mergedPending){
-    autoFinalMerge=false;
-    await doAction({action:'merge',kind:'final'});
-  }
-},3000);
 
 /* ============ STEP 4: music & export ============ */
 function renderPostPage(){
   const p=currentProject; if(!p) return;
   $('ppTitle').textContent=p.name;
-  $('ppSub').textContent=p.final?'Final video · 720p':p.concept?'Concept video · 480p — upgrade in the previous step for full quality':'Build your video in the previous step first';
+  const q=exportQuality(p);
+  $('ppSub').textContent=q?`Exports in ${q}${q==='480p'?' — upgrade to 720p in the previous step for full quality':''}`:'Render your clips in step 2 first';
 
   // timeline
   const tl=$('ppTimeline'); tl.innerHTML='';
@@ -1379,10 +1653,10 @@ function renderPostPage(){
 
   // export stage
   const ex=$('exportStage');
-  const base=p.final||p.concept;
+  const ready=p.clips.length>0&&p.clips.every(c=>clipSrc(c));
   const vert=p.aspect==='9:16';
-  if(p.mergedPending?.phase==='outro'){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Adding your branding video…</div></div></div>`;
+  if(p.mergedPending?.phase==='export'||p.mergedPending?.phase==='outro'){
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Combining your clips${p.branding?.outro&&brandingOutro()?' and branding video':''}…</div></div></div>`;
   } else if(p.mergedPending?.phase==='audio'){
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Laying your music under the video…</div></div></div>`;
   } else if(p.export){
@@ -1393,8 +1667,8 @@ function renderPostPage(){
       </div></div>
       <div class="splayer ${vert?'vert':''}"><video src="${esc(p.export)}" controls playsinline></video></div>`;
   } else {
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${base?`Creates your downloadable video${p.music?' with music':' (choose music above, or export without)'}.`:'Build your video in the previous step first.'}</div></div>
-      <button class="btn small" ${base?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Combines your clips into one ${q} video${p.music?' with music':' (choose music above, or export without)'}. This is the only step that renders a full video.`:'Render all your clips in step 2 first.'}</div></div>
+      <button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
   }
 }
 // The outro clip must match the project's shape, so a 9:16 project needs the

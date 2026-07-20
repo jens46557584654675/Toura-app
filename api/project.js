@@ -182,32 +182,35 @@ export default async function handler(req, res){
       project.export = null; // branding changed → export is stale
 
     } else if(action === 'export'){
-      // Base video (final 720p preferred, else concept), then optionally the
-      // branding outro, then optionally music. Both extra steps are cheap ffmpeg
-      // jobs — never a new Seedance render.
+      // The ONLY place clips get stitched together. Per clip it takes the 720p
+      // final when that exists, else the 480p working version, and appends the
+      // branding outro in the same merge so it costs one ffmpeg job, not two.
+      // Music is mixed in afterwards. Never a new Seedance render.
       if(project.mergedPending) return res.status(400).json({ error: 'A video is already building.' });
-      const base = project.final || project.concept;
-      if(!base) return res.status(400).json({ error: 'Build your video first.' });
+      const videos = project.clips.filter(c => clipVideo(c)).map(clipVideo);
+      if(!videos.length) return res.status(400).json({ error: 'Render your clips first.' });
+      if(videos.length !== project.clips.length) return res.status(400).json({ error: 'Some clips are still rendering.' });
       const outro = await outroFor(s.email, project);
       if(project.branding?.outro && !outro){
         return res.status(400).json({ error: `Upload a ${variantForAspect(project.aspect)} branding video first.` });
       }
-      if(outro){
+      const parts = outro ? [...videos, outro] : videos;
+      if(parts.length > 1){
         if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
-        // index 0 = the listing video decides the output shape; without this the
-        // merge takes min width AND min height across inputs, which can produce
-        // an aspect ratio matching neither clip.
+        // index 0 = the first listing clip decides the output shape; without this
+        // the merge takes min width AND min height across inputs, which can
+        // produce an aspect ratio matching neither clip.
         const job = await falSubmit(MODELS.merge, {
-          video_urls: [base, outro],
+          video_urls: parts,
           resolution_aspect_ratio_video_index: 0,
         });
-        project.mergedPending = { phase: 'outro', ...job };
+        project.mergedPending = { phase: 'export', ...job };
         project.export = null;
       } else if(!project.music){
-        project.export = base;
+        project.export = parts[0];
       } else {
         if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
-        const job = await falSubmit(MODELS.audio, { video_url: base, audio_url: project.music.url });
+        const job = await falSubmit(MODELS.audio, { video_url: parts[0], audio_url: project.music.url });
         project.mergedPending = { phase: 'audio', ...job };
         project.export = null;
       }
