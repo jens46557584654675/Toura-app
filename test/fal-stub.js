@@ -5,8 +5,12 @@ import crypto from 'crypto';
 
 const jobs = new Map(); // id → {created, kind}
 
+const calls = []; // every submitted job, so tests can assert what fal was asked to do
+
 http.createServer((req, res) => {
   const send = (code, obj) => { res.writeHead(code, {'Content-Type':'application/json'}); res.end(JSON.stringify(obj)); };
+  // Introspection for the e2e suite — before the auth check, it is not a fal route.
+  if(req.url === '/_calls') return send(200, { calls });
   if(!req.headers.authorization?.startsWith('Key ')) return send(401, { error:'missing key' });
 
   const statusMatch = req.url.match(/\/requests\/([\w-]+)\/status$/);
@@ -19,11 +23,14 @@ http.createServer((req, res) => {
       const parsed = JSON.parse(body || '{}');
       const isMergeVideos = req.url.includes('merge-videos');
       const isMergeAudio = req.url.includes('merge-audio-video');
-      if(isMergeVideos && !Array.isArray(parsed.video_urls)) return send(422, { error:'video_urls required' });
+      // merge-videos takes minItems:2 upstream — reject a single url like fal does.
+      if(isMergeVideos && !(Array.isArray(parsed.video_urls) && parsed.video_urls.length >= 2)) return send(422, { error:'video_urls requires at least 2 items' });
       if(isMergeAudio && !(parsed.video_url && parsed.audio_url)) return send(422, { error:'video_url and audio_url required' });
       if(!isMergeVideos && !isMergeAudio && (!parsed.prompt || !Array.isArray(parsed.image_urls))) return send(422, { error:'prompt and image_urls required' });
       const id = crypto.randomUUID();
-      jobs.set(id, { created: Date.now(), kind: isMergeVideos ? 'merge' : isMergeAudio ? 'audio' : 'video' });
+      const kind = isMergeVideos ? 'merge' : isMergeAudio ? 'audio' : 'video';
+      jobs.set(id, { created: Date.now(), kind });
+      calls.push({ kind, url: req.url, input: parsed });
       send(200, { status:'IN_QUEUE', request_id:id });
     });
     return;

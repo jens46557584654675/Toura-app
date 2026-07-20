@@ -1,5 +1,5 @@
 import { getSession } from '../lib/auth.js';
-import { falGet, jobUrls, MODELS } from '../lib/fal.js';
+import { falGet, falSubmit, jobUrls, MODELS } from '../lib/fal.js';
 import { archiveVideo } from '../lib/blob.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
@@ -46,10 +46,21 @@ export default async function handler(req, res){
       if(st.status === 'COMPLETED'){
         const out = await falGet(urls.result);
         const url = await archiveVideo(out.video?.url);
+        project.mergedPending = null;
         if(mp.phase === 'audio') project.export = url;
         else if(mp.phase === 'final') project.final = url;
+        else if(mp.phase === 'outro'){
+          // The outro is concatenated first; the soundtrack has to span the
+          // result, so it is mixed in as a second job rather than the same one.
+          if(project.music){
+            const job = await falSubmit(MODELS.audio, { video_url: url, audio_url: project.music.url });
+            project.mergedPending = { phase: 'audio', ...job };
+            project.export = null;
+          } else {
+            project.export = url;
+          }
+        }
         else project.concept = url;
-        project.mergedPending = null;
         changed = true;
       }
     }

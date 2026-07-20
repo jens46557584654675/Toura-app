@@ -17,6 +17,7 @@ const ROUTES = {
   '/api/status':       './api/status.js',
   '/api/project':      './api/project.js',
   '/api/music':        './api/music.js',
+  '/api/branding':     './api/branding.js',
 };
 const MIME = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.jpg':'image/jpeg', '.svg':'image/svg+xml', '.ico':'image/x-icon' };
 

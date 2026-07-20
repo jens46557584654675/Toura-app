@@ -46,10 +46,14 @@ export default async function handler(req, res){
   try{
     if(action === 'upload'){
       const url = await hostAudio(req.body.data);
+      // The browser reads the duration off the file before uploading; there is
+      // no audio decoder here.
+      const dur = Number(req.body.dur);
       const track = {
         id: crypto.randomUUID(),
         name: String(req.body.name || 'Track').trim().slice(0, 80),
         url,
+        dur: Number.isFinite(dur) && dur > 0 ? Math.round(dur) : null,
         by: isAdmin(s.email) ? 'toura' : 'me',
       };
       const key = isAdmin(s.email) ? 'music:catalog' : `music:${s.email}`;

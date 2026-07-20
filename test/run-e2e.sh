@@ -84,6 +84,30 @@ check "music favorite" "\"favs\":\[\"$TRACK_ID\"\]" "$R"
 R=$(curl -s -b $J localhost:3000/api/music)
 check "music catalog listed" 'Calm Piano' "$R"
 
+# --- branding: logo + outro clips ---
+LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+VID="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDE="
+
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"logo\",\"name\":\"Diepeveen\",\"data\":\"$LOGO\"}")
+check "branding logo uploaded" '"logo":{"url":"' "$R"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"video\",\"variant\":\"landscape\",\"name\":\"Outro 16x9\",\"data\":\"$VID\"}")
+check "branding landscape video uploaded" '"landscape":{"url":"' "$R"
+BRAND_URL=$(jget "$R" branding videos landscape url)
+require_val "branding video url" "$BRAND_URL"
+
+R=$(curl -s -b $J localhost:3000/api/branding)
+check "branding persisted" '"name":"Diepeveen"' "$R"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d '{"action":"removeVideo","variant":"portrait"}')
+check "removing an empty variant is a no-op" '"landscape":{"url":"' "$R"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d '{"action":"nonsense"}')
+check "unknown branding action rejected" 'Unknown action' "$R"
+
+R=$(curl -s localhost:3000/api/branding)
+check "branding requires auth" 'Not signed in' "$R"
+
 # --- generate: 2 segments ---
 IMG="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AVN//2Q=="
 R=$(curl -s -b $J -X POST localhost:3000/api/generate -H 'Content-Type: application/json' -d "{\"name\":\"Keizersgracht 214\",\"segments\":[{\"images\":[\"$IMG\",\"$IMG\"]},{\"images\":[\"$IMG\"]}],\"stylePrompt\":\"Calm and warm\",\"duration\":\"auto\",\"aspect\":\"16:9\",\"quality\":\"720p\"}")
@@ -133,14 +157,25 @@ check "concept video merged" '"concept":"http' "$R"
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"music\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}")
 check "music attached to project" '"name":"Calm Piano"' "$R"
 
+# Project is 16:9, so the landscape branding clip is the one that must be used.
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"branding\",\"outro\":true}")
+check "branding outro enabled" '"outro":true' "$R"
+
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"export\"}")
 check "export started" '"mergedPending":{' "$R"
+check "export starts with the outro merge" '"phase":"outro"' "$R"
 
 # The stub names results per model, so "fake-audio" proves the export really went
 # through merge-audio-video. A bare "http" would also pass the music-less
 # fallback (export = concept), making this check green with no soundtrack.
 R=$(poll_status '"export":"http')
 check "export ready (video + music)" '"export":"https://example.com/fake-audio' "$R"
+
+# Ask the stub what fal was actually sent: the outro merge must include the
+# branding clip and pin the output shape to the listing video (index 0).
+CALLS=$(curl -s localhost:9999/_calls)
+check "outro merge sent the branding clip to fal" "$BRAND_URL" "$CALLS"
+check "outro merge pins aspect to the listing video" '"resolution_aspect_ratio_video_index":0' "$CALLS"
 
 R=$(curl -s "localhost:3000/api/status?id=$PID")
 check "status requires auth" 'Not signed in' "$R"

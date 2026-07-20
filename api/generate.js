@@ -62,7 +62,8 @@ export default async function handler(req, res){
       music: null,
       concept: null,   // merged 480p working clips (cheap check)
       final: null,     // merged 720p finalized clips
-      export: null,    // final/concept + music — the downloadable result
+      export: null,    // final/concept + outro + music — the downloadable result
+      branding: { outro: false, logo: false }, // kantoor branding toggles
       mergedPending: null,
       clips,
       renders: clips.length,

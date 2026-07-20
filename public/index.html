@@ -56,8 +56,41 @@
   .nav-right{display:flex;align-items:center;gap:16px}
   .user-chip{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--grey);border-radius:999px;padding:7px 14px 7px 7px}
   .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
-  .navlink{font-size:13.5px;color:var(--muted);font-weight:500}
-  .navlink:hover{color:var(--ink)}
+  /* profile menu */
+  .usermenu{position:relative}
+  .usermenu>.user-chip{cursor:pointer;transition:background .15s}
+  .usermenu>.user-chip:hover{background:var(--grey2)}
+  .usermenu .caret{font-size:9px;color:var(--muted);margin-left:2px}
+  .umenu{position:absolute;top:calc(100% + 10px);right:0;min-width:190px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.10);padding:6px;display:none;z-index:20}
+  .usermenu.open .umenu{display:block}
+  .umenu .uhead{padding:10px 14px 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .umenu .uhead b{display:block;font-size:14px}
+  .umenu .uhead span{font-size:12px;color:var(--muted);word-break:break-all}
+  .umenu button{display:block;width:100%;text-align:left;padding:10px 14px;border-radius:9px;font-size:14px;font-weight:500;color:var(--ink)}
+  .umenu button:hover{background:var(--grey)}
+  .umenu .usep{height:1px;background:var(--line);margin:6px 0}
+  .umenu button.danger{color:#c0392b}
+  /* branding page */
+  .bcard{background:var(--grey);border-radius:var(--radius);padding:22px;margin-bottom:18px}
+  .bcard h3{font-size:15px;font-weight:700;margin-bottom:4px}
+  .bcard .bhint{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.55}
+  .bslot{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .bprev{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;align-items:center;justify-content:center;min-width:120px;min-height:80px}
+  .bprev img{max-width:150px;max-height:70px;display:block}
+  .bprev video{max-height:120px;border-radius:6px;display:block}
+  .bempty{color:var(--muted);font-size:13px}
+  .bvids{display:flex;gap:18px;flex-wrap:wrap}
+  .bvid{flex:1;min-width:240px}
+  .bvid .blab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+  /* branding options in step 4 */
+  .bopts{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+  .bopt{display:flex;align-items:center;gap:10px;background:var(--grey);border:1.5px solid transparent;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer;text-align:left}
+  .bopt.on{border-color:var(--ink);background:#fff}
+  .bopt[disabled]{opacity:.5;cursor:not-allowed}
+  .bopt .bsub{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
+  .bopt .bbox{width:18px;height:18px;border-radius:5px;border:1.5px solid #cfcfcf;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .bopt.on .bbox{background:var(--ink);border-color:var(--ink)}
+  .tclip.touro{outline:2px dashed #cfcfcf;outline-offset:2px}
   .wrap{max-width:1120px;margin:0 auto;padding:40px 24px 90px}
 
   /* progress bar */
@@ -254,11 +287,7 @@
 <section id="dashboard" class="view">
   <nav class="nav"><div class="nav-inner">
     <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
-    <div class="nav-right">
-      <button class="navlink" onclick="goMusic()">Music</button>
-      <div class="user-chip"><div class="avatar" id="avatar">·</div><span id="userName"></span></div>
-      <button class="navlink" onclick="signOut()">Sign out</button>
-    </div>
+    <div class="nav-right"></div>
   </div></nav>
   <div class="wrap">
     <div class="dash-head">
@@ -278,11 +307,12 @@
 <section id="music" class="view">
   <nav class="nav"><div class="nav-inner">
     <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
-    <div class="nav-right"><button class="navlink" onclick="goDash()">Dashboard</button></div>
+    <div class="nav-right"></div>
   </div></nav>
   <div class="wrap">
     <div class="dash-head">
-      <div><h1>Music</h1><p>Soundtracks for your walkthroughs.</p></div>
+      <div><h1>Music</h1><p>Soundtracks for your walkthroughs. Tracks of 1 to 2&frac12; minutes work best — long enough for a full walkthrough, short enough to stay light.<br>
+        Upload license-free music only. Max 3 MB per file: export your MP3 at 128-192 kbps.</p></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn ghost" id="genMusicBtn" style="display:none" onclick="generateMusic()">✦ Generate with AI</button>
         <button class="btn" onclick="pickMusicFile()">Upload music</button>
@@ -298,11 +328,66 @@
   </div>
 </section>
 
+<!-- ================= BRANDING ================= -->
+<section id="branding" class="view">
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
+    <div class="nav-right"></div>
+  </div></nav>
+  <div class="wrap">
+    <div class="dash-head">
+      <div><h1>Branding</h1><p>Your office logo and outro clip, ready to add to any walkthrough.</p></div>
+    </div>
+
+    <div class="bcard">
+      <h3>Logo</h3>
+      <div class="bhint">PNG with a transparent background works best. Max 2 MB.</div>
+      <div class="bslot">
+        <div class="bprev" id="bLogoPrev"><span class="bempty">No logo yet</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn small" onclick="$('bLogoInput').click()">Upload logo</button>
+          <button class="btn ghost small" id="bLogoRm" style="display:none" onclick="removeBranding('removeLogo')">Remove</button>
+        </div>
+      </div>
+      <input type="file" id="bLogoInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+    </div>
+
+    <div class="bcard">
+      <h3>Branding video</h3>
+      <div class="bhint">A short MP4 outro with your office logo — 3 to 6 seconds works well. Max 3 MB per file.<br>
+        Upload both shapes so every project can use one: landscape for 16:9 walkthroughs, portrait for 9:16.</div>
+      <div class="bvids">
+        <div class="bvid">
+          <div class="blab">Landscape · 16:9</div>
+          <div class="bslot">
+            <div class="bprev" id="bLandPrev"><span class="bempty">Not uploaded</span></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn small" onclick="pickBrandVideo('landscape')">Upload</button>
+              <button class="btn ghost small" id="bLandRm" style="display:none" onclick="removeBranding('removeVideo','landscape')">Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="bvid">
+          <div class="blab">Portrait · 9:16</div>
+          <div class="bslot">
+            <div class="bprev" id="bPortPrev"><span class="bempty">Not uploaded</span></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn small" onclick="pickBrandVideo('portrait')">Upload</button>
+              <button class="btn ghost small" id="bPortRm" style="display:none" onclick="removeBranding('removeVideo','portrait')">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="bVidInput" accept="video/mp4" hidden>
+    </div>
+  </div>
+</section>
+
 <!-- ================= STEP 2: ROUTE & CLIPS ================= -->
 <section id="editor" class="view">
   <nav class="nav"><div class="nav-inner">
     <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
-    <div class="nav-right"><button class="navlink" onclick="goDash()">Dashboard</button></div>
+    <div class="nav-right"></div>
   </div></nav>
   <div class="wrap">
     <div class="stepbar-row">
@@ -344,7 +429,7 @@
 <section id="final" class="view">
   <nav class="nav"><div class="nav-inner">
     <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
-    <div class="nav-right"><button class="navlink" onclick="goDash()">Dashboard</button></div>
+    <div class="nav-right"></div>
   </div></nav>
   <div class="wrap">
     <div class="stepbar-row">
@@ -377,7 +462,7 @@
 <section id="postprod" class="view">
   <nav class="nav"><div class="nav-inner">
     <div class="logo" onclick="goDash()"><div class="mark">T</div><div class="word">toura</div></div>
-    <div class="nav-right"><button class="navlink" onclick="goDash()">Dashboard</button></div>
+    <div class="nav-right"></div>
   </div></nav>
   <div class="wrap">
     <div class="stepbar-row">
@@ -408,6 +493,7 @@
         </div>
         <div class="mlist" id="ppMlist"></div>
       </div>
+      <div class="bopts" id="ppBranding"></div>
     </div>
 
     <div class="stage" id="exportStage"></div>
@@ -520,13 +606,50 @@ $('authForm').addEventListener('submit',async e=>{
   }catch(err){ $('authErr').textContent=err.message; }
   finally{ $('authBtn').disabled=false; }
 });
+/* ---- profile menu (same markup in every nav, built once here) ---- */
+function paintUserMenus(){
+  if(!user) return;
+  const first=user.name.split(' ')[0], initial=user.name[0].toUpperCase();
+  document.querySelectorAll('.nav-right').forEach(slot=>{
+    slot.innerHTML=`<div class="usermenu">
+      <div class="user-chip"><div class="avatar">${esc(initial)}</div><span>${esc(first)}</span><span class="caret">▼</span></div>
+      <div class="umenu">
+        <div class="uhead"><b>${esc(user.name)}</b><span>${esc(user.email)}</span></div>
+        <button data-go="dash">Dashboard</button>
+        <button data-go="music">Music</button>
+        <button data-go="branding">Branding</button>
+        <div class="usep"></div>
+        <button class="danger" data-go="out">Log out</button>
+      </div></div>`;
+    const menu=slot.querySelector('.usermenu');
+    menu.querySelector('.user-chip').onclick=e=>{
+      e.stopPropagation();
+      const wasOpen=menu.classList.contains('open');
+      closeUserMenus();
+      if(!wasOpen) menu.classList.add('open');
+    };
+    menu.querySelectorAll('.umenu button').forEach(b=>{
+      b.onclick=e=>{
+        e.stopPropagation(); closeUserMenus();
+        const go=b.dataset.go;
+        if(go==='dash') goDash();
+        else if(go==='music') goMusic();
+        else if(go==='branding') goBranding();
+        else if(go==='out') signOut();
+      };
+    });
+  });
+}
+function closeUserMenus(){ document.querySelectorAll('.usermenu.open').forEach(m=>m.classList.remove('open')); }
+document.addEventListener('click',closeUserMenus);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeUserMenus(); });
+
 async function enter(u){
   user=u;
-  $('userName').textContent=u.name.split(' ')[0];
-  $('avatar').textContent=u.name[0].toUpperCase();
+  paintUserMenus();
   const h=new Date().getHours();
   $('greeting').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+u.name.split(' ')[0];
-  await Promise.all([loadProjects(),loadMusic()]);
+  await Promise.all([loadProjects(),loadMusic(),loadBranding()]);
   goDash();
 }
 async function signOut(){
@@ -711,8 +834,12 @@ function renderTracks(){
   list.forEach(t=>{
     const row=document.createElement('div'); row.className='track';
     const fav=musicLib.favs.includes(t.id);
-    row.innerHTML=`<button class="tplay">▶</button><div class="tname">${esc(t.name)}<div class="tby">${t.by==='toura'?'Toura pick':'Your upload'}</div></div>
+    row.innerHTML=`<button class="tplay">▶</button><div class="tname">${esc(t.name)}<div class="tby">${t.by==='toura'?'Toura pick':'Your upload'}<span class="tlen">${t.dur?' · '+fmtDur(t.dur):''}</span></div></div>
       <button class="theart ${fav?'on':''}">${fav?'♥':'♡'}</button>${t.by==='me'||(t.by==='toura'&&musicLib.admin)?'<button class="trm">Remove</button>':''}`;
+    // Tracks uploaded before durations were stored: read it from the file itself.
+    if(!t.dur){
+      probeDuration(t.url).then(d=>{ if(d) row.querySelector('.tlen').textContent=' · '+fmtDur(d); });
+    }
     row.querySelector('.tplay').onclick=()=>previewTrack(t,row.querySelector('.tplay'));
     row.querySelector('.theart').onclick=async()=>{
       const on=!musicLib.favs.includes(t.id);
@@ -733,16 +860,80 @@ function previewTrack(t,btn){
   a.onended=()=>{ btn.textContent='▶'; previewBtn=null; };
 }
 function pickMusicFile(){ $('musicInput').click(); }
+// "2:14" from a number of seconds.
+function fmtDur(sec){
+  if(!Number.isFinite(sec)||sec<=0) return '';
+  const s=Math.round(sec);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+// Reads the length out of an audio file without uploading it first.
+function probeDuration(src){
+  return new Promise(resolve=>{
+    const a=document.createElement('audio');
+    a.preload='metadata';
+    a.onloadedmetadata=()=>{ resolve(Number.isFinite(a.duration)?a.duration:null); URL.revokeObjectURL(a.src); };
+    a.onerror=()=>resolve(null);
+    a.src=typeof src==='string'?src:URL.createObjectURL(src);
+  });
+}
 $('musicInput').onchange=async()=>{
   const f=$('musicInput').files[0]; $('musicInput').value='';
   if(!f) return;
-  if(f.size>4*1024*1024){ toast('Max 4 MB per track — use a compressed MP3.'); return; }
-  const data=await new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(f); });
+  if(f.size>MAX_MB*1024*1024){ toast(`Max ${MAX_MB} MB per track — export your MP3 at 128-192 kbps.`,6000); return; }
+  const dur=await probeDuration(f);
+  const data=await readAsDataUrl(f);
   try{
-    await api('/api/music',{method:'POST',body:{action:'upload',name:f.name.replace(/\.\w+$/,''),data}});
+    await api('/api/music',{method:'POST',body:{action:'upload',name:f.name.replace(/\.\w+$/,''),data,dur}});
     await loadMusic(); renderTracks(); toast('Track uploaded.');
   }catch(e){ toast(e.message,6000); }
 };
+
+/* ============ branding ============ */
+let branding={logo:null,videos:{landscape:null,portrait:null}};
+async function loadBranding(){
+  try{ branding=(await api('/api/branding')).branding; }catch{}
+}
+function goBranding(){ renderBranding(); show('branding'); }
+function renderBranding(){
+  const lp=$('bLogoPrev');
+  lp.innerHTML=branding.logo?`<img src="${esc(branding.logo.url)}" alt="Logo">`:'<span class="bempty">No logo yet</span>';
+  $('bLogoRm').style.display=branding.logo?'':'none';
+  [['landscape','bLandPrev','bLandRm'],['portrait','bPortPrev','bPortRm']].forEach(([v,prev,rm])=>{
+    const vid=branding.videos[v];
+    $(prev).innerHTML=vid?`<video src="${esc(vid.url)}" controls muted playsinline preload="metadata"></video>`:'<span class="bempty">Not uploaded</span>';
+    $(rm).style.display=vid?'':'none';
+  });
+}
+// Uploads are sent as base64, which grows the payload ~33%; the server caps the
+// decoded file at 3 MB, so check the real file size here for a friendlier error.
+const MAX_MB=3;
+function readAsDataUrl(f){ return new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(f); }); }
+$('bLogoInput').onchange=async()=>{
+  const f=$('bLogoInput').files[0]; $('bLogoInput').value='';
+  if(!f) return;
+  if(f.size>2*1024*1024){ toast('Max 2 MB for a logo.'); return; }
+  try{
+    branding=(await api('/api/branding',{method:'POST',body:{action:'logo',name:f.name.replace(/\.\w+$/,''),data:await readAsDataUrl(f)}})).branding;
+    renderBranding(); toast('Logo saved.');
+  }catch(e){ toast(e.message,6000); }
+};
+let brandVariant='landscape';
+function pickBrandVideo(v){ brandVariant=v; $('bVidInput').click(); }
+$('bVidInput').onchange=async()=>{
+  const f=$('bVidInput').files[0]; $('bVidInput').value='';
+  if(!f) return;
+  if(f.size>MAX_MB*1024*1024){ toast(`Max ${MAX_MB} MB — keep the clip short (3-6 seconds).`); return; }
+  try{
+    branding=(await api('/api/branding',{method:'POST',body:{action:'video',variant:brandVariant,name:f.name.replace(/\.\w+$/,''),data:await readAsDataUrl(f)}})).branding;
+    renderBranding(); toast('Branding video saved.');
+  }catch(e){ toast(e.message,6000); }
+};
+async function removeBranding(action,variant){
+  try{
+    branding=(await api('/api/branding',{method:'POST',body:{action,variant}})).branding;
+    renderBranding();
+  }catch(e){ toast(e.message); }
+}
 
 /* ============ route + segments ============ */
 function segments(){
@@ -1169,6 +1360,13 @@ function renderPostPage(){
       :`<img src="${esc(c.poster||'')}" style="width:${w}px"><span class="tdur">…</span>`;
     tl.appendChild(d);
   });
+  // The branding outro is appended when the export is built, so show it last.
+  const outro=brandingOutro();
+  if(p.branding?.outro&&outro){
+    const d=document.createElement('div'); d.className='tclip touro';
+    d.innerHTML=`<video src="${esc(outro.url)}#t=0.1" muted playsinline preload="metadata" style="width:70px"></video><span class="tdur">outro</span>`;
+    tl.appendChild(d);
+  }
 
   // music bar
   $('ppMusicName').innerHTML=p.music?esc(p.music.name):'<span class="mnone">No music selected</span>';
@@ -1176,14 +1374,19 @@ function renderPostPage(){
   bindMpick('ppMpick','ppMlist',async m=>{ await doAction({action:'music',music:m}); renderPostPage(); },()=>p.music);
   document.querySelectorAll('#ppMpick .mopt').forEach(b=>b.classList.toggle('on',b.dataset.m==='none'&&!p.music));
 
+  // branding options
+  renderBrandingOpts(p);
+
   // export stage
   const ex=$('exportStage');
   const base=p.final||p.concept;
   const vert=p.aspect==='9:16';
-  if(p.mergedPending?.phase==='audio'){
+  if(p.mergedPending?.phase==='outro'){
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Adding your branding video…</div></div></div>`;
+  } else if(p.mergedPending?.phase==='audio'){
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Laying your music under the video…</div></div></div>`;
   } else if(p.export){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">Ready to share${p.music?` · ♪ ${esc(p.music.name)}`:''}.</div></div>
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">Ready to share${p.music?` · ♪ ${esc(p.music.name)}`:''}${p.branding?.outro&&brandingOutro()?' · with branding outro':''}.</div></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="btn small" href="${esc(p.export)}" target="_blank" rel="noopener" download="toura-walkthrough.mp4">↓ Download video</a>
         <button class="btn ghost small" onclick="doAction({action:'export'})">↺ Rebuild</button>
@@ -1192,6 +1395,37 @@ function renderPostPage(){
   } else {
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${base?`Creates your downloadable video${p.music?' with music':' (choose music above, or export without)'}.`:'Build your video in the previous step first.'}</div></div>
       <button class="btn small" ${base?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
+  }
+}
+// The outro clip must match the project's shape, so a 9:16 project needs the
+// portrait upload — the landscape one would letterbox or stretch.
+function brandingOutro(){
+  const p=currentProject; if(!p) return null;
+  return branding.videos[p.aspect==='9:16'?'portrait':'landscape'];
+}
+function renderBrandingOpts(p){
+  const el=$('ppBranding'); if(!el) return;
+  const outro=brandingOutro();
+  const shape=p.aspect==='9:16'?'portrait':'landscape';
+  const on=!!p.branding?.outro;
+  el.innerHTML=`
+    <button class="bopt ${on?'on':''}" id="bOptOutro" ${outro?'':'disabled'}>
+      <span class="bbox">${on?'✓':''}</span>
+      <span>Add branding video
+        <span class="bsub">${outro?'Your outro clip is added after the last clip.':`Upload a ${shape} branding video on the Branding page first.`}</span>
+      </span>
+    </button>
+    <button class="bopt" id="bOptLogo" disabled>
+      <span class="bbox"></span>
+      <span>Add logo overlay
+        <span class="bsub">Coming soon — our video service cannot place a logo over video yet.</span>
+      </span>
+    </button>`;
+  if(outro){
+    $('bOptOutro').onclick=async()=>{
+      await doAction({action:'branding',outro:!on});
+      renderPostPage();
+    };
   }
 }
 function toggleMusicPicker(){

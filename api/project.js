@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { getSession } from '../lib/auth.js';
 import { falConfigured, falSubmit, clipPrompt, clampDuration, renderCost, RENDER_BUDGET, MODELS } from '../lib/fal.js';
 import { hostImage } from '../lib/blob.js';
+import { outroFor, variantForAspect } from '../lib/branding.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
 const isAdmin = email => email && email === String(process.env.ADMIN_EMAIL || '').toLowerCase();
@@ -173,12 +174,36 @@ export default async function handler(req, res){
         project.export = null;
       }
 
+    } else if(action === 'branding'){
+      // Toggles only — the actual outro/logo files live per user, not per project.
+      project.branding = project.branding || { outro: false, logo: false };
+      if(req.body.outro != null) project.branding.outro = !!req.body.outro;
+      if(req.body.logo != null) project.branding.logo = !!req.body.logo;
+      project.export = null; // branding changed → export is stale
+
     } else if(action === 'export'){
-      // Base video (final 720p preferred, else concept) + optional music → downloadable export
+      // Base video (final 720p preferred, else concept), then optionally the
+      // branding outro, then optionally music. Both extra steps are cheap ffmpeg
+      // jobs — never a new Seedance render.
       if(project.mergedPending) return res.status(400).json({ error: 'A video is already building.' });
       const base = project.final || project.concept;
       if(!base) return res.status(400).json({ error: 'Build your video first.' });
-      if(!project.music){
+      const outro = await outroFor(s.email, project);
+      if(project.branding?.outro && !outro){
+        return res.status(400).json({ error: `Upload a ${variantForAspect(project.aspect)} branding video first.` });
+      }
+      if(outro){
+        if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
+        // index 0 = the listing video decides the output shape; without this the
+        // merge takes min width AND min height across inputs, which can produce
+        // an aspect ratio matching neither clip.
+        const job = await falSubmit(MODELS.merge, {
+          video_urls: [base, outro],
+          resolution_aspect_ratio_video_index: 0,
+        });
+        project.mergedPending = { phase: 'outro', ...job };
+        project.export = null;
+      } else if(!project.music){
         project.export = base;
       } else {
         if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
