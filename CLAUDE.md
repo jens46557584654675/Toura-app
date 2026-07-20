@@ -3,6 +3,13 @@
 Toura lets real estate agents turn listing photos into cinematic walkthrough videos.
 Owner: Jens (Diepeveen makelaars context, Dutch market). UI language: **English**. Style: ultra-minimal — white background, grey (#f4f4f4) blocks, black pill buttons, Inter font, "T" monogram + lowercase "toura" wordmark. Never add prices/costs to the UI.
 
+## Communicatie
+
+Praat tegen Jens in gewoon Nederlands, zonder technisch jargon — hij is niet technisch.
+Vat samen wat je deed in 2-3 simpele zinnen. Leg alleen uit wat hij moet weten of beslissen.
+Is een technische term echt nodig, leg hem dan in één zin uit.
+(Dit geldt voor het gesprek; de UI en de code/commits blijven Engels.)
+
 ## Architecture
 
 Static frontend + Vercel serverless functions. No framework, no build step.
