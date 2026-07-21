@@ -31,13 +31,25 @@ Static frontend + Vercel serverless functions. No framework, no build step.
 
 ## Frontend flow
 
-Dashboard (big drop zone → upload popup: name + aspect auto/16:9/9:16) → step bar: 1 Upload photos, 2 Route & clips (drag & drop route; per-clip prompt + length slider 2–15s, default 8; render per clip; ✎ next to the title renames the project — before the first render the name only lives in the upload field), 3 Final video, 4 Music & export (timeline, music picker, branding options, download).
+Dashboard (big drop zone → upload popup: name + aspect auto/16:9/9:16) → step bar: **1 Upload photos · 2 Route & clips · 3 Concept video · 4 Final video**. Each page after the dashboard shows a ghost "Dashboard" button on the right of the title row (in addition to the ← Back button on the left).
+
+- **2 Route & clips**: drag & drop route; per-clip prompt + length slider 2–15s, default 8; render per clip; ✎ next to the title renames the project (before the first render the name only lives in the upload field). Ends with "Continue to concept video →".
+- **3 Concept video** (view id `final`): draggable clip cards + a branding-video card, then the client-side concept player, then "Continue to final video →". No 720p controls here.
+- **4 Final video** (view id `postprod`): section a) Final quality · 720p, b) Music, c) Export.
+
+NB: the view ids are `final` (Concept video) and `postprod` (Final video) — labels were renamed, ids were not, to avoid churning the whole single-file frontend. `STEPS` in the JS carries the labels.
 
 Every step in the bar is a grey bubble; the active one is marked by the black circle and heavier text, not by a different background.
 
-### Step 3 — concept preview costs nothing
+### Step 3 (Concept video) — preview costs nothing
 
-Two stacked `<video>` elements alternate: while one plays, the next clip is already loaded in the other, so the hand-over is a class swap rather than a load (`setupConceptPlayer`). It plays each clip's best available source — 720p final if rendered, else 480p. A segment bar shows which clip is playing. The 720p button only re-renders individual clips; it never merges. Clip cards carry a dashed border to signal they are draggable.
+Two stacked `<video>` elements alternate: while one plays, the next is already loaded in the other, so the hand-over is a class swap rather than a load (`setupConceptPlayer`). The player keeps the video's natural size (no fixed crop; the front element drives height at natural aspect, `min-height:180px` prevents a pre-metadata collapse). Click the video or the ▶ button to pause/resume; a segment bar shows progress. It plays each clip's best source — 720p final if rendered, else 480p.
+
+The clip cards (dashed border = draggable) are followed by a non-draggable **branding-video card**: click it to toggle `project.branding.outro`. When on, the branding outro (variant matching the project aspect; landscape for `auto`) is appended as the LAST item of both the concept playlist and the export merge. No branding video uploaded → the card sends the user to the Branding page with a toast. This is the same flag the "Add branding video" option in step 4 toggles, so they stay in sync.
+
+### Step 4 (Final video)
+
+a) **Final quality · 720p** — reuses the per-clip `finalize` action (only changed/new clips re-render — the cost saver, do not touch). Shows "X of Y clips already in 720p" with an "Upgrade N clip(s) to 720p" button, or a green "All clips in final quality" tick when done. b) **Music** — timeline + picker (+ the branding option, kept here too). c) **Export** — `Create export`: the single merge of the 720p finals (or 480p when not all are upgraded — a note says which) + branding outro + music. Player and download shown at the video's natural size.
 
 Navigation is a single avatar dropdown in every nav bar, injected by `paintUserMenus()` into each empty `.nav-right` — do not hand-write nav links per page. Items: My account, Dashboard, Music, Branding, Billing, Dark mode (toggle, keeps the menu open), Log out. Icons are inline 16px SVG paths in the `ICON` map, stroked in `currentColor` — no icon library.
 

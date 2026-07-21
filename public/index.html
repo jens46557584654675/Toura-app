@@ -268,9 +268,17 @@
   .fclip .cres.up{color:var(--ink)}
   .fclip .fedit{position:absolute;top:8px;right:8px;background:var(--pill);border-radius:999px;font-size:11px;font-weight:700;padding:5px 11px}
   .fph{flex:none;width:230px;border-radius:14px;background:var(--grey2);border:2px dashed #bdbdbd;margin:0 3px}
+  /* branding-video card — always last in the clip row, not draggable */
+  .fbrand{cursor:pointer}
+  .fbrand.on{border-style:solid;border-color:var(--ink)}
+  .fbrand .fbadd{aspect-ratio:16/10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted)}
+  .fbrand .fbadd .plus{font-size:34px;line-height:1;font-weight:300}
+  .fbrand .fbrm{color:var(--muted);font-size:14px;font-weight:700}
   .stage{background:var(--grey);border-radius:var(--radius);padding:22px;margin-bottom:16px}
   .stage .shead{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
   .stage .sttl{font-size:15.5px;font-weight:800}
+  .stage .sok{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:#2e9c6a;margin-top:4px}
+  .stage .sok .tick{width:18px;height:18px;border-radius:50%;background:#2e9c6a;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
   .stage .ssub{font-size:13.5px;color:var(--muted);margin-top:4px;max-width:560px}
   .stage .splayer{border-radius:14px;overflow:hidden;background:#000;max-width:680px;margin-top:16px}
   .stage .splayer.vert{max-width:300px}
@@ -279,9 +287,11 @@
      the hand-over at the end of a clip has no black flash */
   .cvwrap{position:relative;max-width:680px;margin-top:16px}
   .cvwrap.vert{max-width:300px}
-  .cvstack{position:relative;border-radius:14px;overflow:hidden;background:#000}
-  .cvstack video{width:100%;display:block}
-  .cvstack video.behind{position:absolute;inset:0;opacity:0;pointer-events:none}
+  .cvstack{position:relative;border-radius:14px;overflow:hidden;background:#000;cursor:pointer;min-height:180px}
+  /* front video drives the height at its natural aspect (no crop); the back one
+     overlays it, preloaded and hidden, ready to take over on clip change */
+  .cvstack video{display:block;width:100%;height:auto;position:relative}
+  .cvstack video.behind{position:absolute;inset:0;height:100%;opacity:0;pointer-events:none}
   .cvbar{display:flex;gap:4px;margin-top:10px}
   .cvseg{height:4px;border-radius:999px;background:var(--grey2);flex:1;overflow:hidden}
   .cvseg i{display:block;height:100%;width:0;background:var(--ink);border-radius:999px}
@@ -489,9 +499,12 @@
       <button class="back" onclick="goDash()">&larr; Back</button>
       <div id="stepsEditor"></div>
     </div>
-    <div class="dash-head" style="margin-bottom:22px"><div>
-      <div style="display:flex;align-items:center;gap:4px"><h1 id="editorTitle">New walkthrough</h1><button class="pencil" onclick="renameFromEditor()">✎</button></div>
-    </div></div>
+    <div class="dash-head" style="margin-bottom:22px">
+      <div>
+        <div style="display:flex;align-items:center;gap:4px"><h1 id="editorTitle">New walkthrough</h1><button class="pencil" onclick="renameFromEditor()">✎</button></div>
+      </div>
+      <button class="btn ghost small" onclick="goDash()">Dashboard</button>
+    </div>
 
     <div class="step">
       <div class="bigdrop" id="photoDrop">
@@ -516,7 +529,7 @@
     </div>
 
     <div class="final-row" id="finalRow" style="display:none">
-      <button class="btn" id="finalBtn" onclick="goFinalStep()">Continue to final video &rarr;</button>
+      <button class="btn" id="finalBtn" onclick="goFinalStep()">Continue to concept video &rarr;</button>
       <span class="gen-note" id="finalNote"></span>
     </div>
   </div>
@@ -535,9 +548,10 @@
     </div>
     <div class="dash-head" style="margin-bottom:22px">
       <div>
-        <div style="display:flex;align-items:center;gap:4px"><h1 id="fnTitle">Final video</h1><button class="pencil" onclick="renameProject()">✎</button></div>
+        <div style="display:flex;align-items:center;gap:4px"><h1 id="fnTitle">Concept video</h1><button class="pencil" onclick="renameProject()">✎</button></div>
         <p id="fnSub"></p>
       </div>
+      <button class="btn ghost small" onclick="goDash()">Dashboard</button>
     </div>
 
     <div class="step">
@@ -547,10 +561,9 @@
     </div>
 
     <div class="stage" id="conceptStage"></div>
-    <div class="stage" id="upgradeStage"></div>
 
     <div class="final-row">
-      <button class="btn" id="toMusicBtn" onclick="showStep('postprod')">Continue to music &rarr;</button>
+      <button class="btn" id="toMusicBtn" onclick="showStep('postprod')">Continue to final video &rarr;</button>
     </div>
   </div>
 </section>
@@ -568,13 +581,16 @@
     </div>
     <div class="dash-head" style="margin-bottom:22px">
       <div>
-        <div style="display:flex;align-items:center;gap:4px"><h1 id="ppTitle">Music &amp; export</h1><button class="pencil" onclick="renameProject()">✎</button></div>
+        <div style="display:flex;align-items:center;gap:4px"><h1 id="ppTitle">Final video</h1><button class="pencil" onclick="renameProject()">✎</button></div>
         <p id="ppSub"></p>
       </div>
+      <button class="btn ghost small" onclick="goDash()">Dashboard</button>
     </div>
 
+    <div class="stage" id="finalQualityStage"></div>
+
     <div class="step">
-      <h2>Timeline</h2>
+      <h2>Music</h2>
       <div class="timeline" id="ppTimeline"></div>
       <div class="musicbar">
         <button class="tplay" id="ppMusicPlay">▶</button>
@@ -656,7 +672,9 @@ async function api(path,opts={}){
 const uid=()=>Math.random().toString(36).slice(2,10);
 
 /* ============ progress bar ============ */
-const STEPS=[['upload','Upload photos'],['editor','Route & clips'],['final','Final video'],['postprod','Music & export']];
+// NB: view ids stay 'final' (Concept video) and 'postprod' (Final video) — only
+// the labels changed, renaming the ids would churn the whole file for no gain.
+const STEPS=[['upload','Upload photos'],['editor','Route & clips'],['final','Concept video'],['postprod','Final video']];
 function renderSteps(containerId,current){
   const el=$(containerId); el.innerHTML='';
   const bar=document.createElement('div'); bar.className='steps';
@@ -1455,16 +1473,36 @@ function renderFinalPage(){
     el.ondragend=()=>{ el.classList.remove('dragging'); if(fnPh&&fnPh.parentNode) fnPh.remove(); fnDragIdx=null; };
     row.appendChild(el);
   });
+
+  // branding-video card — always last, not draggable. Toggles the same
+  // project.branding.outro flag as the option in step 4, so both stay in sync.
+  const bo=brandingOutro();
+  const bcOn=!!p.branding?.outro&&!!bo;
+  const bc=document.createElement('div'); bc.className='fclip fbrand'+(bcOn?' on':'');
+  if(bcOn){
+    bc.innerHTML=`<div class="cv"><video src="${esc(bo.url)}#t=0.1" muted playsinline preload="metadata"></video></div>
+      <div class="cc"><span>Branding video</span><span class="fbrm" title="Remove">✕</span></div>`;
+  } else {
+    bc.innerHTML=`<div class="fbadd"><span class="plus">+</span><span>Branding video</span></div>
+      <div class="cc"><span>${bo?'Add as outro':'Set up branding'}</span></div>`;
+  }
+  bc.onclick=async()=>{
+    if(!bo){ toast('Upload a branding video on the Branding page first.',5000); goBranding(); return; }
+    await doAction({action:'branding',outro:!p.branding?.outro});
+    renderFinalPage();
+  };
+  row.appendChild(bc);
+
   row.ondragover=e=>{
     e.preventDefault();
     if(fnDragIdx===null||!fnPh) return;
-    const cards=[...row.querySelectorAll('.fclip:not(.dragging)')];
+    const cards=[...row.querySelectorAll('.fclip:not(.dragging):not(.fbrand)')];
     let placed=false;
     for(const c of cards){
       const r=c.getBoundingClientRect();
       if(e.clientX < r.left + r.width/2){ row.insertBefore(fnPh,c); placed=true; break; }
     }
-    if(!placed) row.appendChild(fnPh);
+    if(!placed){ const brand=row.querySelector('.fbrand'); brand?row.insertBefore(fnPh,brand):row.appendChild(fnPh); }
   };
   row.ondrop=async e=>{
     e.preventDefault();
@@ -1472,7 +1510,7 @@ function renderFinalPage(){
     let newIdx=0;
     for(const el of row.children){
       if(el===fnPh) break;
-      if(el.classList.contains('fclip')&&!el.classList.contains('dragging')) newIdx++;
+      if(el.classList.contains('fclip')&&!el.classList.contains('dragging')&&!el.classList.contains('fbrand')) newIdx++;
     }
     const order=p.clips.map(c=>c.cid);
     const [m]=order.splice(fnDragIdx,1); order.splice(newIdx,0,m);
@@ -1480,19 +1518,22 @@ function renderFinalPage(){
     await doAction({action:'reorder',order});
   };
 
-  // concept stage — plays the clips back to back in the browser.
-  // Nothing is merged here, so previewing the order costs nothing at fal.
+  // concept stage — plays the clips (plus the branding outro when chosen) back
+  // to back in the browser. Nothing is merged here, so previewing costs nothing.
   const cs=$('conceptStage');
   const vert=p.aspect==='9:16';
-  const sources=p.clips.map(c=>clipSrc(c)).filter(Boolean);
-  const allReady=sources.length===p.clips.length&&sources.length>0;
+  const clipSources=p.clips.map(c=>clipSrc(c)).filter(Boolean);
+  const allReady=clipSources.length===p.clips.length&&clipSources.length>0;
+  const outroUrl=(p.branding?.outro&&brandingOutro())?brandingOutro().url:null;
+  const outroLast=allReady&&!!outroUrl;
+  const sources=outroLast?[...clipSources,outroUrl]:[...clipSources];
   if(!sources.length){
-    cs.innerHTML=`<div class="shead"><div><div class="sttl">1 · Concept video</div><div class="ssub">Render your clips in the previous step to preview the walkthrough here.</div></div></div>`;
+    cs.innerHTML=`<div class="shead"><div><div class="sttl">Concept video</div><div class="ssub">Render your clips in the previous step to preview the walkthrough here.</div></div></div>`;
     stopConceptPlayer();
   } else {
-    cs.innerHTML=`<div class="shead"><div><div class="sttl">1 · Concept video</div><div class="ssub">${allReady?'Your clips play back to back in the order below. Reorder the cards above and it updates instantly.':`Playing the ${sources.length} clip${sources.length>1?'s':''} that are ready — the rest appear as they finish.`}</div></div></div>
+    cs.innerHTML=`<div class="shead"><div><div class="sttl">Concept video</div><div class="ssub">${allReady?'Your clips play back to back in the order below'+(outroLast?', with your branding video at the end':'')+'. Reorder the cards above and it updates instantly.':`Playing the ${clipSources.length} clip${clipSources.length>1?'s':''} that are ready — the rest appear as they finish.`}</div></div></div>
       <div class="cvwrap ${vert?'vert':''}">
-        <div class="cvstack">
+        <div class="cvstack" id="cvStack">
           <video id="cvA" playsinline preload="auto" muted></video>
           <video id="cvB" class="behind" playsinline preload="auto" muted></video>
         </div>
@@ -1503,25 +1544,7 @@ function renderFinalPage(){
           <button class="btn ghost small" id="cvRestart">↺ Restart</button>
         </div>
       </div>`;
-    setupConceptPlayer(sources);
-  }
-
-  // upgrade stage — renders individual clips at 720p. No merging happens here;
-  // the single merge is done once at Create export.
-  const us=$('upgradeStage');
-  const finPend=p.clips.filter(c=>c.final&&(c.final.status==='queued'||c.final.status==='in_progress')).length;
-  const todo=p.clips.filter(c=>c.status==='done'&&!(c.final?.status==='done')).length;
-  if(finPend){
-    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub"><span class="spin"></span> Rendering ${finPend} clip${finPend>1?'s':''} in 720p — only new or changed clips are re-rendered.</div></div></div>`;
-  } else if(!todo&&p.clips.length&&done===p.clips.length){
-    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub">All clips are 720p. Add music &amp; download in the next step.</div></div>
-      <button class="btn small" onclick="showStep('postprod')">Continue to music &rarr;</button></div>`;
-  } else {
-    us.innerHTML=`<div class="shead"><div><div class="sttl">2 · Final quality · 720p</div><div class="ssub">Upgrades ${todo||p.clips.length} clip${(todo||p.clips.length)>1?'s':''} to 720p — clips that are already final stay untouched. Optional: you can export straight from the 480p clips.</div></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn small" ${done===p.clips.length&&done>0?'':'disabled'} onclick="upgradeAll()">Upgrade to 720p</button>
-        <button class="btn ghost small" ${done===p.clips.length&&done>0?'':'disabled'} onclick="showStep('postprod')">Skip to music &rarr;</button>
-      </div></div>`;
+    setupConceptPlayer(sources,{outroLast,clipCount:clipSources.length});
   }
 }
 // Best available source for a clip: the 720p final once it exists, else the 480p.
@@ -1540,9 +1563,10 @@ function stopConceptPlayer(){
   if(cvState){ try{ cvState.a.pause(); cvState.b.pause(); }catch{} }
   cvState=null;
 }
-function setupConceptPlayer(sources){
+function setupConceptPlayer(sources,opts={}){
   const a=$('cvA'), b=$('cvB');
   if(!a||!b) return;
+  const outroLast=!!opts.outroLast, clipCount=opts.clipCount||sources.length;
   const sig=sources.join('|');
   const wasPlaying=cvState&&!cvState.paused&&cvState.sig===sig;
   const startAt=cvState&&cvState.sig===sig?cvState.idx:0;
@@ -1556,7 +1580,7 @@ function setupConceptPlayer(sources){
       seg.classList.toggle('done',i<cvState.idx);
       seg.querySelector('i').style.width=i<cvState.idx?'100%':'0';
     });
-    $('cvNow').textContent=`Clip ${cvState.idx+1} of ${sources.length}`;
+    $('cvNow').textContent=(outroLast&&cvState.idx===sources.length-1)?'Branding video':`Clip ${cvState.idx+1} of ${clipCount}`;
     $('cvPlay').textContent=cvState.paused?'▶':'❚❚';
   };
   const preloadNext=()=>{
@@ -1595,11 +1619,13 @@ function setupConceptPlayer(sources){
   };
   a.ontimeupdate=onTime; b.ontimeupdate=onTime;
 
-  $('cvPlay').onclick=()=>{
+  const toggle=()=>{
     if(cvState.paused){ cvState.paused=false; cvState.front.play().catch(()=>{}); }
     else { cvState.paused=true; cvState.front.pause(); }
     paint();
   };
+  $('cvPlay').onclick=toggle;
+  const stack=$('cvStack'); if(stack) stack.onclick=toggle; // click the video to pause/resume
   $('cvRestart').onclick=()=>{
     if(cvState.front!==a){ a.classList.remove('behind'); b.classList.add('behind'); cvState.front=a; cvState.back=b; }
     cvState.paused=false; load(0,true);
@@ -1613,7 +1639,7 @@ async function upgradeAll(){
   if(!todo.length) return;
   if(!confirm(`Render ${todo.length} clip${todo.length>1?'s':''} in final 720p quality?`)) return;
   for(const c of todo){ await doAction({action:'finalize',cid:c.cid}); }
-  toast('Rendering 720p versions — the preview switches over as they finish.');
+  toast('Rendering 720p versions — you can export in full quality once they finish.');
   startPoll();
 }
 
@@ -1622,7 +1648,10 @@ function renderPostPage(){
   const p=currentProject; if(!p) return;
   $('ppTitle').textContent=p.name;
   const q=exportQuality(p);
-  $('ppSub').textContent=q?`Exports in ${q}${q==='480p'?' — upgrade to 720p in the previous step for full quality':''}`:'Render your clips in step 2 first';
+  $('ppSub').textContent=q?`Exports in ${q}${q==='480p'?' — upgrade to 720p below for full quality':''}`:'Render your clips in step 2 first';
+
+  // a) final quality · 720p
+  renderFinalQuality(p);
 
   // timeline
   const tl=$('ppTimeline'); tl.innerHTML='';
@@ -1669,6 +1698,25 @@ function renderPostPage(){
   } else {
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Combines your clips into one ${q} video${p.music?' with music':' (choose music above, or export without)'}. This is the only step that renders a full video.`:'Render all your clips in step 2 first.'}</div></div>
       <button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
+  }
+}
+// Section a) of step 4 — per-clip 720p finalize. Reuses the existing finalize
+// logic, which only re-renders changed/new clips (the cost saver — do not touch).
+function renderFinalQuality(p){
+  const fq=$('finalQualityStage'); if(!fq) return;
+  const total=p.clips.length;
+  const doneClips=p.clips.filter(c=>c.status==='done').length;
+  const finalCount=p.clips.filter(c=>c.final?.status==='done').length;
+  const finPend=p.clips.filter(c=>c.final&&(c.final.status==='queued'||c.final.status==='in_progress')).length;
+  const todo=p.clips.filter(c=>c.status==='done'&&!(c.final?.status==='done')).length;
+  if(finPend){
+    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div><div class="ssub"><span class="spin"></span> Rendering ${finPend} clip${finPend>1?'s':''} in 720p — only new or changed clips are re-rendered.</div></div></div>`;
+  } else if(total&&finalCount===total){
+    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div><div class="sok"><span class="tick">✓</span> All clips in final quality</div></div></div>`;
+  } else {
+    const n=todo||total;
+    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div><div class="ssub">${finalCount} of ${total} clips already in 720p. Upgrading re-renders only the missing clips — the rest stay untouched.</div></div>
+      <button class="btn small" ${doneClips===total&&total>0?'':'disabled'} onclick="upgradeAll()">Upgrade ${n} clip${n>1?'s':''} to 720p</button></div>`;
   }
 }
 // The outro clip must match the project's shape, so a 9:16 project needs the
