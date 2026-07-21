@@ -43,7 +43,9 @@ Every step in the bar is a grey bubble; the active one is marked by the black ci
 
 ### Step 3 (Concept video) — preview costs nothing
 
-Two stacked `<video>` elements alternate: while one plays, the next is already loaded in the other, so the hand-over is a class swap rather than a load (`setupConceptPlayer`). The player keeps the video's natural size (no fixed crop; the front element drives height at natural aspect, `min-height:180px` prevents a pre-metadata collapse). Click the video or the ▶ button to pause/resume; a segment bar shows progress. It plays each clip's best source — 720p final if rendered, else 480p.
+Two stacked `<video>` elements alternate: while one plays, the next is already loaded in the other, so the hand-over is a class swap rather than a load (`setupConceptPlayer`). The player keeps the video's natural size (no fixed crop; the front element drives height at natural aspect, `min-height:180px` prevents a pre-metadata collapse). Click the video or the ▶ button to pause/resume.
+
+The clips are treated as **one continuous timeline**: the segment bar is clickable (click a point → jump to that clip + offset), and the ⟲10 / 10⟳ buttons skip ±10s across clip boundaries. Seek maths use the real `video.duration` (cached per url in `cvDurCache`, updated on `loadedmetadata`), falling back to each clip's declared length until it loads. It plays each clip's best source — 720p final if rendered, else 480p.
 
 The clip cards (dashed border = draggable) are followed by a non-draggable **branding-video card**: click it to toggle `project.branding.outro`. When on, the branding outro (variant matching the project aspect; landscape for `auto`) is appended as the LAST item of both the concept playlist and the export merge. No branding video uploaded → the card sends the user to the Branding page with a toast. This is the same flag the "Add branding video" option in step 4 toggles, so they stay in sync.
 
@@ -55,7 +57,7 @@ Navigation is a single avatar dropdown in every nav bar, injected by `paintUserM
 
 ### Theming
 
-All colours come from CSS custom properties on `:root`, overridden by `body[data-theme=dark]`: `--ink`, `--muted`, `--grey`, `--grey2`, `--line` plus `--bg` (page), `--card` (raised surface), `--on-ink` (text on an `--ink` fill), `--navbg`, `--pill` (labels floating over media), `--dash`, `--edge`. **Never hardcode `#fff` for a surface** — the only two survivors are white glyphs on fixed-dark circles over photos. The choice is stored in `localStorage.toura_theme`; with nothing stored the device setting wins and keeps winning until the user toggles.
+All colours come from CSS custom properties on `:root`, overridden by `body[data-theme=dark]`: `--ink`, `--muted`, `--grey`, `--grey2`, `--line` plus `--bg` (page), `--card` (raised surface), `--on-ink` (text on an `--ink` fill), `--navbg`, `--pill` (labels floating over media), `--dash`, `--edge`, `--hover` (theme-aware surface lift on hover — do not hardcode a light hover colour, it turns white in dark mode and swallows text), `--bar` (tray behind the progress bar, sits slightly darker than the step bubbles). **Never hardcode `#fff` for a surface** — the only two survivors are white glyphs on fixed-dark circles over photos. The choice is stored in `localStorage.toura_theme`; with nothing stored the device setting wins and keeps winning until the user toggles.
 
 ### Billing / My account
 

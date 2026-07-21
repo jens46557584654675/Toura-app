@@ -19,6 +19,8 @@
     --pill:rgba(255,255,255,.92);   /* small floating labels over media */
     --dash:#d6d6d6;         /* dashed drop/drag outlines */
     --edge:#cfcfcf;         /* subtle input borders */
+    --hover:#f7f7f7;        /* subtle surface lift on hover (theme-aware) */
+    --bar:#e4e4e4;          /* tray behind the progress bar, framing the bubbles */
   }
   /* Dark theme — darker greys, never a pure inversion (media keeps its colours). */
   body[data-theme=dark]{
@@ -26,6 +28,8 @@
     --bg:#131313; --card:#1c1c1c; --on-ink:#131313;
     --navbg:rgba(19,19,19,.92); --pill:rgba(28,28,28,.92);
     --dash:#3a3a3a; --edge:#3f3f3f;
+    --hover:#242424;        /* subtle lift on the near-black card */
+    --bar:#161616;          /* tray sits darker than the bubbles */
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
@@ -132,7 +136,8 @@
   .wrap{max-width:1120px;margin:0 auto;padding:40px 24px 90px}
 
   /* progress bar */
-  .steps{display:flex;align-items:center;gap:6px;margin:0 0 36px;flex-wrap:wrap}
+  /* one rounded tray behind all four steps so they read as a single component */
+  .steps{display:inline-flex;align-items:center;gap:6px;margin:0 0 36px;flex-wrap:wrap;background:var(--bar);padding:5px;border-radius:999px}
   /* Every step is a grey bubble so the bar reads as one element; the active
      step is set apart by the black circle and heavier text, not by the bubble. */
   .pstep{display:flex;align-items:center;gap:9px;padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;background:var(--grey);transition:background .15s,color .15s}
@@ -152,7 +157,9 @@
   .dash-head h1{font-size:34px;font-weight:800;letter-spacing:-0.03em}
   .dash-head p{margin-top:6px;font-size:15px;color:var(--muted)}
   .bigdrop{border:1.5px dashed var(--dash);border-radius:var(--radius);padding:64px 24px;text-align:center;cursor:pointer;transition:.15s;background:var(--card)}
-  .bigdrop:hover,.bigdrop.drag{border-color:var(--ink);background:#fafafa}
+  /* theme-aware lift; the old hardcoded #fafafa turned the drop zone white in
+     dark mode and swallowed its (light) text */
+  .bigdrop:hover,.bigdrop.drag{border-color:var(--ink);background:var(--hover)}
   .bigdrop .ico{font-size:30px;margin-bottom:12px}
   .bigdrop p{font-size:16px;font-weight:700}
   .bigdrop span{display:block;font-size:13.5px;color:var(--muted);margin-top:6px}
@@ -292,13 +299,18 @@
      overlays it, preloaded and hidden, ready to take over on clip change */
   .cvstack video{display:block;width:100%;height:auto;position:relative}
   .cvstack video.behind{position:absolute;inset:0;height:100%;opacity:0;pointer-events:none}
-  .cvbar{display:flex;gap:4px;margin-top:10px}
-  .cvseg{height:4px;border-radius:999px;background:var(--grey2);flex:1;overflow:hidden}
-  .cvseg i{display:block;height:100%;width:0;background:var(--ink);border-radius:999px}
+  /* clickable seek bar — taller so it reads as interactive */
+  .cvbar{display:flex;gap:4px;margin-top:12px}
+  .cvseg{height:8px;border-radius:999px;background:var(--grey2);flex:1;overflow:hidden;cursor:pointer;transition:transform .1s}
+  .cvseg:hover{transform:scaleY(1.35)}
+  .cvseg i{display:block;height:100%;width:0;background:var(--ink);border-radius:999px;pointer-events:none}
   .cvseg.done i{width:100%}
-  .cvctl{display:flex;align-items:center;gap:14px;margin-top:12px}
+  .cvctl{display:flex;align-items:center;gap:12px;margin-top:14px}
   .cvctl .cvbtn{width:38px;height:38px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
   .cvctl .cvnow{font-size:13px;color:var(--muted);font-weight:500}
+  .cvright{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .cvskip{width:40px;height:40px;border-radius:50%;background:var(--grey2);color:var(--ink);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;line-height:1}
+  .cvskip:hover{background:var(--edge)}
 
   /* music step */
   .timeline{background:var(--grey);border-radius:var(--radius);padding:18px;display:flex;gap:8px;overflow-x:auto;align-items:center}
@@ -1522,11 +1534,15 @@ function renderFinalPage(){
   // to back in the browser. Nothing is merged here, so previewing costs nothing.
   const cs=$('conceptStage');
   const vert=p.aspect==='9:16';
-  const clipSources=p.clips.map(c=>clipSrc(c)).filter(Boolean);
+  // Keep each source's declared length alongside it as a fallback duration; the
+  // player replaces these with the real video.duration once each clip loads.
+  const ready=p.clips.map(c=>({src:clipSrc(c),dur:parseFloat(c.duration)||8})).filter(x=>x.src);
+  const clipSources=ready.map(x=>x.src);
   const allReady=clipSources.length===p.clips.length&&clipSources.length>0;
   const outroUrl=(p.branding?.outro&&brandingOutro())?brandingOutro().url:null;
   const outroLast=allReady&&!!outroUrl;
   const sources=outroLast?[...clipSources,outroUrl]:[...clipSources];
+  const durations=outroLast?[...ready.map(x=>x.dur),5]:ready.map(x=>x.dur);
   if(!sources.length){
     cs.innerHTML=`<div class="shead"><div><div class="sttl">Concept video</div><div class="ssub">Render your clips in the previous step to preview the walkthrough here.</div></div></div>`;
     stopConceptPlayer();
@@ -1541,10 +1557,14 @@ function renderFinalPage(){
         <div class="cvctl">
           <button class="cvbtn" id="cvPlay">▶</button>
           <span class="cvnow" id="cvNow"></span>
-          <button class="btn ghost small" id="cvRestart">↺ Restart</button>
+          <div class="cvright">
+            <button class="cvskip" id="cvBack10" title="Back 10 seconds">⟲10</button>
+            <button class="cvskip" id="cvFwd10" title="Forward 10 seconds">10⟳</button>
+            <button class="btn ghost small" id="cvRestart">↺ Restart</button>
+          </div>
         </div>
       </div>`;
-    setupConceptPlayer(sources,{outroLast,clipCount:clipSources.length});
+    setupConceptPlayer(sources,{outroLast,clipCount:clipSources.length,durations});
   }
 }
 // Best available source for a clip: the 720p final once it exists, else the 480p.
@@ -1557,8 +1577,11 @@ function exportQuality(p){
 
 /* ---- client-side concept player ----
    Two <video> elements take turns: while one plays, the next clip is already
-   loaded in the other, so switching clips is a class swap instead of a load. */
+   loaded in the other, so switching clips is a class swap instead of a load.
+   The seek bar and ±10s buttons treat the clips as one timeline. */
 let cvState=null;
+const cvDurCache={}; // url → real video.duration, so re-seeks use accurate lengths
+const SKIP=10;
 function stopConceptPlayer(){
   if(cvState){ try{ cvState.a.pause(); cvState.b.pause(); }catch{} }
   cvState=null;
@@ -1567,13 +1590,29 @@ function setupConceptPlayer(sources,opts={}){
   const a=$('cvA'), b=$('cvB');
   if(!a||!b) return;
   const outroLast=!!opts.outroLast, clipCount=opts.clipCount||sources.length;
+  const fallback=opts.durations||[];
   const sig=sources.join('|');
   const wasPlaying=cvState&&!cvState.paused&&cvState.sig===sig;
   const startAt=cvState&&cvState.sig===sig?cvState.idx:0;
-  cvState={a,b,sources,sig,idx:startAt,front:a,back:b,paused:!wasPlaying};
+  // durs: best-known length per source (real once loaded, else the declared one).
+  const durs=sources.map((u,i)=>cvDurCache[u]||fallback[i]||8);
+  cvState={a,b,sources,sig,idx:startAt,front:a,back:b,paused:!wasPlaying,durs};
 
   const bar=$('cvBar'); bar.innerHTML='';
-  sources.forEach(()=>{ const seg=document.createElement('div'); seg.className='cvseg'; seg.innerHTML='<i></i>'; bar.appendChild(seg); });
+  sources.forEach((_,i)=>{
+    const seg=document.createElement('div'); seg.className='cvseg'; seg.innerHTML='<i></i>';
+    // Click a segment → jump to that fraction of that clip.
+    seg.onclick=ev=>{
+      const r=seg.getBoundingClientRect();
+      const f=Math.min(1,Math.max(0,(ev.clientX-r.left)/r.width));
+      seekTo(i, f*cvState.durs[i]);
+    };
+    bar.appendChild(seg);
+  });
+
+  const durOf=i=>cvState.durs[i]||0;
+  const sumBefore=i=>cvState.durs.slice(0,i).reduce((s,d)=>s+d,0);
+  const total=()=>cvState.durs.reduce((s,d)=>s+d,0);
 
   const paint=()=>{
     [...bar.children].forEach((seg,i)=>{
@@ -1583,14 +1622,14 @@ function setupConceptPlayer(sources,opts={}){
     $('cvNow').textContent=(outroLast&&cvState.idx===sources.length-1)?'Branding video':`Clip ${cvState.idx+1} of ${clipCount}`;
     $('cvPlay').textContent=cvState.paused?'▶':'❚❚';
   };
+  const setSrc=(el,i)=>{ el.src=cvState.sources[i]; el.dataset.idx=i; el.load(); };
   const preloadNext=()=>{
-    const next=cvState.sources[cvState.idx+1];
-    if(next&&cvState.back.src!==next){ cvState.back.src=next; cvState.back.load(); }
+    const j=cvState.idx+1, next=cvState.sources[j];
+    if(next&&cvState.back.dataset.idx!=j){ setSrc(cvState.back,j); }
   };
   const load=(i,play)=>{
     cvState.idx=i;
-    cvState.front.src=cvState.sources[i];
-    cvState.front.load();
+    setSrc(cvState.front,i);
     preloadNext();
     paint();
     if(play) cvState.front.play().catch(()=>{});
@@ -1610,6 +1649,14 @@ function setupConceptPlayer(sources,opts={}){
     paint();
   };
   a.onended=advance; b.onended=advance;
+
+  // Real durations feed the seek maths as clips load.
+  const onMeta=e=>{
+    const i=+e.target.dataset.idx, d=e.target.duration;
+    if(Number.isFinite(d)&&d>0){ cvState.durs[i]=d; cvDurCache[cvState.sources[i]]=d; }
+  };
+  a.onloadedmetadata=onMeta; b.onloadedmetadata=onMeta;
+
   // Progress within the current clip fills its segment.
   const onTime=e=>{
     if(e.target!==cvState.front) return;
@@ -1619,6 +1666,34 @@ function setupConceptPlayer(sources,opts={}){
   };
   a.ontimeupdate=onTime; b.ontimeupdate=onTime;
 
+  // Set the front element to clip i and drop the playhead at `offset` seconds in,
+  // loading the clip first when it is not the one already showing.
+  const applySeek=(el,t,play)=>{
+    const go=()=>{ try{ el.currentTime=Math.max(0,t); }catch{} if(play) el.play().catch(()=>{}); };
+    if(el.readyState>=1) go(); else el.addEventListener('loadedmetadata',go,{once:true});
+  };
+  function seekTo(clipIdx,offset){
+    clipIdx=Math.min(cvState.sources.length-1,Math.max(0,clipIdx));
+    const play=!cvState.paused;
+    const off=Math.min(Math.max(0,offset),Math.max(0,durOf(clipIdx)-0.05));
+    if(cvState.idx!==clipIdx){
+      // bring the target clip onto the visible (front) element
+      setSrc(cvState.front,clipIdx);
+      cvState.idx=clipIdx;
+      preloadNext();
+    }
+    applySeek(cvState.front,off,play);
+    paint();
+  }
+  // ±seconds across the whole playlist.
+  const skip=delta=>{
+    const pos=sumBefore(cvState.idx)+(cvState.front.currentTime||0);
+    let t=Math.min(Math.max(0,pos+delta),Math.max(0,total()-0.05));
+    let j=0;
+    while(j<cvState.durs.length-1 && t>=cvState.durs[j]){ t-=cvState.durs[j]; j++; }
+    seekTo(j,t);
+  };
+
   const toggle=()=>{
     if(cvState.paused){ cvState.paused=false; cvState.front.play().catch(()=>{}); }
     else { cvState.paused=true; cvState.front.pause(); }
@@ -1626,6 +1701,8 @@ function setupConceptPlayer(sources,opts={}){
   };
   $('cvPlay').onclick=toggle;
   const stack=$('cvStack'); if(stack) stack.onclick=toggle; // click the video to pause/resume
+  $('cvBack10').onclick=()=>skip(-SKIP);
+  $('cvFwd10').onclick=()=>skip(SKIP);
   $('cvRestart').onclick=()=>{
     if(cvState.front!==a){ a.classList.remove('behind'); b.classList.add('behind'); cvState.front=a; cvState.back=b; }
     cvState.paused=false; load(0,true);
