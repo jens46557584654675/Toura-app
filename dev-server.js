@@ -19,6 +19,7 @@ const ROUTES = {
   '/api/music':        './api/music.js',
   '/api/branding':     './api/branding.js',
   '/api/billing':      './api/billing.js',
+  '/api/account':      './api/account.js',
 };
 const MIME = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.jpg':'image/jpeg', '.svg':'image/svg+xml', '.ico':'image/x-icon' };
 

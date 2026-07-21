@@ -10,5 +10,5 @@ export default async function handler(req, res){
     return res.status(401).json({ error: 'Wrong email or password.' });
   }
   setSession(res, { email: e, name: acc.name });
-  res.json({ user: { email: e, name: acc.name } });
+  res.json({ user: { email: e, name: acc.name, photo: acc.photo || null } });
 }

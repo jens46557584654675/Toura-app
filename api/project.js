@@ -149,6 +149,24 @@ export default async function handler(req, res){
       project.music = m && m.url ? { name: String(m.name || 'Track').slice(0, 80), url: String(m.url) } : null;
       project.export = null; // soundtrack changed → export is stale
 
+    } else if(action === 'edit'){
+      // Video-editor choices. Text cards and the logo toggle are preview-only for
+      // now (the server merge can't burn them in — see CLAUDE.md); brandingOutro
+      // and music DO drive the export, so mirror them onto the real fields.
+      const e = req.body.edit || {};
+      const POS = ['tl', 'tc', 'tr', 'bl', 'bc', 'br'];
+      const texts = Array.isArray(e.texts) ? e.texts.slice(0, 10).map(t => ({
+        text: String(t.text || '').slice(0, 120),
+        pos: POS.includes(t.pos) ? t.pos : 'bl',
+        clips: Array.isArray(t.clips) ? t.clips.filter(c => typeof c === 'string').slice(0, 50) : [],
+      })).filter(t => t.text) : [];
+      const music = e.music && e.music.url ? { name: String(e.music.name || 'Track').slice(0, 80), url: String(e.music.url) } : null;
+      project.edit = { texts, logo: !!e.logo, brandingOutro: !!e.brandingOutro, music };
+      project.branding = project.branding || { outro: false, logo: false };
+      project.branding.outro = !!e.brandingOutro; // the flag the export actually reads
+      project.music = music;
+      project.export = null; // edits changed → export is stale
+
     } else if(action === 'merge'){
       // kind 'concept' = merge the 480p working clips (cheap check)
       // kind 'final'   = merge the finalized 720p clips

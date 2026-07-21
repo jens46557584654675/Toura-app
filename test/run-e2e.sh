@@ -108,6 +108,23 @@ check "unknown branding action rejected" 'Unknown action' "$R"
 R=$(curl -s localhost:3000/api/branding)
 check "branding requires auth" 'Not signed in' "$R"
 
+# --- account: profile photo ---
+PIMG="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+R=$(curl -s -b $J -X POST localhost:3000/api/account -H 'Content-Type: application/json' -d "{\"action\":\"photo\",\"data\":\"$PIMG\"}")
+check "profile photo uploaded" '"photo":"data:image/png' "$R"
+
+R=$(curl -s -b $J localhost:3000/api/auth/me)
+check "me reflects the photo" '"photo":"data:image/png' "$R"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/account -H 'Content-Type: application/json' -d '{"action":"removePhoto"}')
+check "profile photo removed" '"photo":null' "$R"
+
+R=$(curl -s -b $J localhost:3000/api/auth/me)
+check "me shows no photo after removal" '"photo":null' "$R"
+
+R=$(curl -s localhost:3000/api/account)
+check "account requires auth" 'Not signed in' "$R"
+
 # --- generate: 2 segments ---
 IMG="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AVN//2Q=="
 R=$(curl -s -b $J -X POST localhost:3000/api/generate -H 'Content-Type: application/json' -d "{\"name\":\"Keizersgracht 214\",\"segments\":[{\"images\":[\"$IMG\",\"$IMG\"]},{\"images\":[\"$IMG\"]}],\"stylePrompt\":\"Calm and warm\",\"duration\":\"auto\",\"aspect\":\"16:9\",\"quality\":\"720p\"}")
@@ -158,6 +175,17 @@ check "concept video merged" '"concept":"http' "$R"
 # Music is attached in step 4 via the music action — /api/generate ignores it.
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"music\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}")
 check "music attached to project" '"name":"Calm Piano"' "$R"
+
+# Video editor: text/logo are preview-only, but the edit action persists them and
+# mirrors brandingOutro + music onto the real export-facing fields.
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"Keizersgracht 214\",\"pos\":\"bl\",\"clips\":[\"$CID\"]}],\"logo\":true,\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+check "editor choices saved" '"texts":\[{"text":"Keizersgracht 214"' "$R"
+check "editor mirrors brandingOutro to export flag" '"outro":true' "$R"
+
+# Empty text cards are dropped; an unknown position falls back to bl. The editor
+# always sends the full state, so music is included (Save must not drop it).
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"\",\"pos\":\"xx\",\"clips\":[]},{\"text\":\"Hi\",\"pos\":\"zz\"}],\"logo\":false,\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+check "editor drops empty text cards" '"texts":\[{"text":"Hi","pos":"bl"' "$R"
 
 # Project is 16:9, so the landscape branding clip is the one that must be used.
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"branding\",\"outro\":true}")

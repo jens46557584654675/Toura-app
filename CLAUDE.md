@@ -17,7 +17,7 @@ Is een technische term echt nodig, leg hem dan in één zin uit.
 Static frontend + Vercel serverless functions. No framework, no build step.
 
 - `public/index.html` — the entire frontend (single file: HTML + CSS + vanilla JS).
-- `api/` — Vercel functions: `auth/*` (signup/signin/signout/me), `projects` (list), `generate` (create project + first clip render), `project` (actions: reorder, regenerate, finalize, addclip, removeclip, music, branding, merge, export, rename, delete), `status` (poll fal jobs + advance merge pipeline), `music` (library: upload, AI-generate via Lyria2, favorites), `branding` (logo + outro clips per user), `billing` (plans + subscription choice).
+- `api/` — Vercel functions: `auth/*` (signup/signin/signout/me), `projects` (list), `generate` (create project + first clip render), `project` (actions: reorder, regenerate, finalize, addclip, removeclip, music, branding, merge, export, rename, delete), `status` (poll fal jobs + advance merge pipeline), `music` (library: upload, AI-generate via Lyria2, favorites), `branding` (logo + outro clips per user), `billing` (plans + subscription choice), `account` (profile photo), `edit` action on `project` (video-editor choices).
 - `lib/` — `fal.js` (fal.ai client, models, base prompt, cost accounting), `blob.js` (Vercel Blob hosting for photos/audio/videos/branding), `db.js` (Redis via KV_REDIS_URL or Upstash REST, in-memory fallback for dev), `auth.js` (scrypt + HMAC session cookie), `projects.js` (helpers), `branding.js` (per-user logo + outro clips, aspect→variant mapping), `billing.js` (plan catalogue + subscription record).
 
 ## Rendering pipeline (cost-optimized — keep it this way)
@@ -45,13 +45,23 @@ Every step in the bar is a grey bubble; the active one is marked by the black ci
 
 Two stacked `<video>` elements alternate: while one plays, the next is already loaded in the other, so the hand-over is a class swap rather than a load (`setupConceptPlayer`). The player keeps the video's natural size (no fixed crop; the front element drives height at natural aspect, `min-height:180px` prevents a pre-metadata collapse). Click the video or the ▶ button to pause/resume.
 
-The clips are treated as **one continuous timeline**: the segment bar is clickable (click a point → jump to that clip + offset), and the ⟲10 / 10⟳ buttons skip ±10s across clip boundaries. Seek maths use the real `video.duration` (cached per url in `cvDurCache`, updated on `loadedmetadata`), falling back to each clip's declared length until it loads. It plays each clip's best source — 720p final if rendered, else 480p.
+Clicking a segment plays that clip from the start (`load(i,true)`). It plays each clip's best source — 720p final if rendered, else 480p.
 
 The clip cards (dashed border = draggable) are followed by a non-draggable **branding-video card**: click it to toggle `project.branding.outro`. When on, the branding outro (variant matching the project aspect; landscape for `auto`) is appended as the LAST item of both the concept playlist and the export merge. No branding video uploaded → the card sends the user to the Branding page with a toast. This is the same flag the "Add branding video" option in step 4 toggles, so they stay in sync.
 
 ### Step 4 (Final video)
 
-a) **Final quality · 720p** — reuses the per-clip `finalize` action (only changed/new clips re-render — the cost saver, do not touch). Shows "X of Y clips already in 720p" with an "Upgrade N clip(s) to 720p" button, or a green "All clips in final quality" tick when done. b) **Music** — timeline + picker (+ the branding option, kept here too). c) **Export** — `Create export`: the single merge of the 720p finals (or 480p when not all are upgraded — a note says which) + branding outro + music. Player and download shown at the video's natural size.
+a) **Final quality · 720p** — reuses the per-clip `finalize` action (only changed/new clips re-render — the cost saver, do not touch). "Upgrade N clip(s) to 720p" button, or a green "All clips in final quality" tick when done. b) **Video editing** — the timeline (click it, or "Open editor", to open the editor modal) + the branding option. c) **Export** — `Create export`: the single merge of the 720p finals (or 480p when not all are upgraded) + branding outro + music.
+
+### Video editor modal (`openEditor` / `saveEditor`, state in `edState`)
+
+A self-contained modal (no external editor/icon libs). Top: a single-`<video>` sequential preview that plays the clips (720p if present, else 480p) with the branding outro appended when that toggle is on. Text cards and the logo render as **HTML overlays** on top of the preview (`.edoverlays`) — positioned via `.edtext.{tl,tc,tr,bl,bc,br}` and `.edlogo`. Below: a thumbnail timeline (width ∝ clip duration, click to jump) with the outro block toggle, then a stylized (not decoded) music bar. Panels: multiple text cards (text + position + which clip cids it shows during), a logo toggle (Branding logo, bottom-right), the branding-outro toggle, and the music picker (reuses `bindMpick`, audio previews via a dedicated `edState._audio`). Footer carries **"Text & logo in export: coming soon"**, Cancel, Save.
+
+Save posts `{action:'edit', edit:{texts, logo, brandingOutro, music}}` → `project.edit`. **Text and logo are preview-only** (the fal ffmpeg pipeline can't burn overlays in — see below); `brandingOutro` and `music` are mirrored onto `project.branding.outro` / `project.music`, the fields the export actually reads, so the editor stays the single place to set them. The export stage warns when text/logo are set that they are not yet in the download.
+
+### Overlay burn-in — why it is preview-only
+
+Researched ffmpeg.wasm (client-side burn-in): technically works (drawtext + overlay + concat all in the default `@ffmpeg/core`), but costs a ~30 MB one-time download, 2–8 min encode for a 1–2.5 min 720p video (single-threaded; multi-threaded needs COOP/COEP cross-origin isolation, which would block Blob-hosted media across the app), and breaks the "self-contained single file, no build step, dependency-light" convention. Server-side burn-in isn't available either (fal's ffmpeg-api has no positioned overlay/drawtext; adding an ffmpeg layer on Vercel is a build/dependency departure). Decision: keep export server-side (merge + music), text/logo preview-only with a "coming soon" note. Revisit if a burn-in becomes cheap (e.g. a dedicated serverless ffmpeg step).
 
 Navigation is a single avatar dropdown in every nav bar, injected by `paintUserMenus()` into each empty `.nav-right` — do not hand-write nav links per page. Items: My account, Dashboard, Music, Branding, Billing, Dark mode (toggle, keeps the menu open), Log out. Icons are inline 16px SVG paths in the `ICON` map, stroked in `currentColor` — no icon library.
 
@@ -90,7 +100,7 @@ Uploads travel as base64 data URLs in the request body, which inflates them ~33%
 
 - Keep everything dependency-light (only @upstash/redis, @vercel/blob, redis; dev: none).
 - Single-file frontend; no frameworks. Escape user strings with `esc()`.
-- Data lives in Redis: `user:{email}`, `projects:{email}` (full project objects), `music:catalog`, `music:{email}`, `musicfav:{email}`, `musicgen:{email}`, `branding:{email}`, `billing:{email}` (kept off the user record so billing writes can never clobber the password hash).
+- Data lives in Redis: `user:{email}`, `projects:{email}` (full project objects), `music:catalog`, `music:{email}`, `musicfav:{email}`, `musicgen:{email}`, `branding:{email}`, `billing:{email}` (kept off the user record so billing writes can never clobber the password hash). Profile photo is a `photo` field on `user:{email}` (resized to ~256px client-side, hosted via `hostImage`); `/api/auth/me`, signin and signup return it so the nav avatar shows it. `project.edit` = `{texts, logo, brandingOutro, music}` holds video-editor choices.
 - fal queue: always store `status_url`/`response_url` from the submit response (the queue lives at the base app id, not the full endpoint path).
 - `merge-videos` needs ≥2 urls and, when concatenating differently-shaped input, `resolution_aspect_ratio_video_index: 0` — its default takes min width AND min height across inputs, which can yield an aspect matching neither clip.
 - The fal stub records every submitted job at `GET localhost:9999/_calls`, so tests can assert what fal was actually asked to do.
@@ -100,5 +110,5 @@ Uploads travel as base64 data URLs in the request body, which inflates them ~33%
 - Payments: plan cards + subscription record exist, but no checkout and no gating yet (Stripe/Mollie later). The internal render budget guard is unrelated and still active.
 - Email verification + password reset (required before real customers).
 - Server-side render completion via fal webhooks (now: client polling; closing the tab pauses progress tracking, renders continue).
-- Team accounts, text/title overlay in video (postponed by choice). Logo overlay blocked on fal capability (see above).
+- Team accounts. Text/title + logo overlay exist in the video editor as live preview only; burning them into the exported file is deferred (see "Overlay burn-in").
 - Photo upload per-file (current: data URLs in one request; fine ≤45 downscaled photos).

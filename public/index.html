@@ -75,7 +75,9 @@
   .nav-inner{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
   .nav-right{display:flex;align-items:center;gap:16px}
   .user-chip{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;background:var(--grey);border-radius:999px;padding:7px 14px 7px 7px}
-  .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .avatar.big{width:76px;height:76px;font-size:28px}
   /* profile menu */
   .usermenu{position:relative}
   .usermenu>.user-chip{cursor:pointer;transition:background .15s}
@@ -83,7 +85,8 @@
   .usermenu .caret{font-size:9px;color:var(--muted);margin-left:2px}
   .umenu{position:absolute;top:calc(100% + 10px);right:0;min-width:250px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.10);padding:6px;display:none;z-index:20}
   .usermenu.open .umenu{display:block}
-  .umenu .uhead{padding:10px 14px 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .umenu .uhead{display:flex;align-items:center;gap:10px;padding:10px 14px 10px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .umenu .uhead .utext{min-width:0}
   .umenu .uhead b{display:block;font-size:14px}
   .umenu .uhead span{font-size:12px;color:var(--muted);word-break:break-all}
   .umenu button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px 14px;border-radius:9px;font-size:14px;font-weight:500;color:var(--ink)}
@@ -185,6 +188,49 @@
   .overlay{position:fixed;inset:0;background:rgba(17,17,17,.4);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
   .overlay.on{display:flex}
   .upmodal{background:var(--card);border-radius:20px;max-width:960px;width:100%;max-height:92vh;overflow:auto;padding:26px;display:flex;flex-direction:column;gap:18px}
+  /* video editor modal */
+  .edmodal{background:var(--card);border-radius:20px;max-width:1040px;width:100%;max-height:94vh;overflow:hidden;display:flex;flex-direction:column}
+  .edhead{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+  .edhead h2{font-size:18px;font-weight:800}
+  .edx{width:32px;height:32px;border-radius:50%;background:var(--grey);color:var(--ink);font-size:13px}
+  .edx:hover{background:var(--grey2)}
+  .edbody{padding:22px 24px;overflow:auto;display:grid;grid-template-columns:1.3fr 1fr;gap:24px}
+  @media(max-width:820px){ .edbody{grid-template-columns:1fr} }
+  .edstage{position:relative;border-radius:14px;overflow:hidden;background:#000;min-height:180px}
+  .edstage video{display:block;width:100%;height:auto;max-height:52vh;margin:0 auto}
+  /* text/logo overlays sit on top of the preview */
+  .edoverlays{position:absolute;inset:0;pointer-events:none}
+  .edtext{position:absolute;max-width:80%;background:rgba(17,17,17,.62);color:#fff;font-size:14px;font-weight:600;line-height:1.3;padding:8px 12px;border-radius:8px;white-space:pre-wrap}
+  .edtext.tl{top:14px;left:14px} .edtext.tc{top:14px;left:50%;transform:translateX(-50%);text-align:center}
+  .edtext.tr{top:14px;right:14px} .edtext.bl{bottom:14px;left:14px}
+  .edtext.bc{bottom:14px;left:50%;transform:translateX(-50%);text-align:center} .edtext.br{bottom:14px;right:14px}
+  .edlogo{position:absolute;bottom:14px;right:14px;max-width:22%;max-height:26%}
+  .edtimeline{display:flex;gap:6px;overflow-x:auto;margin-top:14px;padding-bottom:4px}
+  .edtclip{flex:none;border-radius:8px;overflow:hidden;background:var(--grey2);cursor:pointer;position:relative;border:2px solid transparent}
+  .edtclip.on{border-color:var(--ink)}
+  .edtclip video,.edtclip img{width:100%;height:46px;object-fit:cover;display:block;pointer-events:none}
+  .edtclip .edtlab{position:absolute;left:4px;bottom:3px;font-size:9.5px;font-weight:700;background:var(--pill);color:var(--ink);padding:1px 5px;border-radius:999px}
+  .edtoutro{flex:none;width:60px;border-radius:8px;border:1.5px dashed var(--dash);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);font-size:10px;font-weight:700}
+  .edtoutro.on{border-style:solid;border-color:var(--ink);color:var(--ink)}
+  .edtoutro .plus{font-size:18px;line-height:1;font-weight:300}
+  .edwave{display:flex;align-items:flex-end;gap:3px;height:34px;margin-top:12px;padding:0 2px;opacity:.5}
+  .edwave.on{opacity:1}
+  .edwave i{flex:1;background:var(--muted);border-radius:2px;min-width:2px}
+  .edpanels{display:flex;flex-direction:column;gap:20px;min-width:0}
+  .edpanel h4{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+  .edph{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .edph h4{margin-bottom:0}
+  .edtcard{background:var(--grey);border-radius:12px;padding:12px;margin-bottom:10px}
+  .edtcard textarea{width:100%;background:var(--card);border:1px solid transparent;border-radius:8px;padding:8px 10px;font-size:13.5px;resize:vertical;min-height:40px;outline:none}
+  .edtrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .edtrow select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;color:var(--ink)}
+  .edtrow .edtrm{margin-left:auto;color:var(--muted);font-size:12px;font-weight:700}
+  .edclips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .edclips button{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--muted);border:1px solid var(--line)}
+  .edclips button.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+  .edfoot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--line)}
+  .edcoming{font-size:12.5px;color:var(--muted);font-weight:600}
+  .edactions{display:flex;gap:10px}
   .upmodal .uphead{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start}
   .upmodal .upname{flex:1;min-width:240px}
   .upmodal .upname label,.upmodal .upaspect label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
@@ -309,8 +355,6 @@
   .cvctl .cvbtn{width:38px;height:38px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
   .cvctl .cvnow{font-size:13px;color:var(--muted);font-weight:500}
   .cvright{margin-left:auto;display:flex;align-items:center;gap:10px}
-  .cvskip{width:40px;height:40px;border-radius:50%;background:var(--grey2);color:var(--ink);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;line-height:1}
-  .cvskip:hover{background:var(--edge)}
 
   /* music step */
   .timeline{background:var(--grey);border-radius:var(--radius);padding:18px;display:flex;gap:8px;overflow-x:auto;align-items:center}
@@ -472,6 +516,17 @@
       <div><h1>My account</h1><p>Your details and subscription.</p></div>
     </div>
     <div class="bcard">
+      <h3>Profile photo</h3>
+      <div class="bslot">
+        <div class="avatar big" id="acAvatar">?</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn small" onclick="$('acPhotoInput').click()">Upload photo</button>
+          <button class="btn ghost small" id="acPhotoRm" style="display:none" onclick="removePhoto()">Remove</button>
+        </div>
+      </div>
+      <input type="file" id="acPhotoInput" accept="image/jpeg,image/png" hidden>
+    </div>
+    <div class="bcard">
       <h3>Details</h3>
       <div class="arow"><span class="alab">Name</span><span class="aval" id="acName">—</span></div>
       <div class="arow"><span class="alab">Email</span><span class="aval" id="acEmail">—</span></div>
@@ -602,21 +657,13 @@
     <div class="stage" id="finalQualityStage"></div>
 
     <div class="step">
-      <h2>Music</h2>
-      <div class="timeline" id="ppTimeline"></div>
+      <h2>Video editing</h2>
+      <div class="step-sub">Click the timeline to open the editor — add a text card, your logo and music, and preview it all.</div>
+      <div class="timeline tledit" id="ppTimeline" onclick="openEditor()"></div>
       <div class="musicbar">
         <button class="tplay" id="ppMusicPlay">▶</button>
         <div class="mname" id="ppMusicName"><span class="mnone">No music selected</span></div>
-        <button class="btn ghost small" onclick="toggleMusicPicker()">♫ Browse music</button>
-      </div>
-      <div id="ppPicker" style="display:none">
-        <div class="mpick" id="ppMpick">
-          <button class="mopt" data-m="none">No music</button>
-          <button class="mopt" data-m="toura">Toura picks</button>
-          <button class="mopt" data-m="favs">Favorites</button>
-          <button class="mopt" data-m="mine">My uploads</button>
-        </div>
-        <div class="mlist" id="ppMlist"></div>
+        <button class="btn ghost small" onclick="openEditor()">✎ Open editor</button>
       </div>
       <div class="bopts" id="ppBranding"></div>
     </div>
@@ -624,6 +671,63 @@
     <div class="stage" id="exportStage"></div>
   </div>
 </section>
+
+<!-- video editor -->
+<div class="overlay" id="edOverlay">
+  <div class="edmodal">
+    <div class="edhead">
+      <h2>Video editing</h2>
+      <button class="edx" onclick="closeEditor()" title="Close">✕</button>
+    </div>
+    <div class="edbody">
+      <div class="edstage-wrap">
+        <div class="edstage" id="edStage">
+          <video id="edVid" playsinline preload="auto"></video>
+          <div class="edoverlays" id="edOverlays"></div>
+        </div>
+        <div class="cvbar" id="edBar"></div>
+        <div class="cvctl">
+          <button class="cvbtn" id="edPlay">▶</button>
+          <span class="cvnow" id="edNow"></span>
+          <div class="cvright"><button class="btn ghost small" id="edRestart">↺ Restart</button></div>
+        </div>
+        <div class="edtimeline" id="edTimeline"></div>
+        <div class="edwave" id="edWave"></div>
+      </div>
+      <div class="edpanels">
+        <div class="edpanel">
+          <div class="edph"><h4>Text</h4><button class="btn ghost small" onclick="edAddText()">+ Add text</button></div>
+          <div id="edTexts"></div>
+        </div>
+        <div class="edpanel">
+          <h4>Logo</h4>
+          <button class="bopt" id="edLogo"><span class="bbox"></span><span>Show logo bottom-right<span class="bsub" id="edLogoSub"></span></span></button>
+        </div>
+        <div class="edpanel">
+          <h4>Branding video</h4>
+          <button class="bopt" id="edOutro"><span class="bbox"></span><span>Add branding video as outro<span class="bsub" id="edOutroSub"></span></span></button>
+        </div>
+        <div class="edpanel">
+          <h4>Music</h4>
+          <div class="mpick" id="edMpick">
+            <button class="mopt" data-m="none">No music</button>
+            <button class="mopt" data-m="toura">Toura picks</button>
+            <button class="mopt" data-m="favs">Favorites</button>
+            <button class="mopt" data-m="mine">My uploads</button>
+          </div>
+          <div class="mlist" id="edMlist"></div>
+        </div>
+      </div>
+    </div>
+    <div class="edfoot">
+      <span class="edcoming">Text &amp; logo in export: coming soon</span>
+      <div class="edactions">
+        <button class="btn ghost" onclick="closeEditor()">Cancel</button>
+        <button class="btn" onclick="saveEditor()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- upload popup -->
 <div class="overlay" id="upOverlay">
@@ -767,9 +871,14 @@ const ICON={
 };
 const icon=n=>`<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
 
+// An avatar shows the profile photo when set, otherwise the name's initial.
+function avatarInner(){
+  if(user?.photo) return `<img src="${esc(user.photo)}" alt="">`;
+  return esc((user?.name||'?')[0].toUpperCase());
+}
 function paintUserMenus(){
   if(!user) return;
-  const first=user.name.split(' ')[0], initial=user.name[0].toUpperCase();
+  const first=user.name.split(' ')[0];
   const items=[
     ['account','user','My account'],
     ['dash','home','Dashboard'],
@@ -779,9 +888,9 @@ function paintUserMenus(){
   ];
   document.querySelectorAll('.nav-right').forEach(slot=>{
     slot.innerHTML=`<div class="usermenu">
-      <div class="user-chip"><div class="avatar">${esc(initial)}</div><span>${esc(first)}</span><span class="caret">▼</span></div>
+      <div class="user-chip"><div class="avatar">${avatarInner()}</div><span>${esc(first)}</span><span class="caret">▼</span></div>
       <div class="umenu">
-        <div class="uhead"><b>${esc(user.name)}</b><span>${esc(user.email)}</span></div>
+        <div class="uhead"><div class="avatar">${avatarInner()}</div><div class="utext"><b>${esc(user.name)}</b><span>${esc(user.email)}</span></div></div>
         ${items.map(([go,ic,label])=>`<button data-go="${go}">${icon(ic)}<span>${label}</span></button>`).join('')}
         <div class="usep"></div>
         <button data-go="theme">${icon('moon')}<span>Dark mode</span><span class="uswitch" data-on="${isDark()?'1':'0'}"></span></button>
@@ -1096,10 +1205,32 @@ async function choosePlan(p){
     toast(`${p.name} noted — we will contact you when billing goes live.`,6000);
   }catch(e){ toast(e.message,6000); }
 }
+function renderAccountPhoto(){
+  $('acAvatar').innerHTML=avatarInner();
+  $('acPhotoRm').style.display=user?.photo?'':'none';
+}
+$('acPhotoInput').onchange=async()=>{
+  const f=$('acPhotoInput').files[0]; $('acPhotoInput').value='';
+  if(!f) return;
+  const data=await fileToDataUrl(f,256); // resize client-side to ~256px
+  if(!data){ toast('Could not read that image.'); return; }
+  try{
+    const {photo}=await api('/api/account',{method:'POST',body:{action:'photo',data}});
+    user.photo=photo; renderAccountPhoto(); paintUserMenus();
+    toast('Profile photo updated.');
+  }catch(e){ toast(e.message,6000); }
+};
+async function removePhoto(){
+  try{
+    await api('/api/account',{method:'POST',body:{action:'removePhoto'}});
+    user.photo=null; renderAccountPhoto(); paintUserMenus();
+  }catch(e){ toast(e.message); }
+}
 function goAccount(){
   $('acName').textContent=user?user.name:'—';
   $('acEmail').textContent=user?user.email:'—';
   $('acPlan').textContent=planLabel();
+  renderAccountPhoto();
   show('account');
 }
 
@@ -1534,15 +1665,11 @@ function renderFinalPage(){
   // to back in the browser. Nothing is merged here, so previewing costs nothing.
   const cs=$('conceptStage');
   const vert=p.aspect==='9:16';
-  // Keep each source's declared length alongside it as a fallback duration; the
-  // player replaces these with the real video.duration once each clip loads.
-  const ready=p.clips.map(c=>({src:clipSrc(c),dur:parseFloat(c.duration)||8})).filter(x=>x.src);
-  const clipSources=ready.map(x=>x.src);
+  const clipSources=p.clips.map(c=>clipSrc(c)).filter(Boolean);
   const allReady=clipSources.length===p.clips.length&&clipSources.length>0;
   const outroUrl=(p.branding?.outro&&brandingOutro())?brandingOutro().url:null;
   const outroLast=allReady&&!!outroUrl;
   const sources=outroLast?[...clipSources,outroUrl]:[...clipSources];
-  const durations=outroLast?[...ready.map(x=>x.dur),5]:ready.map(x=>x.dur);
   if(!sources.length){
     cs.innerHTML=`<div class="shead"><div><div class="sttl">Concept video</div><div class="ssub">Render your clips in the previous step to preview the walkthrough here.</div></div></div>`;
     stopConceptPlayer();
@@ -1558,13 +1685,11 @@ function renderFinalPage(){
           <button class="cvbtn" id="cvPlay">▶</button>
           <span class="cvnow" id="cvNow"></span>
           <div class="cvright">
-            <button class="cvskip" id="cvBack10" title="Back 10 seconds">⟲10</button>
-            <button class="cvskip" id="cvFwd10" title="Forward 10 seconds">10⟳</button>
             <button class="btn ghost small" id="cvRestart">↺ Restart</button>
           </div>
         </div>
       </div>`;
-    setupConceptPlayer(sources,{outroLast,clipCount:clipSources.length,durations});
+    setupConceptPlayer(sources,{outroLast,clipCount:clipSources.length});
   }
 }
 // Best available source for a clip: the 720p final once it exists, else the 480p.
@@ -1580,8 +1705,6 @@ function exportQuality(p){
    loaded in the other, so switching clips is a class swap instead of a load.
    The seek bar and ±10s buttons treat the clips as one timeline. */
 let cvState=null;
-const cvDurCache={}; // url → real video.duration, so re-seeks use accurate lengths
-const SKIP=10;
 function stopConceptPlayer(){
   if(cvState){ try{ cvState.a.pause(); cvState.b.pause(); }catch{} }
   cvState=null;
@@ -1590,29 +1713,18 @@ function setupConceptPlayer(sources,opts={}){
   const a=$('cvA'), b=$('cvB');
   if(!a||!b) return;
   const outroLast=!!opts.outroLast, clipCount=opts.clipCount||sources.length;
-  const fallback=opts.durations||[];
   const sig=sources.join('|');
   const wasPlaying=cvState&&!cvState.paused&&cvState.sig===sig;
   const startAt=cvState&&cvState.sig===sig?cvState.idx:0;
-  // durs: best-known length per source (real once loaded, else the declared one).
-  const durs=sources.map((u,i)=>cvDurCache[u]||fallback[i]||8);
-  cvState={a,b,sources,sig,idx:startAt,front:a,back:b,paused:!wasPlaying,durs};
+  cvState={a,b,sources,sig,idx:startAt,front:a,back:b,paused:!wasPlaying};
 
   const bar=$('cvBar'); bar.innerHTML='';
   sources.forEach((_,i)=>{
     const seg=document.createElement('div'); seg.className='cvseg'; seg.innerHTML='<i></i>';
-    // Click a segment → jump to that fraction of that clip.
-    seg.onclick=ev=>{
-      const r=seg.getBoundingClientRect();
-      const f=Math.min(1,Math.max(0,(ev.clientX-r.left)/r.width));
-      seekTo(i, f*cvState.durs[i]);
-    };
+    // Click a segment → play that clip from the start.
+    seg.onclick=()=>{ cvState.paused=false; load(i,true); };
     bar.appendChild(seg);
   });
-
-  const durOf=i=>cvState.durs[i]||0;
-  const sumBefore=i=>cvState.durs.slice(0,i).reduce((s,d)=>s+d,0);
-  const total=()=>cvState.durs.reduce((s,d)=>s+d,0);
 
   const paint=()=>{
     [...bar.children].forEach((seg,i)=>{
@@ -1650,13 +1762,6 @@ function setupConceptPlayer(sources,opts={}){
   };
   a.onended=advance; b.onended=advance;
 
-  // Real durations feed the seek maths as clips load.
-  const onMeta=e=>{
-    const i=+e.target.dataset.idx, d=e.target.duration;
-    if(Number.isFinite(d)&&d>0){ cvState.durs[i]=d; cvDurCache[cvState.sources[i]]=d; }
-  };
-  a.onloadedmetadata=onMeta; b.onloadedmetadata=onMeta;
-
   // Progress within the current clip fills its segment.
   const onTime=e=>{
     if(e.target!==cvState.front) return;
@@ -1666,34 +1771,6 @@ function setupConceptPlayer(sources,opts={}){
   };
   a.ontimeupdate=onTime; b.ontimeupdate=onTime;
 
-  // Set the front element to clip i and drop the playhead at `offset` seconds in,
-  // loading the clip first when it is not the one already showing.
-  const applySeek=(el,t,play)=>{
-    const go=()=>{ try{ el.currentTime=Math.max(0,t); }catch{} if(play) el.play().catch(()=>{}); };
-    if(el.readyState>=1) go(); else el.addEventListener('loadedmetadata',go,{once:true});
-  };
-  function seekTo(clipIdx,offset){
-    clipIdx=Math.min(cvState.sources.length-1,Math.max(0,clipIdx));
-    const play=!cvState.paused;
-    const off=Math.min(Math.max(0,offset),Math.max(0,durOf(clipIdx)-0.05));
-    if(cvState.idx!==clipIdx){
-      // bring the target clip onto the visible (front) element
-      setSrc(cvState.front,clipIdx);
-      cvState.idx=clipIdx;
-      preloadNext();
-    }
-    applySeek(cvState.front,off,play);
-    paint();
-  }
-  // ±seconds across the whole playlist.
-  const skip=delta=>{
-    const pos=sumBefore(cvState.idx)+(cvState.front.currentTime||0);
-    let t=Math.min(Math.max(0,pos+delta),Math.max(0,total()-0.05));
-    let j=0;
-    while(j<cvState.durs.length-1 && t>=cvState.durs[j]){ t-=cvState.durs[j]; j++; }
-    seekTo(j,t);
-  };
-
   const toggle=()=>{
     if(cvState.paused){ cvState.paused=false; cvState.front.play().catch(()=>{}); }
     else { cvState.paused=true; cvState.front.pause(); }
@@ -1701,8 +1778,6 @@ function setupConceptPlayer(sources,opts={}){
   };
   $('cvPlay').onclick=toggle;
   const stack=$('cvStack'); if(stack) stack.onclick=toggle; // click the video to pause/resume
-  $('cvBack10').onclick=()=>skip(-SKIP);
-  $('cvFwd10').onclick=()=>skip(SKIP);
   $('cvRestart').onclick=()=>{
     if(cvState.front!==a){ a.classList.remove('behind'); b.classList.add('behind'); cvState.front=a; cvState.back=b; }
     cvState.paused=false; load(0,true);
@@ -1725,7 +1800,7 @@ function renderPostPage(){
   const p=currentProject; if(!p) return;
   $('ppTitle').textContent=p.name;
   const q=exportQuality(p);
-  $('ppSub').textContent=q?`Exports in ${q}${q==='480p'?' — upgrade to 720p below for full quality':''}`:'Render your clips in step 2 first';
+  $('ppSub').textContent=q?'':'Render your clips in step 2 first';
 
   // a) final quality · 720p
   renderFinalQuality(p);
@@ -1748,11 +1823,9 @@ function renderPostPage(){
     tl.appendChild(d);
   }
 
-  // music bar
+  // music summary (the picker itself lives in the editor)
   $('ppMusicName').innerHTML=p.music?esc(p.music.name):'<span class="mnone">No music selected</span>';
   $('ppMusicPlay').onclick=()=>{ if(p.music) previewTrack({url:p.music.url,name:p.music.name},$('ppMusicPlay')); };
-  bindMpick('ppMpick','ppMlist',async m=>{ await doAction({action:'music',music:m}); renderPostPage(); },()=>p.music);
-  document.querySelectorAll('#ppMpick .mopt').forEach(b=>b.classList.toggle('on',b.dataset.m==='none'&&!p.music));
 
   // branding options
   renderBrandingOpts(p);
@@ -1773,7 +1846,8 @@ function renderPostPage(){
       </div></div>
       <div class="splayer ${vert?'vert':''}"><video src="${esc(p.export)}" controls playsinline></video></div>`;
   } else {
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Combines your clips into one ${q} video${p.music?' with music':' (choose music above, or export without)'}. This is the only step that renders a full video.`:'Render all your clips in step 2 first.'}</div></div>
+    const overlayNote=(p.edit?.texts?.length||p.edit?.logo)?' Text &amp; logo are preview-only for now — not yet in the download.':'';
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Combines your clips into one ${q} video${p.music?' with music':' (add music in the editor, or export without)'}.${overlayNote}`:'Render all your clips in step 2 first.'}</div></div>
       <button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
   }
 }
@@ -1792,7 +1866,7 @@ function renderFinalQuality(p){
     fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div><div class="sok"><span class="tick">✓</span> All clips in final quality</div></div></div>`;
   } else {
     const n=todo||total;
-    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div><div class="ssub">${finalCount} of ${total} clips already in 720p. Upgrading re-renders only the missing clips — the rest stay untouched.</div></div>
+    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div></div>
       <button class="btn small" ${doneClips===total&&total>0?'':'disabled'} onclick="upgradeAll()">Upgrade ${n} clip${n>1?'s':''} to 720p</button></div>`;
   }
 }
@@ -1827,10 +1901,198 @@ function renderBrandingOpts(p){
     };
   }
 }
-function toggleMusicPicker(){
-  const el=$('ppPicker');
-  el.style.display=el.style.display==='none'?'':'none';
+/* ============ video editor (preview-only overlays) ============ */
+let edState=null;
+const POSITIONS=[['tl','Top left'],['tc','Top center'],['tr','Top right'],['bl','Bottom left'],['bc','Bottom center'],['br','Bottom right']];
+function edAudio(){ // dedicated element so it doesn't fight the library preview (#bgm)
+  if(!edState._audio){ edState._audio=new Audio(); edState._audio.loop=true; }
+  return edState._audio;
 }
+function openEditor(){
+  const p=currentProject; if(!p) return;
+  if(!p.clips.some(c=>clipSrc(c))){ toast('Render your clips first.'); return; }
+  const e=p.edit||{};
+  edState={
+    texts:(e.texts||[]).map(t=>({text:t.text||'',pos:t.pos||'bl',clips:[...(t.clips||[])]})),
+    logo:!!e.logo,
+    brandingOutro:e.brandingOutro!=null?!!e.brandingOutro:!!p.branding?.outro,
+    music:e.music||p.music||null,
+    idx:0, playing:false, items:[], _audio:null,
+  };
+  edBuildItems();
+  $('edOverlay').classList.add('on');
+  edRenderPanels();
+  edLoad(0,false);
+}
+function closeEditor(){
+  if(edState){ try{ $('edVid').pause(); edState._audio&&edState._audio.pause(); }catch{} }
+  $('edOverlay').classList.remove('on');
+  edState=null;
+}
+// The preview playlist: every rendered clip (720p if present, else 480p), plus
+// the branding outro as a last item when that toggle is on and a clip exists.
+function edBuildItems(){
+  const p=currentProject;
+  const items=p.clips.map(c=>({src:clipSrc(c),cid:c.cid,dur:parseFloat(c.duration)||8,outro:false})).filter(x=>x.src);
+  const bo=brandingOutro();
+  if(edState.brandingOutro&&bo) items.push({src:bo.url,cid:null,dur:5,outro:true});
+  edState.items=items;
+  if(edState.idx>=items.length) edState.idx=0;
+}
+function edLoad(i,play){
+  const it=edState.items[i]; if(!it) return;
+  edState.idx=i;
+  const v=$('edVid'); v.src=it.src; v.load();
+  if(play){ edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); }
+  edPaintBar(); edRenderOverlays(); edRenderTimeline();
+}
+function edNext(){
+  if(edState.idx+1<edState.items.length) edLoad(edState.idx+1,true);
+  else { edState.playing=false; const a=edState._audio; if(a) a.pause(); edPaintBar(); }
+}
+function edToggle(){
+  const v=$('edVid');
+  if(edState.playing){ edState.playing=false; v.pause(); const a=edState._audio; if(a) a.pause(); }
+  else { edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); }
+  edPaintBar();
+}
+function edSyncAudio(){
+  const a=edAudio();
+  if(!edState.music){ a.pause(); return; }
+  if(a.src!==edState.music.url) a.src=edState.music.url;
+  if(edState.playing) a.play().catch(()=>{});
+}
+function edPaintBar(){
+  const bar=$('edBar'); bar.innerHTML='';
+  edState.items.forEach((_,i)=>{
+    const seg=document.createElement('div'); seg.className='cvseg'+(i<edState.idx?' done':''); seg.innerHTML='<i></i>';
+    if(i<edState.idx) seg.querySelector('i').style.width='100%';
+    seg.onclick=()=>edLoad(i,true);
+    bar.appendChild(seg);
+  });
+  const it=edState.items[edState.idx];
+  $('edNow').textContent=it?(it.outro?'Branding video':`Clip ${edState.idx+1} of ${edState.items.filter(x=>!x.outro).length}`):'';
+  $('edPlay').textContent=edState.playing?'❚❚':'▶';
+}
+// Text cards whose selected clips include the current clip, plus the logo.
+function edRenderOverlays(){
+  const el=$('edOverlays'); el.innerHTML='';
+  const it=edState.items[edState.idx]; if(!it) return;
+  edState.texts.forEach(t=>{
+    if(t.text&&it.cid&&t.clips.includes(it.cid)){
+      const d=document.createElement('div'); d.className='edtext '+t.pos; d.textContent=t.text; el.appendChild(d);
+    }
+  });
+  if(edState.logo&&branding.logo){
+    const img=document.createElement('img'); img.className='edlogo'; img.src=branding.logo.url; el.appendChild(img);
+  }
+}
+function edRenderTimeline(){
+  const tl=$('edTimeline'); tl.innerHTML='';
+  edState.items.forEach((it,i)=>{
+    if(it.outro) return;
+    const d=document.createElement('div'); d.className='edtclip'+(i===edState.idx?' on':'');
+    d.style.width=Math.max(44,Math.min(140,it.dur*12))+'px';
+    d.innerHTML=`<video src="${esc(it.src)}#t=0.3" muted playsinline preload="metadata"></video><span class="edtlab">${i+1}</span>`;
+    d.onclick=()=>edLoad(i,true);
+    tl.appendChild(d);
+  });
+  // branding-outro block, toggles inclusion as the last item
+  const bo=brandingOutro();
+  const ob=document.createElement('div'); ob.className='edtoutro'+(edState.brandingOutro&&bo?' on':'');
+  ob.innerHTML=edState.brandingOutro&&bo?'<span>outro</span><span>✓</span>':'<span class="plus">+</span><span>outro</span>';
+  ob.onclick=()=>{
+    if(!bo){ toast('Upload a branding video on the Branding page first.',5000); return; }
+    edState.brandingOutro=!edState.brandingOutro;
+    edBuildItems(); edRenderTimeline(); edPaintBar();
+  };
+  tl.appendChild(ob);
+}
+function edRenderWave(){
+  const w=$('edWave'); w.classList.toggle('on',!!edState.music); w.innerHTML='';
+  // Stylized decorative bars — not a decoded waveform (kept light on purpose).
+  for(let i=0;i<48;i++){
+    const bar=document.createElement('i');
+    const h=edState.music?(20+Math.round(70*Math.abs(Math.sin(i*0.7)*Math.cos(i*0.29)))):18;
+    bar.style.height=h+'%';
+    w.appendChild(bar);
+  }
+}
+function edRenderTexts(){
+  const box=$('edTexts'); box.innerHTML='';
+  const clips=currentProject.clips.filter(c=>clipSrc(c));
+  if(!edState.texts.length){ box.innerHTML='<div class="empty-note" style="padding:2px">No text yet — add an address or a title.</div>'; }
+  edState.texts.forEach((t,ti)=>{
+    const card=document.createElement('div'); card.className='edtcard';
+    const posOpts=POSITIONS.map(([v,l])=>`<option value="${v}" ${t.pos===v?'selected':''}>${l}</option>`).join('');
+    card.innerHTML=`<textarea placeholder="Text (e.g. address)">${esc(t.text)}</textarea>
+      <div class="edtrow"><label style="font-size:12px;color:var(--muted)">Position</label><select>${posOpts}</select>
+        <button class="edtrm">Remove</button></div>
+      <div class="edclips"></div>`;
+    card.querySelector('textarea').oninput=e=>{ t.text=e.target.value; edRenderOverlays(); };
+    card.querySelector('select').onchange=e=>{ t.pos=e.target.value; edRenderOverlays(); };
+    card.querySelector('.edtrm').onclick=()=>{ edState.texts.splice(ti,1); edRenderTexts(); edRenderOverlays(); };
+    const cc=card.querySelector('.edclips');
+    clips.forEach((c,ci)=>{
+      const b=document.createElement('button'); b.textContent=ci+1; b.className=t.clips.includes(c.cid)?'on':'';
+      b.title=`Show during clip ${ci+1}`;
+      b.onclick=()=>{ const k=t.clips.indexOf(c.cid); if(k<0) t.clips.push(c.cid); else t.clips.splice(k,1); b.classList.toggle('on'); edRenderOverlays(); };
+      cc.appendChild(b);
+    });
+    box.appendChild(card);
+  });
+}
+function edAddText(){
+  const first=currentProject.clips.filter(c=>clipSrc(c))[0];
+  edState.texts.push({text:'',pos:'bl',clips:first?[first.cid]:[]});
+  edRenderTexts();
+}
+function edRenderPanels(){
+  // logo toggle
+  const lg=$('edLogo'); const hasLogo=!!branding.logo;
+  lg.classList.toggle('on',edState.logo&&hasLogo);
+  lg.querySelector('.bbox').textContent=edState.logo&&hasLogo?'✓':'';
+  $('edLogoSub').textContent=hasLogo?'Shown over the whole video in the preview.':'Upload a logo on the Branding page first.';
+  lg.disabled=!hasLogo;
+  lg.onclick=hasLogo?()=>{ edState.logo=!edState.logo; edRenderPanels(); edRenderOverlays(); }:null;
+  // outro toggle (mirrors the timeline block)
+  const ot=$('edOutro'); const bo=brandingOutro();
+  ot.classList.toggle('on',edState.brandingOutro&&!!bo);
+  ot.querySelector('.bbox').textContent=edState.brandingOutro&&bo?'✓':'';
+  $('edOutroSub').textContent=bo?'Added after the last clip.':'Upload a branding video on the Branding page first.';
+  ot.disabled=!bo;
+  ot.onclick=bo?()=>{ edState.brandingOutro=!edState.brandingOutro; edBuildItems(); edRenderPanels(); edRenderTimeline(); edPaintBar(); }:null;
+  // text + music + wave
+  edRenderTexts();
+  edRenderWave();
+  bindMpick('edMpick','edMlist',m=>{ edState.music=m; edSyncAudio(); edRenderWave(); },()=>edState.music);
+  document.querySelectorAll('#edMpick .mopt').forEach(b=>b.classList.toggle('on',b.dataset.m==='none'&&!edState.music));
+}
+async function saveEditor(){
+  const edit={
+    texts:edState.texts.filter(t=>t.text.trim()).map(t=>({text:t.text.trim(),pos:t.pos,clips:t.clips})),
+    logo:edState.logo,
+    brandingOutro:edState.brandingOutro,
+    music:edState.music,
+  };
+  await doAction({action:'edit',edit});
+  closeEditor();
+  toast('Saved.');
+}
+// wire the preview element handlers once the DOM exists
+(function edWire(){
+  const v=$('edVid'); if(!v) return;
+  v.onended=()=>edNext();
+  v.ontimeupdate=()=>{
+    const bar=$('edBar'); if(!bar||!edState) return;
+    const seg=bar.children[edState.idx]; if(!seg) return;
+    const d=v.duration; if(Number.isFinite(d)&&d>0) seg.querySelector('i').style.width=Math.min(100,(v.currentTime/d)*100)+'%';
+  };
+  $('edStage').onclick=()=>edToggle();
+  $('edPlay').onclick=e=>{ e.stopPropagation(); edToggle(); };
+  $('edRestart').onclick=e=>{ e.stopPropagation(); const a=edState&&edState._audio; if(a){a.currentTime=0;} edLoad(0,true); };
+})();
+
 function bindMpick(rootId,listId,onSel,getSel){
   $(rootId).querySelectorAll('.mopt').forEach(b=>{
     b.onclick=()=>{
