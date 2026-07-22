@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 import { getSession } from '../lib/auth.js';
 import { getBranding, saveBranding, findItem } from '../lib/branding.js';
-import { hostLogo, hostBrandingVideo } from '../lib/blob.js';
+import { hostLogo, hostBrandingVideo, hostFont } from '../lib/blob.js';
 
 export default async function handler(req, res){
   const s = getSession(req);
@@ -50,6 +50,19 @@ export default async function handler(req, res){
     } else if(action === 'removevariant'){
       const it = findItem(listOf(kind()), req.body.id);
       if(it) it.videos[variant()] = null;
+
+    } else if(action === 'addfont'){
+      const url = await hostFont(req.body.data, req.body.ext);
+      branding.fonts.push({ id: crypto.randomUUID(), name: String(req.body.name || 'Font').slice(0, 60), url });
+
+    } else if(action === 'renamefont'){
+      const f = findItem(branding.fonts, req.body.id);
+      if(!f) return res.status(404).json({ error: 'Not found' });
+      f.name = String(req.body.name || f.name).slice(0, 60);
+
+    } else if(action === 'removefont'){
+      const i = branding.fonts.findIndex(x => x.id === req.body.id);
+      if(i >= 0) branding.fonts.splice(i, 1);
 
     } else {
       return res.status(400).json({ error: 'Unknown action' });

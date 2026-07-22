@@ -195,33 +195,37 @@
   .edx{width:32px;height:32px;border-radius:50%;background:var(--grey);color:var(--ink);font-size:13px}
   .edx:hover{background:var(--grey2)}
   /* logo tool in the header */
-  .edlogotool{display:flex;align-items:center;gap:10px;margin-left:auto;margin-right:14px}
   .edchk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink)}
   .edchk .edbox{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--edge);display:inline-block}
   .edchk.on .edbox{background:var(--ink);border-color:var(--ink)}
   .edchk:disabled{opacity:.45}
-  .edlogotool input[type=range]{width:110px}
   .edscaleval{font-size:12.5px;font-weight:700;color:var(--muted);min-width:34px}
   /* preview (top half) */
   .edpreview{padding:18px 24px 8px;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:auto}
   .edstage{position:relative;border-radius:14px;overflow:hidden;background:#000;min-height:180px;max-width:100%}
   .edstage video{display:block;width:auto;max-width:100%;height:auto;max-height:46vh;margin:0 auto}
   .edoverlays{position:absolute;inset:0;pointer-events:none}
-  .edtext{position:absolute;max-width:80%;background:rgba(17,17,17,.62);color:#fff;font-size:14px;font-weight:600;line-height:1.3;padding:8px 12px;border-radius:8px;white-space:pre-wrap}
-  .edtext.tl{top:14px;left:14px} .edtext.tc{top:14px;left:50%;transform:translateX(-50%);text-align:center}
-  .edtext.tr{top:14px;right:14px} .edtext.bl{bottom:14px;left:14px}
-  .edtext.bc{bottom:14px;left:50%;transform:translateX(-50%);text-align:center} .edtext.br{bottom:14px;right:14px}
-  .edlogo{position:absolute;bottom:14px;right:14px;max-width:13%;max-height:16%}
+  /* text overlay — NO box; a soft shadow keeps it legible on light footage */
+  .edtext{position:absolute;max-width:86%;color:#fff;font-weight:700;line-height:1.2;white-space:pre-wrap;text-shadow:0 2px 6px rgba(0,0,0,.6),0 0 3px rgba(0,0,0,.5)}
+  .edtext.tl{top:5%;left:5%} .edtext.tc{top:5%;left:50%;transform:translateX(-50%);text-align:center}
+  .edtext.tr{top:5%;right:5%;text-align:right} .edtext.bl{bottom:6%;left:5%}
+  .edtext.bc{bottom:6%;left:50%;transform:translateX(-50%);text-align:center} .edtext.br{bottom:6%;right:5%;text-align:right}
+  .edlogo{position:absolute;bottom:6%;right:5%;max-width:13%;max-height:16%}
   .edtoolbar{display:flex;align-items:center;gap:14px}
   .edtoolbar .cvnow{font-size:13px;color:var(--muted);font-weight:500}
-  /* tracks (bottom half) */
-  .edtracks{padding:6px 24px 18px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+  /* tracks (bottom half) — one shared time axis */
+  .edtracks{position:relative;padding:6px 24px 18px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+  .edplayhead{position:absolute;width:2px;background:var(--muted);opacity:.85;pointer-events:none;z-index:5;border-radius:2px}
   .edrow{display:flex;align-items:stretch;gap:10px}
   .edrow .edtlab{flex:none;width:52px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
   .edadd{width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
-  .edtrack{flex:1;display:flex;gap:3px;min-height:34px;background:var(--grey);border-radius:8px;padding:3px}
-  .edcell{display:flex;flex-direction:column;gap:2px;justify-content:center;min-width:0}
-  .edtbar{background:var(--ink);color:var(--on-ink);font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
+  .edtrack{flex:1;display:flex;gap:3px;min-height:38px;background:var(--grey);border-radius:8px;padding:3px}
+  .edcontent{flex:1;display:flex;gap:3px;min-width:0}
+  .edtextlane{position:relative;display:block}
+  .edtbar{position:absolute;top:3px;bottom:3px;background:var(--ink);color:var(--on-ink);border-radius:5px;display:flex;align-items:center;overflow:hidden;cursor:grab;min-width:8px}
+  .edtbar .edtbtxt{flex:1;font-size:10.5px;font-weight:600;padding:0 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:grab}
+  .edtbar .edtgrip{width:7px;align-self:stretch;flex:none;cursor:ew-resize;background:rgba(255,255,255,.25)}
+  .edspacer{flex:none;min-width:54px}
   .edcellitem{position:relative;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid transparent;min-width:0}
   .edcellitem.on{border-color:var(--ink)}
   .edcellitem video{width:100%;height:44px;object-fit:cover;display:block;pointer-events:none}
@@ -229,10 +233,13 @@
   .edio span{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:9.5px;font-weight:700;background:var(--pill);color:var(--ink);text-transform:capitalize}
   .edslot{flex:none;min-width:54px;border-radius:6px;border:1.5px dashed var(--dash);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:11px;font-weight:700}
   .edslot:hover{border-color:var(--muted);color:var(--ink)}
-  .edmusiccell{flex:1;display:flex;align-items:center;gap:10px;padding:0 8px;cursor:pointer;min-width:0}
+  .edmusiccell{display:flex;align-items:center;gap:10px;padding:0 8px;cursor:pointer;min-width:0}
   .edmusiccell .epmname{font-size:12.5px;font-weight:700;white-space:nowrap}
   .edmusiccell .epwave{flex:1;height:30px;min-width:0}
   .edmusiccell .mnone{color:var(--muted);font-size:12.5px;font-weight:600}
+  /* logo control row (under the timeline tracks) */
+  .edlogotrack{align-items:center;gap:12px;padding:0 12px}
+  .edlogotrack input[type=range]{width:130px;max-width:40%}
   /* floating popover */
   .edpop{position:fixed;z-index:80;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 34px rgba(0,0,0,.16);padding:14px;width:280px;max-width:92vw;display:none}
   .edpop.on{display:block}
@@ -243,6 +250,8 @@
   .edchips{display:flex;gap:6px;flex-wrap:wrap}
   .edchip{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--grey);color:var(--muted);border:1px solid var(--line)}
   .edchip.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+  .edpoprange{width:100%;margin-top:4px}
+  .edpopval{font-weight:700;color:var(--ink)}
   .edpopfoot{display:flex;justify-content:space-between;gap:10px;margin-top:12px}
   .edoprow{display:block;width:100%;text-align:left;padding:9px 11px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--ink)}
   .edoprow:hover:not(:disabled){background:var(--grey)}
@@ -258,14 +267,16 @@
   .bitem-name{flex:1;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;color:var(--ink);outline:none}
   .bitem-del{font-size:12px;font-weight:600;color:var(--muted)}
   .bitem-del:hover{color:#c0392b}
+  /* branding fonts */
+  .bfont{display:flex;align-items:center;gap:14px;background:var(--grey);border-radius:12px;padding:10px 14px;margin-top:10px;flex-wrap:wrap}
+  .bfont-prev{flex:1;min-width:120px;font-size:22px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* final-page video-editing panel */
   .editpanel{background:var(--grey);border-radius:var(--radius);padding:16px;cursor:pointer;transition:background .12s}
   .editpanel:hover{background:var(--grey2)}
   .ep-textbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .ep-textbar .eplab{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;width:36px}
-  .ep-cells{flex:1;display:flex;gap:3px}
-  .ep-cells .epslot{flex:1;height:6px;border-radius:999px;background:var(--grey2)}
-  .ep-cells .epslot.on{background:var(--ink)}
+  .ep-cells{flex:1;position:relative;height:6px;background:var(--grey2);border-radius:999px}
+  .ep-cells .epseg{position:absolute;top:0;bottom:0;background:var(--ink);border-radius:999px;min-width:3px}
   .ep-timeline{display:flex;gap:5px;align-items:center;overflow-x:auto;padding-bottom:4px}
   .ep-clip{flex:none;border-radius:7px;overflow:hidden;background:var(--grey2)}
   .ep-clip video,.ep-clip img{width:100%;height:48px;object-fit:cover;display:block}
@@ -533,7 +544,14 @@
       <div class="bhint">Short MP4 clips shown AFTER the walkthrough — usually your logo card. Max 3 MB each.</div>
       <div id="bOutros"></div>
     </div>
+
+    <div class="bcard">
+      <div class="bsecti"><h3>Fonts</h3><button class="btn ghost small" onclick="$('bFontInput').click()">+ Add font</button></div>
+      <div class="bhint">Upload your own fonts (WOFF, WOFF2, TTF or OTF, max 2 MB) to use on text cards. They are burned into the exported video.</div>
+      <div id="bFonts"></div>
+    </div>
     <input type="file" id="bVidInput" accept="video/mp4" hidden>
+    <input type="file" id="bFontInput" accept=".woff,.woff2,.ttf,.otf,font/woff,font/woff2,font/ttf,font/otf" hidden>
   </div>
 </section>
 
@@ -704,11 +722,6 @@
   <div class="edmodal">
     <div class="edhead">
       <h2>Video editing</h2>
-      <div class="edlogotool">
-        <button class="edchk" id="edLogoChk"><span class="edbox"></span> Logo</button>
-        <input type="range" id="edLogoRange" min="0.5" max="2" step="0.1" value="1" title="Logo size">
-        <span class="edscaleval" id="edScaleVal">1.0×</span>
-      </div>
       <button class="edx" onclick="closeEditor()" title="Close">✕</button>
     </div>
     <div class="edpreview">
@@ -722,10 +735,18 @@
         <button class="btn ghost small" id="edRestart">↺ Restart</button>
       </div>
     </div>
-    <div class="edtracks">
+    <div class="edtracks" id="edTracks">
+      <div class="edplayhead" id="edPlayhead"></div>
       <div class="edrow"><span class="edtlab">Text <button class="edadd" id="edAddTextBtn" title="Add text">+</button></span><div class="edtrack" id="edTextTrack"></div></div>
       <div class="edrow"><span class="edtlab">Clips</span><div class="edtrack" id="edClipTrack"></div></div>
       <div class="edrow"><span class="edtlab">Music</span><div class="edtrack" id="edMusicTrack"></div></div>
+      <div class="edrow edlogorow"><span class="edtlab">Logo</span>
+        <div class="edtrack edlogotrack">
+          <button class="edchk" id="edLogoChk"><span class="edbox"></span> Show logo</button>
+          <input type="range" id="edLogoRange" min="0.5" max="2" step="0.1" value="1" title="Logo size">
+          <span class="edscaleval" id="edScaleVal">1.0×</span>
+        </div>
+      </div>
     </div>
     <div class="edfoot">
       <span class="edcoming">Text &amp; logo are burned into the exported video.</span>
@@ -1244,10 +1265,18 @@ function goAccount(){
 }
 
 /* ============ branding ============ */
-let branding={logo:null,intros:[],outros:[]};
+let branding={logo:null,intros:[],outros:[],fonts:[]};
 async function loadBranding(){
-  try{ branding=(await api('/api/branding')).branding; }catch{}
+  try{ branding=(await api('/api/branding')).branding; ensureBrandFontFaces(); }catch{}
 }
+// Inject one @font-face per uploaded font (family "tf-<id>"), used by the
+// branding preview AND the editor preview.
+function ensureBrandFontFaces(){
+  let st=$('brandFontStyles');
+  if(!st){ st=document.createElement('style'); st.id='brandFontStyles'; document.head.appendChild(st); }
+  st.textContent=(branding.fonts||[]).map(f=>`@font-face{font-family:'tf-${f.id}';src:url('${f.url}');font-display:swap;}`).join('\n');
+}
+function fontFamilyCss(fontId){ return fontId?`'tf-${fontId}', sans-serif`:"'Inter', system-ui, sans-serif"; }
 function goBranding(){ renderBranding(); show('branding'); }
 // Helpers shared with the editor.
 function brandList(kind){ return (kind==='intro'?branding.intros:branding.outros)||[]; }
@@ -1261,7 +1290,35 @@ function renderBranding(){
   $('bLogoRm').style.display=branding.logo?'':'none';
   renderBrandList('intro',$('bIntros'));
   renderBrandList('outro',$('bOutros'));
+  renderBrandFonts();
 }
+function renderBrandFonts(){
+  ensureBrandFontFaces();
+  const box=$('bFonts'); box.innerHTML='';
+  if(!(branding.fonts||[]).length){ box.innerHTML='<div class="empty-note" style="padding:4px 2px">No fonts yet — add one above to use custom fonts on text.</div>'; return; }
+  branding.fonts.forEach(f=>{
+    const row=document.createElement('div'); row.className='bfont';
+    const name=document.createElement('input'); name.className='bitem-name'; name.value=f.name; name.maxLength=60;
+    name.onchange=async()=>{ await brandApi({action:'renamefont',id:f.id,name:name.value.trim()||f.name}); };
+    const prev=document.createElement('div'); prev.className='bfont-prev'; prev.textContent='AaBbCc 123'; prev.style.fontFamily=`'tf-${f.id}', sans-serif`;
+    const rm=document.createElement('button'); rm.className='bitem-del'; rm.textContent='Remove';
+    rm.onclick=async()=>{ if(confirm(`Delete "${f.name}"?`)) await brandApi({action:'removefont',id:f.id}); };
+    row.appendChild(name); row.appendChild(prev); row.appendChild(rm);
+    box.appendChild(row);
+  });
+}
+$('bFontInput').onchange=async()=>{
+  const f=$('bFontInput').files[0]; $('bFontInput').value='';
+  if(!f) return;
+  if(f.size>2*1024*1024){ toast('Max 2 MB for a font.'); return; }
+  const ext=(f.name.match(/\.(woff2|woff|ttf|otf)$/i)||[,'woff2'])[1].toLowerCase();
+  const name=window.prompt('Name this font', f.name.replace(/\.\w+$/,''));
+  if(name===null) return;
+  try{
+    branding=(await api('/api/branding',{method:'POST',body:{action:'addfont',name:name.trim()||f.name,ext,data:await readAsDataUrl(f)}})).branding;
+    renderBranding(); toast('Font added.');
+  }catch(e){ toast(e.message,6000); }
+};
 function renderBrandList(kind,box){
   box.innerHTML='';
   const list=brandList(kind);
@@ -1899,14 +1956,26 @@ function projOutroUrl(p){ return brandVariantUrl(brandItem('outro',projOutroId(p
 // the timeline (intro? clips outro?), and a music row with a real waveform.
 function renderEditPanel(p){
   const el=$('editPanel'); if(!el) return;
-  const introUrl=projIntroUrl(p), outroUrl=projOutroUrl(p);
-  const texts=(p.edit?.texts||[]).filter(t=>t.text&&t.clips?.length);
-  const clipIds=p.clips.map(c=>c.cid);
-  // text bar: a light strip per text card marking which clips it covers
+  const introV=brandVariant(brandItem('intro',p.introId||null),p.aspect);
+  const outroV=brandVariant(brandItem('outro',projOutroId(p)),p.aspect);
+  const introUrl=introV?.url||null, outroUrl=outroV?.url||null;
+  const introDur=introV?(introV.dur||5):0, outroDur=outroV?(outroV.dur||5):0;
+  const clipsDur=p.clips.reduce((s,c)=>s+(parseFloat(c.duration)||8),0);
+  const total=(introDur+clipsDur+outroDur)||1;
+  // text bar: a thin strip with a segment per text card at its start/duration
+  // (old clip-based records are derived to start/dur from the clip times).
+  let ct=introDur; const cstart={};
+  p.clips.forEach(c=>{ cstart[c.cid]={s:ct,d:parseFloat(c.duration)||8}; ct+=parseFloat(c.duration)||8; });
+  const texts=(p.edit?.texts||[]).filter(t=>t.text).map(t=>{
+    if(Number.isFinite(t.start)&&Number.isFinite(t.dur)) return t;
+    const cids=(t.clips||[]).filter(c=>cstart[c]);
+    if(cids.length){ const s=Math.min(...cids.map(c=>cstart[c].s)); const e=Math.max(...cids.map(c=>cstart[c].s+cstart[c].d)); return {...t,start:s,dur:e-s}; }
+    return {...t,start:introDur,dur:Math.min(4,clipsDur)};
+  });
   let textbar='';
   if(texts.length){
-    const cells=clipIds.map(cid=>`<span class="epslot${texts.some(t=>t.clips.includes(cid))?' on':''}"></span>`).join('');
-    textbar=`<div class="ep-textbar"><span class="eplab">Text</span><div class="ep-cells">${cells}</div></div>`;
+    const segs=texts.map(t=>`<span class="epseg" style="left:${t.start/total*100}%;width:${Math.max(1,t.dur/total*100)}%"></span>`).join('');
+    textbar=`<div class="ep-textbar"><span class="eplab">Text</span><div class="ep-cells">${segs}</div></div>`;
   }
   const clipBlocks=p.clips.map((c,i)=>{
     const v=(c.final?.status==='done'&&c.final.video)||c.video;
@@ -1984,7 +2053,7 @@ function openEditor(){
   if(!p.clips.some(c=>clipSrc(c))){ toast('Render your clips first.'); return; }
   const e=p.edit||{};
   edState={
-    texts:(e.texts||[]).map(t=>({text:t.text||'',pos:t.pos||'bl',clips:[...(t.clips||[])]})),
+    texts:(e.texts||[]).map(t=>({text:t.text||'',pos:t.pos||'bl',start:t.start,dur:t.dur,font:t.font||'',scale:Math.min(2,Math.max(0.5,Number(t.scale)||1)),clips:t.clips})),
     logo:!!e.logo,
     logoScale:Math.min(2,Math.max(0.5,Number(e.logoScale)||1)),
     introId:p.introId||null,
@@ -1993,13 +2062,22 @@ function openEditor(){
     idx:0, playing:false, items:[], _audio:null,
   };
   edBuildItems();
+  // migrate old {clips:[cid]} texts to {start,dur} on the whole timeline
+  const map=edClipTimeMap(), reg=edClipsRegion();
+  edState.texts.forEach(t=>{
+    if(Number.isFinite(t.start)&&Number.isFinite(t.dur)) return;
+    const cids=(t.clips||[]).filter(c=>map[c]);
+    if(cids.length){ t.start=Math.min(...cids.map(c=>map[c].start)); t.dur=Math.max(...cids.map(c=>map[c].start+map[c].dur))-t.start; }
+    else { t.start=reg.start; t.dur=Math.min(4,reg.end-reg.start); }
+  });
+  ensureBrandFontFaces();
   $('edOverlay').classList.add('on');
   edSyncLogoTool();
   edRenderTracks();
   edLoad(0,false);
 }
 function closeEditor(){
-  edClosePop();
+  edClosePop(); edStopLoop();
   if(edState){ try{ $('edVid').pause(); edState._audio&&edState._audio.pause(); }catch{} }
   $('edOverlay').classList.remove('on');
   edState=null;
@@ -2016,21 +2094,36 @@ function edBuildItems(){
   edState.items=items;
   if(edState.idx>=items.length) edState.idx=0;
 }
+/* ---- timeline time helpers (seconds on the whole intro+clips+outro line) ---- */
+function edTotal(){ return edState?edState.items.reduce((s,it)=>s+it.dur,0):0; }
+function edItemStart(i){ let s=0; for(let k=0;k<i;k++) s+=edState.items[k].dur; return s; }
+function edGlobalTime(){ const it=edState.items[edState.idx]; if(!it) return 0; const v=$('edVid'); const ct=Math.min(v.currentTime||0,it.dur); return edItemStart(edState.idx)+ct; }
+function edClipTimeMap(){ const m={}; let t=0; edState.items.forEach(it=>{ if(it.kind==='clip') m[it.cid]={start:t,dur:it.dur}; t+=it.dur; }); return m; }
+// The clips region excludes leading intro(s) and trailing outro(s).
+function edClipsRegion(){ let start=0,i=0; for(;i<edState.items.length&&edState.items[i].kind==='intro';i++) start+=edState.items[i].dur; let end=edTotal(); for(let k=edState.items.length-1;k>=0&&edState.items[k].kind==='outro';k--) end-=edState.items[k].dur; return {start,end}; }
+function edSeekGlobal(gt){
+  const total=edTotal(); gt=Math.max(0,Math.min(total-0.05,gt));
+  let acc=0,i=0; for(;i<edState.items.length;i++){ if(gt<acc+edState.items[i].dur) break; acc+=edState.items[i].dur; }
+  const off=gt-acc, v=$('edVid');
+  const apply=()=>{ try{ v.currentTime=off; }catch{} if(edState.playing) v.play().catch(()=>{}); edUpdatePlayhead(); edRenderOverlays(); };
+  if(i!==edState.idx){ edState.idx=i; v.src=edState.items[i].src; v.load(); v.addEventListener('loadedmetadata',apply,{once:true}); edMarkClip(); edPaintNow(); }
+  else apply();
+}
 function edLoad(i,play){
   const it=edState.items[i]; if(!it) return;
   edState.idx=i;
   const v=$('edVid'); v.src=it.src; v.load();
-  if(play){ edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); }
-  edPaintNow(); edRenderOverlays(); edMarkClip();
+  if(play){ edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); edLoopStart(); }
+  edPaintNow(); edMarkClip(); edUpdatePlayhead(); edRenderOverlays();
 }
 function edNext(){
   if(edState.idx+1<edState.items.length) edLoad(edState.idx+1,true);
-  else { edState.playing=false; const a=edState._audio; if(a) a.pause(); edPaintNow(); }
+  else { edState.playing=false; const a=edState._audio; if(a) a.pause(); edStopLoop(); edUpdatePlayhead(); edPaintNow(); }
 }
 function edToggle(){
   const v=$('edVid');
-  if(edState.playing){ edState.playing=false; v.pause(); const a=edState._audio; if(a) a.pause(); }
-  else { edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); }
+  if(edState.playing){ edState.playing=false; v.pause(); const a=edState._audio; if(a) a.pause(); edStopLoop(); }
+  else { edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); edLoopStart(); }
   edPaintNow();
 }
 function edSyncAudio(){
@@ -2038,6 +2131,20 @@ function edSyncAudio(){
   if(!edState.music){ a.pause(); return; }
   if(a.src!==edState.music.url) a.src=edState.music.url;
   if(edState.playing) a.play().catch(()=>{});
+}
+/* ---- playhead line, synced to the preview ---- */
+let edRaf=null;
+function edStopLoop(){ if(edRaf) cancelAnimationFrame(edRaf); edRaf=null; }
+function edLoopStart(){ edStopLoop(); const step=()=>{ if(!edState){ edRaf=null; return; } edUpdatePlayhead(); edRenderOverlays(); edRaf=edState.playing?requestAnimationFrame(step):null; }; edRaf=requestAnimationFrame(step); }
+function edUpdatePlayhead(){
+  const line=$('edPlayhead'), ref=$('edClipContent'), tracks=$('edTracks');
+  if(!line||!ref||!tracks) return;
+  const tr=tracks.getBoundingClientRect(), rr=ref.getBoundingClientRect();
+  const total=edTotal(), frac=total?Math.min(1,Math.max(0,edGlobalTime()/total)):0;
+  line.style.left=((rr.left-tr.left)+frac*rr.width)+'px';
+  const top=$('edTextTrack').getBoundingClientRect().top-tr.top;
+  const bot=$('edMusicTrack').getBoundingClientRect().bottom-tr.top;
+  line.style.top=top+'px'; line.style.height=Math.max(0,bot-top)+'px';
 }
 function edPaintNow(){
   const it=edState.items[edState.idx];
@@ -2049,17 +2156,21 @@ function edPaintNow(){
 function edMarkClip(){
   document.querySelectorAll('#edClipTrack .edcellitem').forEach(el=>el.classList.toggle('on',+el.dataset.i===edState.idx));
 }
-// Overlays: text cards active on the current CLIP + the logo. The logo is hidden
-// during intro/outro segments (as it is in the export).
+// Text is shown by TIME now (start..start+dur), on any segment; the logo shows
+// only during clip segments. No background box — a soft shadow keeps it legible.
+function edTextBasePx(){ const h=($('edStage')&&$('edStage').clientHeight)||300; return h/17; }
 function edRenderOverlays(){
-  const el=$('edOverlays'); el.innerHTML='';
-  const it=edState.items[edState.idx]; if(!it||it.kind!=='clip') return;
+  const el=$('edOverlays'); if(!el||!edState) return; el.innerHTML='';
+  const gt=edGlobalTime(), it=edState.items[edState.idx];
   edState.texts.forEach(t=>{
-    if(t.text&&t.clips.includes(it.cid)){
-      const d=document.createElement('div'); d.className='edtext '+t.pos; d.textContent=t.text; el.appendChild(d);
+    if(t.text&&gt>=t.start&&gt<t.start+t.dur){
+      const d=document.createElement('div'); d.className='edtext '+t.pos; d.textContent=t.text;
+      d.style.fontFamily=fontFamilyCss(t.font);
+      d.style.fontSize=(edTextBasePx()*(t.scale||1))+'px';
+      el.appendChild(d);
     }
   });
-  if(edState.logo&&branding.logo){
+  if(edState.logo&&branding.logo&&it&&it.kind==='clip'){
     const img=document.createElement('img'); img.className='edlogo'; img.src=branding.logo.url;
     img.style.maxWidth=(13*edState.logoScale)+'%'; img.style.maxHeight=(16*edState.logoScale)+'%';
     el.appendChild(img);
@@ -2073,31 +2184,61 @@ function edSyncLogoTool(){
   rng.value=edState.logoScale; rng.disabled=!(edState.logo&&hasLogo);
   $('edScaleVal').textContent=edState.logoScale.toFixed(1)+'×';
 }
-function edRenderTracks(){ edRenderTextTrack(); edRenderClipTrack(); edRenderMusicTrack(); }
+/* ---- tracks (all share one time axis via matching lead/trail slots) ---- */
+function edRenderTracks(){ edRenderTextTrack(); edRenderClipTrack(); edRenderMusicTrack(); edUpdatePlayhead(); }
+function edSlots(tr,content,isClips){
+  const hasIntro=edState.items.some(x=>x.kind==='intro');
+  const hasOutro=edState.items.some(x=>x.kind==='outro');
+  const add=(present,label,onclick)=>{
+    if(present) return;
+    if(isClips){ const s=document.createElement('div'); s.className='edslot'; s.innerHTML=`<span>${label}</span>`; s.onclick=onclick; tr.appendChild(s); }
+    else { const sp=document.createElement('div'); sp.className='edspacer'; tr.appendChild(sp); }
+  };
+  add(hasIntro,'+ Intro',()=>edPickIO('intro',tr.firstChild));
+  tr.appendChild(content);
+  add(hasOutro,'+ Outro',()=>edPickIO('outro',tr.lastChild));
+}
 function edRenderTextTrack(){
   const tr=$('edTextTrack'); tr.innerHTML='';
-  edState.items.forEach(it=>{
-    const cell=document.createElement('div'); cell.className='edcell'; cell.style.flex=it.dur;
-    if(it.kind==='clip'){
-      edState.texts.forEach((t,ti)=>{
-        if(t.text&&t.clips.includes(it.cid)){
-          const bar=document.createElement('div'); bar.className='edtbar'; bar.textContent=t.text;
-          bar.onclick=ev=>{ ev.stopPropagation(); edEditText(ti,bar); };
-          cell.appendChild(bar);
-        }
-      });
-    }
-    tr.appendChild(cell);
+  const lane=document.createElement('div'); lane.className='edcontent edtextlane'; lane.id='edTextLane';
+  const total=edTotal()||1;
+  edState.texts.forEach((t,ti)=>{
+    if(!t.text) return;
+    const bar=document.createElement('div'); bar.className='edtbar';
+    bar.style.left=(t.start/total*100)+'%'; bar.style.width=Math.max(2,(t.dur/total*100))+'%';
+    bar.innerHTML=`<span class="edtgrip l"></span><span class="edtbtxt">${esc(t.text)}</span><span class="edtgrip r"></span>`;
+    edBindBar(bar,ti,lane);
+    lane.appendChild(bar);
   });
+  lane.onclick=e=>{ if(e.target!==lane) return; const r=lane.getBoundingClientRect(); edSeekGlobal((e.clientX-r.left)/r.width*edTotal()); };
+  edSlots(tr,lane,false);
+}
+// Drag the middle to move (start), the grips to resize (duration).
+function edBindBar(bar,ti,lane){
+  const t=edState.texts[ti];
+  const start=(mode,e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const laneW=lane.getBoundingClientRect().width||1, total=edTotal();
+    const x0=e.clientX, s0=t.start, d0=t.dur; let moved=false;
+    const move=ev=>{
+      const dx=ev.clientX-x0; if(Math.abs(dx)>3) moved=true;
+      const ds=dx/laneW*total;
+      if(mode==='move') t.start=Math.max(0,Math.min(total-t.dur,s0+ds));
+      else if(mode==='left'){ const ns=Math.max(0,Math.min(s0+d0-0.3,s0+ds)); t.dur=s0+d0-ns; t.start=ns; }
+      else t.dur=Math.max(0.3,Math.min(total-s0,d0+ds));
+      bar.style.left=(t.start/total*100)+'%'; bar.style.width=Math.max(2,(t.dur/total*100))+'%';
+      edRenderOverlays();
+    };
+    const up=()=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); if(!moved&&mode==='move') edEditText(ti,bar); };
+    document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
+  };
+  bar.querySelector('.edtbtxt').addEventListener('pointerdown',e=>start('move',e));
+  bar.querySelector('.edtgrip.l').addEventListener('pointerdown',e=>start('left',e));
+  bar.querySelector('.edtgrip.r').addEventListener('pointerdown',e=>start('right',e));
 }
 function edRenderClipTrack(){
   const tr=$('edClipTrack'); tr.innerHTML='';
-  const hasIntro=edState.items.some(x=>x.kind==='intro');
-  const hasOutro=edState.items.some(x=>x.kind==='outro');
-  if(!hasIntro){
-    const s=document.createElement('div'); s.className='edslot'; s.style.flex='2'; s.innerHTML='<span>+ Intro</span>';
-    s.onclick=()=>edPickIO('intro',s); tr.appendChild(s);
-  }
+  const content=document.createElement('div'); content.className='edcontent'; content.id='edClipContent';
   edState.items.forEach((it,i)=>{
     const cell=document.createElement('div'); cell.style.flex=it.dur; cell.dataset.i=i;
     if(it.kind==='clip'){
@@ -2109,20 +2250,17 @@ function edRenderClipTrack(){
       cell.innerHTML=`<video src="${esc(it.src)}#t=0.1" muted preload="metadata"></video><span>${it.kind}</span>`;
       cell.onclick=()=>edPickIO(it.kind,cell);
     }
-    tr.appendChild(cell);
+    content.appendChild(cell);
   });
-  if(!hasOutro){
-    const s=document.createElement('div'); s.className='edslot'; s.style.flex='2'; s.innerHTML='<span>+ Outro</span>';
-    s.onclick=()=>edPickIO('outro',s); tr.appendChild(s);
-  }
+  edSlots(tr,content,true);
 }
 function edRenderMusicTrack(){
   const tr=$('edMusicTrack'); tr.innerHTML='';
-  const cell=document.createElement('div'); cell.className='edmusiccell';
+  const cell=document.createElement('div'); cell.className='edcontent edmusiccell';
   if(edState.music){ cell.innerHTML=`<span class="epmname">♪ ${esc(edState.music.name)}</span><canvas class="epwave" width="600" height="30"></canvas>`; }
   else cell.innerHTML='<span class="mnone">+ Add music</span>';
   cell.onclick=()=>edPickMusic(cell);
-  tr.appendChild(cell);
+  edSlots(tr,cell,false);
   if(edState.music){ const cv=cell.querySelector('.epwave'); if(cv) drawWaveform(cv,edState.music.url); }
 }
 /* ---- popovers anchored to the clicked track element ---- */
@@ -2142,25 +2280,29 @@ document.addEventListener('click',e=>{
 });
 function edEditText(ti,anchor){
   const t=edState.texts[ti]; if(!t) return;
-  const clips=currentProject.clips.filter(c=>clipSrc(c));
   const posOpts=POSITIONS.map(([v,l])=>`<option value="${v}" ${t.pos===v?'selected':''}>${l}</option>`).join('');
-  const chips=clips.map((c,ci)=>`<button class="edchip ${t.clips.includes(c.cid)?'on':''}" data-cid="${c.cid}">${ci+1}</button>`).join('');
+  const fontOpts=[`<option value="" ${!t.font?'selected':''}>Toura default</option>`].concat((branding.fonts||[]).map(f=>`<option value="${f.id}" ${t.font===f.id?'selected':''}>${esc(f.name)}</option>`)).join('');
   edOpenPop(anchor,`<div class="edpoptitle">Text</div>
     <textarea class="edpoptext" placeholder="Text (e.g. address)">${esc(t.text)}</textarea>
-    <label class="edpoplab">Position</label><select class="edpopsel">${posOpts}</select>
-    <label class="edpoplab">Show during clips</label><div class="edchips">${chips}</div>
+    <label class="edpoplab">Position</label><select class="edpopsel" data-k="pos">${posOpts}</select>
+    <label class="edpoplab">Font</label><select class="edpopsel" data-k="font">${fontOpts}</select>
+    <label class="edpoplab">Size <span class="edpopval">${(t.scale||1).toFixed(1)}×</span></label>
+    <input type="range" class="edpoprange" min="0.5" max="2" step="0.1" value="${t.scale||1}">
     <div class="edpopfoot"><button class="btn ghost small edpoprm">Remove</button><button class="btn small edpopok">Done</button></div>`,
   pop=>{
-    pop.querySelector('.edpoptext').oninput=e=>{ t.text=e.target.value; edRenderOverlays(); };
-    pop.querySelector('.edpopsel').onchange=e=>{ t.pos=e.target.value; edRenderOverlays(); };
-    pop.querySelectorAll('.edchip').forEach(b=>b.onclick=()=>{ const cid=b.dataset.cid; const k=t.clips.indexOf(cid); if(k<0)t.clips.push(cid); else t.clips.splice(k,1); b.classList.toggle('on'); edRenderOverlays(); edRenderTextTrack(); });
+    pop.querySelector('.edpoptext').oninput=e=>{ t.text=e.target.value; edRenderOverlays(); edRenderTextTrack(); };
+    pop.querySelector('[data-k=pos]').onchange=e=>{ t.pos=e.target.value; edRenderOverlays(); };
+    pop.querySelector('[data-k=font]').onchange=e=>{ t.font=e.target.value; edRenderOverlays(); };
+    const rng=pop.querySelector('.edpoprange'); rng.oninput=e=>{ t.scale=Math.round(parseFloat(e.target.value)*10)/10; pop.querySelector('.edpopval').textContent=t.scale.toFixed(1)+'×'; edRenderOverlays(); };
     pop.querySelector('.edpoprm').onclick=()=>{ edState.texts.splice(ti,1); edClosePop(); edRenderTextTrack(); edRenderOverlays(); };
     pop.querySelector('.edpopok').onclick=()=>{ edClosePop(); edRenderTextTrack(); };
   });
 }
 function edAddText(anchor){
-  const first=currentProject.clips.filter(c=>clipSrc(c))[0];
-  edState.texts.push({text:'New text',pos:'bl',clips:first?[first.cid]:[]});
+  const r=edClipsRegion(), gt=edGlobalTime();
+  const dur=Math.min(4,Math.max(0.5,r.end-r.start));
+  let start=Math.max(r.start,Math.min(r.end-dur,gt)); if(!Number.isFinite(start)) start=r.start;
+  edState.texts.push({text:'New text',pos:'bl',start,dur,font:'',scale:1});
   edRenderTextTrack(); edRenderOverlays();
   edEditText(edState.texts.length-1,anchor||$('edAddTextBtn'));
 }
@@ -2198,7 +2340,7 @@ function edPickMusic(anchor){
 }
 async function saveEditor(){
   const edit={
-    texts:edState.texts.filter(t=>t.text.trim()).map(t=>({text:t.text.trim(),pos:t.pos,clips:t.clips})),
+    texts:edState.texts.filter(t=>t.text.trim()).map(t=>({text:t.text.trim(),pos:t.pos,start:Math.max(0,t.start||0),dur:Math.max(0.3,t.dur||4),font:t.font||'',scale:t.scale||1})),
     logo:edState.logo,
     logoScale:edState.logoScale,
     music:edState.music,
@@ -2213,12 +2355,14 @@ async function saveEditor(){
 (function edWire(){
   const v=$('edVid'); if(!v) return;
   v.onended=()=>edNext();
+  v.ontimeupdate=()=>{ if(edState){ edUpdatePlayhead(); if(!edState.playing) edRenderOverlays(); } };
   $('edStage').onclick=()=>edToggle();
   $('edPlay').onclick=e=>{ e.stopPropagation(); edToggle(); };
   $('edRestart').onclick=e=>{ e.stopPropagation(); const a=edState&&edState._audio; if(a){a.currentTime=0;} edLoad(0,true); };
   $('edAddTextBtn').onclick=e=>{ e.stopPropagation(); edAddText($('edAddTextBtn')); };
   $('edLogoChk').onclick=()=>{ if(!branding.logo){ toast('Upload a logo on the Branding page first.'); return; } edState.logo=!edState.logo; edSyncLogoTool(); edRenderOverlays(); };
   $('edLogoRange').oninput=e=>{ edState.logoScale=Math.round(parseFloat(e.target.value)*10)/10; $('edScaleVal').textContent=edState.logoScale.toFixed(1)+'×'; edRenderOverlays(); };
+  window.addEventListener('resize',()=>{ if(edState) edUpdatePlayhead(); });
 })();
 
 function bindMpick(rootId,listId,onSel,getSel){

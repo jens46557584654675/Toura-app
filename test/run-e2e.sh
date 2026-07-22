@@ -118,6 +118,13 @@ INTRO_URL=$(jget "$R" branding intros 0 videos landscape url)
 R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"rename\",\"kind\":\"outro\",\"id\":\"$OUTRO_ID\",\"name\":\"Outro card\"}")
 check "outro renamed" '"name":"Outro card"' "$R"
 
+# A custom font (used later on a text card, burned into the export).
+FONT="data:font/woff2;base64,d09GMgABAAAAAAABAAAAAAAAAAA="
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"addfont\",\"name\":\"Diepeveen Serif\",\"ext\":\"woff2\",\"data\":\"$FONT\"}")
+check "font added" '"name":"Diepeveen Serif"' "$R"
+FONT_ID=$(jget "$R" branding fonts 0 id)
+require_val "font id" "$FONT_ID"
+
 R=$(curl -s -b $J localhost:3000/api/branding)
 check "branding persisted" '"name":"Outro card"' "$R"
 
@@ -199,16 +206,20 @@ check "music attached to project" '"name":"Calm Piano"' "$R"
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"music\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}")
 check "music attached to project" '"name":"Calm Piano"' "$R"
 
-# Video editor: empty text cards are dropped; an unknown position falls back to
-# bl; logoScale is clamped to [0.5,2]; introId/outroId are stored on the project.
-R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"\",\"pos\":\"xx\",\"clips\":[]},{\"text\":\"Hi\",\"pos\":\"zz\",\"clips\":[\"$CID\"]}],\"logo\":true,\"logoScale\":9,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+# Video editor: empty text cards dropped; unknown position → bl; logoScale
+# clamped to [0.5,2]; the new text model stores start/dur/font/scale; introId/
+# outroId land on the project.
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"\",\"pos\":\"xx\"},{\"text\":\"Hi\",\"pos\":\"zz\",\"start\":2,\"dur\":3,\"scale\":9,\"font\":\"$FONT_ID\"}],\"logo\":true,\"logoScale\":9,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
 check "editor drops empty text cards" '"texts":\[{"text":"Hi","pos":"bl"' "$R"
+check "text stores start + duration" '"start":2,"dur":3' "$R"
+check "text scale clamped to 2" '"scale":2' "$R"
+check "text keeps the chosen font" "\"font\":\"$FONT_ID\"" "$R"
 check "logoScale clamped to 2" '"logoScale":2' "$R"
 check "intro selected on the project" "\"introId\":\"$INTRO_ID\"" "$R"
 check "outro selected on the project" "\"outroId\":\"$OUTRO_ID\"" "$R"
 
 # ---- Export route A: text + logo active → Shotstack burns them in ----
-R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"Keizersgracht 214\",\"pos\":\"bl\",\"clips\":[\"$CID\"]}],\"logo\":true,\"logoScale\":1.5,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"Keizersgracht 214\",\"pos\":\"bl\",\"start\":5,\"dur\":3,\"scale\":1.5,\"font\":\"$FONT_ID\"}],\"logo\":true,\"logoScale\":1.5,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
 check "editor overlays saved" '"logoScale":1.5' "$R"
 
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"export\"}")
@@ -219,23 +230,27 @@ check "overlay export ready (shotstack)" '"export":"https://example.com/shotstac
 
 # Ask the shotstack stub what edit we actually sent.
 SS=$(curl -s localhost:9998/_calls)
+check "shotstack renders text as an html asset" '"type":"html"' "$SS"
 check "shotstack got the text card" 'Keizersgracht 214' "$SS"
+check "text has no box, just a shadow" 'text-shadow' "$SS"
+check "text embeds the chosen font via @font-face" '@font-face' "$SS"
 check "shotstack got a logo image overlay" '"type":"image"' "$SS"
 check "shotstack got the intro clip" "$INTRO_URL" "$SS"
 check "shotstack got the outro clip" "$BRAND_URL" "$SS"
 check "shotstack got the soundtrack" "\"soundtrack\":{\"src\":\"$TRACK_URL\"" "$SS"
 check "shotstack output aspect matches the project" '"aspectRatio":"16:9"' "$SS"
 
-# The intro is 3s, so clips (and the logo) must start at 3s, not 0 — proves the
-# logo does not cover the intro.
-LOGOSTART=$(echo "$SS" | python3 -c "
+# The intro is 3s so the logo starts at 3s (never over the intro); the text
+# card was placed at start:5 and must land there on the timeline.
+TIMES=$(echo "$SS" | python3 -c "
 import sys,json
-calls=json.load(sys.stdin)['calls']
-tl=calls[-1]['timeline']['tracks']
-img=[c for tr in tl for c in tr['clips'] if c['asset'].get('type')=='image'][0]
-print(img['start'])
+tl=json.load(sys.stdin)['calls'][-1]['timeline']['tracks']
+clips=[c for tr in tl for c in tr['clips']]
+img=[c for c in clips if c['asset'].get('type')=='image'][0]
+html=[c for c in clips if c['asset'].get('type')=='html'][0]
+print(int(img['start']), int(html['start']))
 ")
-check "logo starts after the intro (3s)" '^3$' "$LOGOSTART"
+check "logo starts after the intro (3s) and text at 5s" '^3 5$' "$TIMES"
 
 # ---- Export route B: no overlays → cheaper fal fallback, still with intro+outro ----
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[],\"logo\":false,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")

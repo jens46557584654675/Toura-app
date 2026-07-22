@@ -155,10 +155,16 @@ export default async function handler(req, res){
       // plus introId/outroId and music which are stored on the project itself.
       const e = req.body.edit || {};
       const POS = ['tl', 'tc', 'tr', 'bl', 'bc', 'br'];
+      // New text model: {text, pos, start, dur (seconds on the whole timeline),
+      // font (id), scale}. Old {clips:[cid]} records are kept for migration until
+      // the client re-saves.
       const texts = Array.isArray(e.texts) ? e.texts.slice(0, 10).map(t => ({
         text: String(t.text || '').slice(0, 120),
         pos: POS.includes(t.pos) ? t.pos : 'bl',
-        clips: Array.isArray(t.clips) ? t.clips.filter(c => typeof c === 'string').slice(0, 50) : [],
+        start: Math.max(0, Number(t.start) || 0),
+        dur: Math.min(600, Math.max(0.3, Number(t.dur) || 4)),
+        font: t.font ? String(t.font).slice(0, 64) : '',
+        scale: Math.min(2, Math.max(0.5, Number(t.scale) || 1)),
       })).filter(t => t.text) : [];
       const music = e.music && e.music.url ? { name: String(e.music.name || 'Track').slice(0, 80), url: String(e.music.url) } : null;
       const logoScale = Math.min(2, Math.max(0.5, Number(e.logoScale) || 1));
@@ -210,9 +216,26 @@ export default async function handler(req, res){
       if(!videos.length) return res.status(400).json({ error: 'Render your clips first.' });
       if(videos.length !== project.clips.length) return res.status(400).json({ error: 'Some clips are still rendering.' });
 
-      const { intro, outro, logo } = await introOutroFor(s.email, project);
+      const { intro, outro, logo, fonts } = await introOutroFor(s.email, project);
       const wantLogo = !!(project.edit?.logo && logo?.url);
-      const texts = (project.edit?.texts || []).filter(t => t.text && t.clips?.length);
+      // Normalise texts to the {start, dur, font-URL} shape the builder needs,
+      // migrating any old {clips:[cid]} records using the clips' absolute times.
+      const introDur = intro ? (intro.dur || 5) : 0;
+      const fontUrl = id => (fonts || []).find(f => f.id === id)?.url || '';
+      const clipTimes = {}; let ct = introDur;
+      for(const c of project.clips){ clipTimes[c.cid] = { start: ct, dur: Number(c.duration) || 8 }; ct += Number(c.duration) || 8; }
+      const clipsEnd = ct;
+      const texts = (project.edit?.texts || []).map(t => {
+        let start = t.start, dur = t.dur;
+        if(!(Number.isFinite(start) && Number.isFinite(dur))){
+          const cids = (t.clips || []).filter(cid => clipTimes[cid]);
+          if(cids.length){
+            start = Math.min(...cids.map(cid => clipTimes[cid].start));
+            dur = Math.max(...cids.map(cid => clipTimes[cid].start + clipTimes[cid].dur)) - start;
+          } else { start = introDur; dur = Math.min(4, clipsEnd - introDur); }
+        }
+        return { text: t.text, pos: t.pos || 'bl', start, dur, font: fontUrl(t.font), scale: t.scale || 1 };
+      }).filter(t => t.text && t.dur > 0);
       const overlaysActive = wantLogo || texts.length > 0;
 
       if(overlaysActive && shotstackConfigured()){
