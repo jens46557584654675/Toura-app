@@ -204,7 +204,12 @@
   .edtext.tl{top:14px;left:14px} .edtext.tc{top:14px;left:50%;transform:translateX(-50%);text-align:center}
   .edtext.tr{top:14px;right:14px} .edtext.bl{bottom:14px;left:14px}
   .edtext.bc{bottom:14px;left:50%;transform:translateX(-50%);text-align:center} .edtext.br{bottom:14px;right:14px}
-  .edlogo{position:absolute;bottom:14px;right:14px;max-width:22%;max-height:26%}
+  .edlogo{position:absolute;bottom:14px;right:14px;max-width:13%;max-height:16%}
+  .edlogo.medium{max-width:22%;max-height:26%}
+  .edsize{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .edsize .edsizelab{font-size:12px;color:var(--muted);font-weight:600}
+  .edsize button{font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--grey);color:var(--muted);border:1px solid var(--line)}
+  .edsize button.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
   .edtimeline{display:flex;gap:6px;overflow-x:auto;margin-top:14px;padding-bottom:4px}
   .edtclip{flex:none;border-radius:8px;overflow:hidden;background:var(--grey2);cursor:pointer;position:relative;border:2px solid transparent}
   .edtclip.on{border-color:var(--ink)}
@@ -631,6 +636,7 @@
 
     <div class="final-row">
       <button class="btn" id="toMusicBtn" onclick="showStep('postprod')">Continue to final video &rarr;</button>
+      <button class="btn ghost" id="dlAllBtn" onclick="downloadAllClips()">↓ Download all clips</button>
     </div>
   </div>
 </section>
@@ -702,6 +708,11 @@
         <div class="edpanel">
           <h4>Logo</h4>
           <button class="bopt" id="edLogo"><span class="bbox"></span><span>Show logo bottom-right<span class="bsub" id="edLogoSub"></span></span></button>
+          <div class="edsize" id="edLogoSize" style="display:none">
+            <span class="edsizelab">Size</span>
+            <button data-s="small">Small</button>
+            <button data-s="medium">Medium</button>
+          </div>
         </div>
         <div class="edpanel">
           <h4>Branding video</h4>
@@ -720,7 +731,7 @@
       </div>
     </div>
     <div class="edfoot">
-      <span class="edcoming">Text &amp; logo in export: coming soon</span>
+      <span class="edcoming">Text &amp; logo are burned into the exported video.</span>
       <div class="edactions">
         <button class="btn ghost" onclick="closeEditor()">Cancel</button>
         <button class="btn" onclick="saveEditor()">Save</button>
@@ -1595,6 +1606,7 @@ function renderFinalPage(){
   $('fnTitle').textContent=p.name;
   const done=p.clips.filter(c=>c.status==='done').length;
   $('fnSub').textContent=`${done} of ${p.clips.length} clips ready · format ${p.aspect==='auto'?'auto':p.aspect}`;
+  $('dlAllBtn').disabled=!p.clips.some(c=>clipSrc(c));
 
   // draggable clip cards
   const row=$('fnClips'); row.innerHTML='';
@@ -1834,7 +1846,9 @@ function renderPostPage(){
   const ex=$('exportStage');
   const ready=p.clips.length>0&&p.clips.every(c=>clipSrc(c));
   const vert=p.aspect==='9:16';
-  if(p.mergedPending?.phase==='export'||p.mergedPending?.phase==='outro'){
+  if(p.mergedPending?.phase==='shotstack'){
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Rendering your video with text, logo and music…</div></div></div>`;
+  } else if(p.mergedPending?.phase==='export'||p.mergedPending?.phase==='outro'){
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Combining your clips${p.branding?.outro&&brandingOutro()?' and branding video':''}…</div></div></div>`;
   } else if(p.mergedPending?.phase==='audio'){
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Laying your music under the video…</div></div></div>`;
@@ -1846,7 +1860,7 @@ function renderPostPage(){
       </div></div>
       <div class="splayer ${vert?'vert':''}"><video src="${esc(p.export)}" controls playsinline></video></div>`;
   } else {
-    const overlayNote=(p.edit?.texts?.length||p.edit?.logo)?' Text &amp; logo are preview-only for now — not yet in the download.':'';
+    const overlayNote=(p.edit?.texts?.length||p.edit?.logo)?' Your text &amp; logo are burned in.':'';
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Combines your clips into one ${q} video${p.music?' with music':' (add music in the editor, or export without)'}.${overlayNote}`:'Render all your clips in step 2 first.'}</div></div>
       <button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
   }
@@ -1901,7 +1915,25 @@ function renderBrandingOpts(p){
     };
   }
 }
-/* ============ video editor (preview-only overlays) ============ */
+/* ============ download the individual clip files ============ */
+// Force a real save via fetch→blob; fall back to opening the URL if CORS blocks it.
+function downloadFile(url,name){
+  return fetch(url).then(r=>{ if(!r.ok) throw 0; return r.blob(); }).then(b=>{
+    const u=URL.createObjectURL(b), a=document.createElement('a');
+    a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),4000);
+  }).catch(()=>window.open(url,'_blank'));
+}
+async function downloadAllClips(){
+  const p=currentProject; if(!p) return;
+  // Best available file per clip: the 720p final if rendered, else the 480p.
+  const items=p.clips.map((c,i)=>({url:clipSrc(c),i})).filter(x=>x.url);
+  if(!items.length){ toast('No finished clips yet.'); return; }
+  toast(`Downloading ${items.length} clip${items.length>1?'s':''}…`);
+  for(const it of items){ await downloadFile(it.url,`toura-clip-${it.i+1}.mp4`); await new Promise(r=>setTimeout(r,600)); }
+}
+
+/* ============ video editor (real overlays via the render API) ============ */
 let edState=null;
 const POSITIONS=[['tl','Top left'],['tc','Top center'],['tr','Top right'],['bl','Bottom left'],['bc','Bottom center'],['br','Bottom right']];
 function edAudio(){ // dedicated element so it doesn't fight the library preview (#bgm)
@@ -1915,6 +1947,7 @@ function openEditor(){
   edState={
     texts:(e.texts||[]).map(t=>({text:t.text||'',pos:t.pos||'bl',clips:[...(t.clips||[])]})),
     logo:!!e.logo,
+    logoSize:e.logoSize==='medium'?'medium':'small',
     brandingOutro:e.brandingOutro!=null?!!e.brandingOutro:!!p.branding?.outro,
     music:e.music||p.music||null,
     idx:0, playing:false, items:[], _audio:null,
@@ -1984,7 +2017,7 @@ function edRenderOverlays(){
     }
   });
   if(edState.logo&&branding.logo){
-    const img=document.createElement('img'); img.className='edlogo'; img.src=branding.logo.url; el.appendChild(img);
+    const img=document.createElement('img'); img.className='edlogo'+(edState.logoSize==='medium'?' medium':''); img.src=branding.logo.url; el.appendChild(img);
   }
 }
 function edRenderTimeline(){
@@ -2052,9 +2085,15 @@ function edRenderPanels(){
   const lg=$('edLogo'); const hasLogo=!!branding.logo;
   lg.classList.toggle('on',edState.logo&&hasLogo);
   lg.querySelector('.bbox').textContent=edState.logo&&hasLogo?'✓':'';
-  $('edLogoSub').textContent=hasLogo?'Shown over the whole video in the preview.':'Upload a logo on the Branding page first.';
+  $('edLogoSub').textContent=hasLogo?'Burned into the bottom-right of the whole video.':'Upload a logo on the Branding page first.';
   lg.disabled=!hasLogo;
   lg.onclick=hasLogo?()=>{ edState.logo=!edState.logo; edRenderPanels(); edRenderOverlays(); }:null;
+  // logo size (only when the logo is on)
+  const sz=$('edLogoSize'); sz.style.display=(edState.logo&&hasLogo)?'flex':'none';
+  sz.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('on',b.dataset.s===edState.logoSize);
+    b.onclick=()=>{ edState.logoSize=b.dataset.s; edRenderPanels(); edRenderOverlays(); };
+  });
   // outro toggle (mirrors the timeline block)
   const ot=$('edOutro'); const bo=brandingOutro();
   ot.classList.toggle('on',edState.brandingOutro&&!!bo);
@@ -2072,6 +2111,7 @@ async function saveEditor(){
   const edit={
     texts:edState.texts.filter(t=>t.text.trim()).map(t=>({text:t.text.trim(),pos:t.pos,clips:t.clips})),
     logo:edState.logo,
+    logoSize:edState.logoSize,
     brandingOutro:edState.brandingOutro,
     music:edState.music,
   };

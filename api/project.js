@@ -2,7 +2,8 @@ import crypto from 'crypto';
 import { getSession } from '../lib/auth.js';
 import { falConfigured, falSubmit, clipPrompt, clampDuration, renderCost, RENDER_BUDGET, MODELS } from '../lib/fal.js';
 import { hostImage } from '../lib/blob.js';
-import { outroFor, variantForAspect } from '../lib/branding.js';
+import { outroFor, variantForAspect, getBranding } from '../lib/branding.js';
+import { shotstackConfigured, shotstackSubmit, buildShotstackEdit } from '../lib/shotstack.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
 const isAdmin = email => email && email === String(process.env.ADMIN_EMAIL || '').toLowerCase();
@@ -161,7 +162,7 @@ export default async function handler(req, res){
         clips: Array.isArray(t.clips) ? t.clips.filter(c => typeof c === 'string').slice(0, 50) : [],
       })).filter(t => t.text) : [];
       const music = e.music && e.music.url ? { name: String(e.music.name || 'Track').slice(0, 80), url: String(e.music.url) } : null;
-      project.edit = { texts, logo: !!e.logo, brandingOutro: !!e.brandingOutro, music };
+      project.edit = { texts, logo: !!e.logo, logoSize: e.logoSize === 'medium' ? 'medium' : 'small', brandingOutro: !!e.brandingOutro, music };
       project.branding = project.branding || { outro: false, logo: false };
       project.branding.outro = !!e.brandingOutro; // the flag the export actually reads
       project.music = music;
@@ -200,10 +201,10 @@ export default async function handler(req, res){
       project.export = null; // branding changed → export is stale
 
     } else if(action === 'export'){
-      // The ONLY place clips get stitched together. Per clip it takes the 720p
-      // final when that exists, else the 480p working version, and appends the
-      // branding outro in the same merge so it costs one ffmpeg job, not two.
-      // Music is mixed in afterwards. Never a new Seedance render.
+      // Builds the downloadable video. Per clip it takes the 720p final when that
+      // exists, else the 480p working version. Two routes, chosen automatically:
+      //  - Shotstack when text/logo overlays are active — it burns them in.
+      //  - fal (merge + music) otherwise — cheaper, no overlays. Never a new render.
       if(project.mergedPending) return res.status(400).json({ error: 'A video is already building.' });
       const videos = project.clips.filter(c => clipVideo(c)).map(clipVideo);
       if(!videos.length) return res.status(400).json({ error: 'Render your clips first.' });
@@ -212,25 +213,49 @@ export default async function handler(req, res){
       if(project.branding?.outro && !outro){
         return res.status(400).json({ error: `Upload a ${variantForAspect(project.aspect)} branding video first.` });
       }
-      const parts = outro ? [...videos, outro] : videos;
-      if(parts.length > 1){
-        if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
-        // index 0 = the first listing clip decides the output shape; without this
-        // the merge takes min width AND min height across inputs, which can
-        // produce an aspect ratio matching neither clip.
-        const job = await falSubmit(MODELS.merge, {
-          video_urls: parts,
-          resolution_aspect_ratio_video_index: 0,
+
+      const brand = await getBranding(s.email);
+      const wantLogo = !!(project.edit?.logo && brand.logo?.url);
+      const texts = (project.edit?.texts || []).filter(t => t.text && t.clips?.length);
+      const overlaysActive = wantLogo || texts.length > 0;
+
+      if(overlaysActive && shotstackConfigured()){
+        // Real overlays → Shotstack renders the whole timeline in one job.
+        const clipItems = project.clips.map(c => ({ url: clipVideo(c), dur: Number(c.duration) || 8, cid: c.cid }));
+        const edit = buildShotstackEdit({
+          clips: clipItems,
+          outro: outro || null,
+          logoUrl: wantLogo ? brand.logo.url : null,
+          logoSize: project.edit?.logoSize === 'medium' ? 'medium' : 'small',
+          texts,
+          musicUrl: project.music?.url || null,
+          aspect: project.aspect,
         });
-        project.mergedPending = { phase: 'export', ...job };
+        const job = await shotstackSubmit(edit.timeline, edit.output);
+        project.mergedPending = { phase: 'shotstack', ...job };
         project.export = null;
-      } else if(!project.music){
-        project.export = parts[0];
       } else {
-        if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
-        const job = await falSubmit(MODELS.audio, { video_url: parts[0], audio_url: project.music.url });
-        project.mergedPending = { phase: 'audio', ...job };
-        project.export = null;
+        // fal fallback: concat (+ outro) then mix music.
+        const parts = outro ? [...videos, outro] : videos;
+        if(parts.length > 1){
+          if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
+          // index 0 = the first listing clip decides the output shape; without this
+          // the merge takes min width AND min height across inputs, which can
+          // produce an aspect ratio matching neither clip.
+          const job = await falSubmit(MODELS.merge, {
+            video_urls: parts,
+            resolution_aspect_ratio_video_index: 0,
+          });
+          project.mergedPending = { phase: 'export', ...job };
+          project.export = null;
+        } else if(!project.music){
+          project.export = parts[0];
+        } else {
+          if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
+          const job = await falSubmit(MODELS.audio, { video_url: parts[0], audio_url: project.music.url });
+          project.mergedPending = { phase: 'audio', ...job };
+          project.export = null;
+        }
       }
 
     } else if(action === 'delete'){

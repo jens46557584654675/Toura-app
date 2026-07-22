@@ -1,5 +1,6 @@
 import { getSession } from '../lib/auth.js';
 import { falGet, falSubmit, jobUrls, MODELS } from '../lib/fal.js';
+import { shotstackGet } from '../lib/shotstack.js';
 import { archiveVideo } from '../lib/blob.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
@@ -37,9 +38,21 @@ export default async function handler(req, res){
         }
       }
     }
-    // 2. Poll pending merge job → concept / final / export(audio)
+    // 2. Poll pending merge/render job → concept / final / export
     const mp = project.mergedPending;
-    if(mp){
+    if(mp && mp.phase === 'shotstack'){
+      // Shotstack renders clips + overlays + music in one job.
+      const st = await shotstackGet(mp.statusUrl);
+      const status = st.response?.status;
+      if(status === 'done'){
+        project.export = await archiveVideo(st.response?.url);
+        project.mergedPending = null;
+        changed = true;
+      } else if(status === 'failed'){
+        project.mergedPending = null; // let the user retry
+        changed = true;
+      }
+    } else if(mp){
       const model = mp.phase === 'audio' ? MODELS.audio : MODELS.merge;
       const urls = jobUrls(model, mp);
       const st = await falGet(urls.status);

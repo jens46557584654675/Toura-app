@@ -3,9 +3,13 @@
 cd "$(dirname "$0")/.." || exit 1
 node test/fal-stub.js > /tmp/stub.log 2>&1 &
 STUB=$!
-FAL_BASE=http://localhost:9999 FAL_KEY=test-key ADMIN_EMAIL=jens@toura.com node dev-server.js > /tmp/dev.log 2>&1 &
+node test/shotstack-stub.js > /tmp/shotstack.log 2>&1 &
+SS=$!
+FAL_BASE=http://localhost:9999 FAL_KEY=test-key \
+  SHOTSTACK_BASE=http://localhost:9998 SHOTSTACK_API_KEY=test-key SHOTSTACK_ENV=v1 \
+  ADMIN_EMAIL=jens@toura.com node dev-server.js > /tmp/dev.log 2>&1 &
 DEV=$!
-trap "kill $STUB $DEV 2>/dev/null" EXIT
+trap "kill $STUB $SS $DEV 2>/dev/null" EXIT
 
 # Wait for both servers to accept connections (fixed sleeps race on cold start).
 wait_up(){
@@ -17,6 +21,7 @@ wait_up(){
 }
 wait_up localhost:3000/
 wait_up localhost:9999/
+wait_up localhost:9998/
 
 J=/tmp/jar.txt; rm -f $J
 PASS=0; FAIL=0
@@ -191,24 +196,43 @@ check "editor drops empty text cards" '"texts":\[{"text":"Hi","pos":"bl"' "$R"
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"branding\",\"outro\":true}")
 check "branding outro enabled" '"outro":true' "$R"
 
+# ---- Export route A: text + logo active → Shotstack burns them in ----
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"Keizersgracht 214\",\"pos\":\"bl\",\"clips\":[\"$CID\"]}],\"logo\":true,\"logoSize\":\"medium\",\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+check "editor overlays saved" '"logoSize":"medium"' "$R"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"export\"}")
+check "overlay export routes to shotstack" '"phase":"shotstack"' "$R"
+
+R=$(poll_status '"export":"https://example.com/shotstack')
+check "overlay export ready (shotstack)" '"export":"https://example.com/shotstack' "$R"
+
+# Ask the shotstack stub what edit we actually sent.
+SS=$(curl -s localhost:9998/_calls)
+check "shotstack got the text card" 'Keizersgracht 214' "$SS"
+check "shotstack got a logo image overlay" '"type":"image"' "$SS"
+check "shotstack got the soundtrack" "\"soundtrack\":{\"src\":\"$TRACK_URL\"" "$SS"
+check "shotstack output aspect matches the project" '"aspectRatio":"16:9"' "$SS"
+
+# ---- Export route B: no overlays → cheaper fal fallback ----
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[],\"logo\":false,\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+check "overlays cleared" '"texts":\[\]' "$R"
+
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"export\"}")
 check "export started" '"mergedPending":{' "$R"
-check "export merges the clips itself" '"phase":"export"' "$R"
+check "plain export uses the fal fallback" '"phase":"export"' "$R"
 
 # The stub names results per model, so "fake-audio" proves the export really went
-# through merge-audio-video. A bare "http" would also pass the music-less
-# fallback (export = concept), making this check green with no soundtrack.
-R=$(poll_status '"export":"http')
+# through merge-audio-video (a bare "http" would also pass the music-less path).
+R=$(poll_status '"export":"https://example.com/fake-audio')
 check "export ready (video + music)" '"export":"https://example.com/fake-audio' "$R"
 
-# Ask the stub what fal was actually sent: the outro merge must include the
-# branding clip and pin the output shape to the listing video (index 0).
+# Ask the fal stub what it was sent: the outro merge must include the branding
+# clip and pin the output shape to the listing video (index 0).
 CALLS=$(curl -s localhost:9999/_calls)
 check "export merge sent the branding clip to fal" "$BRAND_URL" "$CALLS"
 check "export merge pins aspect to the listing video" '"resolution_aspect_ratio_video_index":0' "$CALLS"
 
-# The export merge must carry both clips AND the outro — 3 urls. This is what
-# proves export stitches the clips itself instead of reusing a concept merge.
+# The export merge must carry both clips AND the outro — 3 urls.
 PARTS=$(echo "$CALLS" | python3 -c "
 import sys,json
 merges=[c for c in json.load(sys.stdin)['calls'] if c['kind']=='merge']
