@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { getSession } from '../lib/auth.js';
 import { falConfigured, falSubmit, clipPrompt, clampDuration, renderCost, RENDER_BUDGET, MODELS } from '../lib/fal.js';
 import { hostImage } from '../lib/blob.js';
-import { outroFor, variantForAspect, getBranding } from '../lib/branding.js';
+import { introOutroFor } from '../lib/branding.js';
 import { shotstackConfigured, shotstackSubmit, buildShotstackEdit } from '../lib/shotstack.js';
 import { getProject, saveProjects } from '../lib/projects.js';
 
@@ -151,9 +151,8 @@ export default async function handler(req, res){
       project.export = null; // soundtrack changed → export is stale
 
     } else if(action === 'edit'){
-      // Video-editor choices. Text cards and the logo toggle are preview-only for
-      // now (the server merge can't burn them in — see CLAUDE.md); brandingOutro
-      // and music DO drive the export, so mirror them onto the real fields.
+      // Video-editor choices: texts + logo (burned in on export via Shotstack),
+      // plus introId/outroId and music which are stored on the project itself.
       const e = req.body.edit || {};
       const POS = ['tl', 'tc', 'tr', 'bl', 'bc', 'br'];
       const texts = Array.isArray(e.texts) ? e.texts.slice(0, 10).map(t => ({
@@ -162,9 +161,10 @@ export default async function handler(req, res){
         clips: Array.isArray(t.clips) ? t.clips.filter(c => typeof c === 'string').slice(0, 50) : [],
       })).filter(t => t.text) : [];
       const music = e.music && e.music.url ? { name: String(e.music.name || 'Track').slice(0, 80), url: String(e.music.url) } : null;
-      project.edit = { texts, logo: !!e.logo, logoSize: e.logoSize === 'medium' ? 'medium' : 'small', brandingOutro: !!e.brandingOutro, music };
-      project.branding = project.branding || { outro: false, logo: false };
-      project.branding.outro = !!e.brandingOutro; // the flag the export actually reads
+      const logoScale = Math.min(2, Math.max(0.5, Number(e.logoScale) || 1));
+      project.edit = { texts, logo: !!e.logo, logoScale, music };
+      if('introId' in e) project.introId = e.introId ? String(e.introId) : null;
+      if('outroId' in e) project.outroId = e.outroId ? String(e.outroId) : null;
       project.music = music;
       project.export = null; // edits changed → export is stale
 
@@ -209,24 +209,22 @@ export default async function handler(req, res){
       const videos = project.clips.filter(c => clipVideo(c)).map(clipVideo);
       if(!videos.length) return res.status(400).json({ error: 'Render your clips first.' });
       if(videos.length !== project.clips.length) return res.status(400).json({ error: 'Some clips are still rendering.' });
-      const outro = await outroFor(s.email, project);
-      if(project.branding?.outro && !outro){
-        return res.status(400).json({ error: `Upload a ${variantForAspect(project.aspect)} branding video first.` });
-      }
 
-      const brand = await getBranding(s.email);
-      const wantLogo = !!(project.edit?.logo && brand.logo?.url);
+      const { intro, outro, logo } = await introOutroFor(s.email, project);
+      const wantLogo = !!(project.edit?.logo && logo?.url);
       const texts = (project.edit?.texts || []).filter(t => t.text && t.clips?.length);
       const overlaysActive = wantLogo || texts.length > 0;
 
       if(overlaysActive && shotstackConfigured()){
-        // Real overlays → Shotstack renders the whole timeline in one job.
+        // Real overlays → Shotstack renders the whole timeline (intro + clips +
+        // outro + logo + text + music) in one job.
         const clipItems = project.clips.map(c => ({ url: clipVideo(c), dur: Number(c.duration) || 8, cid: c.cid }));
         const edit = buildShotstackEdit({
           clips: clipItems,
+          intro: intro || null,
           outro: outro || null,
-          logoUrl: wantLogo ? brand.logo.url : null,
-          logoSize: project.edit?.logoSize === 'medium' ? 'medium' : 'small',
+          logoUrl: wantLogo ? logo.url : null,
+          logoScale: project.edit?.logoScale || 1,
           texts,
           musicUrl: project.music?.url || null,
           aspect: project.aspect,
@@ -235,8 +233,8 @@ export default async function handler(req, res){
         project.mergedPending = { phase: 'shotstack', ...job };
         project.export = null;
       } else {
-        // fal fallback: concat (+ outro) then mix music.
-        const parts = outro ? [...videos, outro] : videos;
+        // fal fallback (cheaper, no overlays): concat intro + clips + outro, then music.
+        const parts = [...(intro ? [intro.url] : []), ...videos, ...(outro ? [outro.url] : [])];
         if(parts.length > 1){
           if(!falConfigured()) return res.status(503).json({ error: 'Rendering not configured.' });
           // index 0 = the first listing clip decides the output shape; without this

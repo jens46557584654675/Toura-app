@@ -1,6 +1,7 @@
-// Kantoor branding: upload / preview / remove the logo and the outro clips.
+// Kantoor branding: logo + named intro/outro clips (each with landscape/portrait).
+import crypto from 'crypto';
 import { getSession } from '../lib/auth.js';
-import { getBranding, saveBranding } from '../lib/branding.js';
+import { getBranding, saveBranding, findItem } from '../lib/branding.js';
 import { hostLogo, hostBrandingVideo } from '../lib/blob.js';
 
 export default async function handler(req, res){
@@ -14,26 +15,41 @@ export default async function handler(req, res){
 
   const branding = await getBranding(s.email);
   const { action } = req.body || {};
+  const kind = () => (req.body.kind === 'intro' ? 'intro' : 'outro');
+  const listOf = k => (k === 'intro' ? branding.intros : branding.outros);
   const variant = () => (req.body.variant === 'portrait' ? 'portrait' : 'landscape');
 
   try{
     if(action === 'logo'){
-      branding.logo = {
-        url: await hostLogo(req.body.data),
-        name: String(req.body.name || 'Logo').slice(0, 80),
-      };
-
-    } else if(action === 'video'){
-      branding.videos[variant()] = {
-        url: await hostBrandingVideo(req.body.data),
-        name: String(req.body.name || 'Branding video').slice(0, 80),
-      };
+      branding.logo = { url: await hostLogo(req.body.data), name: String(req.body.name || 'Logo').slice(0, 80) };
 
     } else if(action === 'removeLogo'){
       branding.logo = null;
 
-    } else if(action === 'removeVideo'){
-      branding.videos[variant()] = null;
+    } else if(action === 'additem'){
+      const k = kind();
+      const item = { id: crypto.randomUUID(), name: String(req.body.name || (k === 'intro' ? 'Intro' : 'Outro')).slice(0, 80), videos: { landscape: null, portrait: null } };
+      listOf(k).push(item);
+
+    } else if(action === 'rename'){
+      const it = findItem(listOf(kind()), req.body.id);
+      if(!it) return res.status(404).json({ error: 'Not found' });
+      it.name = String(req.body.name || it.name).slice(0, 80);
+
+    } else if(action === 'removeitem'){
+      const list = listOf(kind());
+      const i = list.findIndex(x => x.id === req.body.id);
+      if(i >= 0) list.splice(i, 1);
+
+    } else if(action === 'uploadvariant'){
+      const it = findItem(listOf(kind()), req.body.id);
+      if(!it) return res.status(404).json({ error: 'Not found' });
+      const dur = Number(req.body.dur);
+      it.videos[variant()] = { url: await hostBrandingVideo(req.body.data), dur: dur > 0 ? dur : null };
+
+    } else if(action === 'removevariant'){
+      const it = findItem(listOf(kind()), req.body.id);
+      if(it) it.videos[variant()] = null;
 
     } else {
       return res.status(400).json({ error: 'Unknown action' });

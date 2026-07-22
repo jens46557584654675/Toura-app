@@ -194,45 +194,88 @@
   .edhead h2{font-size:18px;font-weight:800}
   .edx{width:32px;height:32px;border-radius:50%;background:var(--grey);color:var(--ink);font-size:13px}
   .edx:hover{background:var(--grey2)}
-  .edbody{padding:22px 24px;overflow:auto;display:grid;grid-template-columns:1.3fr 1fr;gap:24px}
-  @media(max-width:820px){ .edbody{grid-template-columns:1fr} }
-  .edstage{position:relative;border-radius:14px;overflow:hidden;background:#000;min-height:180px}
-  .edstage video{display:block;width:100%;height:auto;max-height:52vh;margin:0 auto}
-  /* text/logo overlays sit on top of the preview */
+  /* logo tool in the header */
+  .edlogotool{display:flex;align-items:center;gap:10px;margin-left:auto;margin-right:14px}
+  .edchk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink)}
+  .edchk .edbox{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--edge);display:inline-block}
+  .edchk.on .edbox{background:var(--ink);border-color:var(--ink)}
+  .edchk:disabled{opacity:.45}
+  .edlogotool input[type=range]{width:110px}
+  .edscaleval{font-size:12.5px;font-weight:700;color:var(--muted);min-width:34px}
+  /* preview (top half) */
+  .edpreview{padding:18px 24px 8px;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:auto}
+  .edstage{position:relative;border-radius:14px;overflow:hidden;background:#000;min-height:180px;max-width:100%}
+  .edstage video{display:block;width:auto;max-width:100%;height:auto;max-height:46vh;margin:0 auto}
   .edoverlays{position:absolute;inset:0;pointer-events:none}
   .edtext{position:absolute;max-width:80%;background:rgba(17,17,17,.62);color:#fff;font-size:14px;font-weight:600;line-height:1.3;padding:8px 12px;border-radius:8px;white-space:pre-wrap}
   .edtext.tl{top:14px;left:14px} .edtext.tc{top:14px;left:50%;transform:translateX(-50%);text-align:center}
   .edtext.tr{top:14px;right:14px} .edtext.bl{bottom:14px;left:14px}
   .edtext.bc{bottom:14px;left:50%;transform:translateX(-50%);text-align:center} .edtext.br{bottom:14px;right:14px}
   .edlogo{position:absolute;bottom:14px;right:14px;max-width:13%;max-height:16%}
-  .edlogo.medium{max-width:22%;max-height:26%}
-  .edsize{display:flex;align-items:center;gap:8px;margin-top:10px}
-  .edsize .edsizelab{font-size:12px;color:var(--muted);font-weight:600}
-  .edsize button{font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--grey);color:var(--muted);border:1px solid var(--line)}
-  .edsize button.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
-  .edtimeline{display:flex;gap:6px;overflow-x:auto;margin-top:14px;padding-bottom:4px}
-  .edtclip{flex:none;border-radius:8px;overflow:hidden;background:var(--grey2);cursor:pointer;position:relative;border:2px solid transparent}
-  .edtclip.on{border-color:var(--ink)}
-  .edtclip video,.edtclip img{width:100%;height:46px;object-fit:cover;display:block;pointer-events:none}
-  .edtclip .edtlab{position:absolute;left:4px;bottom:3px;font-size:9.5px;font-weight:700;background:var(--pill);color:var(--ink);padding:1px 5px;border-radius:999px}
-  .edtoutro{flex:none;width:60px;border-radius:8px;border:1.5px dashed var(--dash);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);font-size:10px;font-weight:700}
-  .edtoutro.on{border-style:solid;border-color:var(--ink);color:var(--ink)}
-  .edtoutro .plus{font-size:18px;line-height:1;font-weight:300}
-  .edwave{display:flex;align-items:flex-end;gap:3px;height:34px;margin-top:12px;padding:0 2px;opacity:.5}
-  .edwave.on{opacity:1}
-  .edwave i{flex:1;background:var(--muted);border-radius:2px;min-width:2px}
-  .edpanels{display:flex;flex-direction:column;gap:20px;min-width:0}
-  .edpanel h4{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
-  .edph{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .edph h4{margin-bottom:0}
-  .edtcard{background:var(--grey);border-radius:12px;padding:12px;margin-bottom:10px}
-  .edtcard textarea{width:100%;background:var(--card);border:1px solid transparent;border-radius:8px;padding:8px 10px;font-size:13.5px;resize:vertical;min-height:40px;outline:none}
-  .edtrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .edtrow select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;color:var(--ink)}
-  .edtrow .edtrm{margin-left:auto;color:var(--muted);font-size:12px;font-weight:700}
-  .edclips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .edclips button{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--muted);border:1px solid var(--line)}
-  .edclips button.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+  .edtoolbar{display:flex;align-items:center;gap:14px}
+  .edtoolbar .cvnow{font-size:13px;color:var(--muted);font-weight:500}
+  /* tracks (bottom half) */
+  .edtracks{padding:6px 24px 18px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+  .edrow{display:flex;align-items:stretch;gap:10px}
+  .edrow .edtlab{flex:none;width:52px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+  .edadd{width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+  .edtrack{flex:1;display:flex;gap:3px;min-height:34px;background:var(--grey);border-radius:8px;padding:3px}
+  .edcell{display:flex;flex-direction:column;gap:2px;justify-content:center;min-width:0}
+  .edtbar{background:var(--ink);color:var(--on-ink);font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
+  .edcellitem{position:relative;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid transparent;min-width:0}
+  .edcellitem.on{border-color:var(--ink)}
+  .edcellitem video{width:100%;height:44px;object-fit:cover;display:block;pointer-events:none}
+  .edio{background:var(--grey2)}
+  .edio span{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:9.5px;font-weight:700;background:var(--pill);color:var(--ink);text-transform:capitalize}
+  .edslot{flex:none;min-width:54px;border-radius:6px;border:1.5px dashed var(--dash);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:11px;font-weight:700}
+  .edslot:hover{border-color:var(--muted);color:var(--ink)}
+  .edmusiccell{flex:1;display:flex;align-items:center;gap:10px;padding:0 8px;cursor:pointer;min-width:0}
+  .edmusiccell .epmname{font-size:12.5px;font-weight:700;white-space:nowrap}
+  .edmusiccell .epwave{flex:1;height:30px;min-width:0}
+  .edmusiccell .mnone{color:var(--muted);font-size:12.5px;font-weight:600}
+  /* floating popover */
+  .edpop{position:fixed;z-index:80;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 34px rgba(0,0,0,.16);padding:14px;width:280px;max-width:92vw;display:none}
+  .edpop.on{display:block}
+  .edpoptitle{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+  .edpoptext{width:100%;background:var(--grey);border:1px solid transparent;border-radius:8px;padding:8px 10px;font-size:13.5px;resize:vertical;min-height:44px;outline:none}
+  .edpoplab{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px}
+  .edpopsel{width:100%;background:var(--grey);border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13px;color:var(--ink)}
+  .edchips{display:flex;gap:6px;flex-wrap:wrap}
+  .edchip{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--grey);color:var(--muted);border:1px solid var(--line)}
+  .edchip.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+  .edpopfoot{display:flex;justify-content:space-between;gap:10px;margin-top:12px}
+  .edoprow{display:block;width:100%;text-align:left;padding:9px 11px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--ink)}
+  .edoprow:hover:not(:disabled){background:var(--grey)}
+  .edoprow.on{background:var(--grey);font-weight:700}
+  .edoprow:disabled{opacity:.5}
+  .edmiss{font-size:11px;color:var(--muted);font-weight:500}
+  .edpop .mpick{margin:0 0 10px}
+  .edpop .mlist{max-height:220px;overflow:auto}
+  /* branding intro/outro items */
+  .bsecti{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+  .bitem{background:var(--grey);border-radius:14px;padding:14px;margin-top:12px}
+  .bitem-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .bitem-name{flex:1;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;color:var(--ink);outline:none}
+  .bitem-del{font-size:12px;font-weight:600;color:var(--muted)}
+  .bitem-del:hover{color:#c0392b}
+  /* final-page video-editing panel */
+  .editpanel{background:var(--grey);border-radius:var(--radius);padding:16px;cursor:pointer;transition:background .12s}
+  .editpanel:hover{background:var(--grey2)}
+  .ep-textbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .ep-textbar .eplab{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;width:36px}
+  .ep-cells{flex:1;display:flex;gap:3px}
+  .ep-cells .epslot{flex:1;height:6px;border-radius:999px;background:var(--grey2)}
+  .ep-cells .epslot.on{background:var(--ink)}
+  .ep-timeline{display:flex;gap:5px;align-items:center;overflow-x:auto;padding-bottom:4px}
+  .ep-clip{flex:none;border-radius:7px;overflow:hidden;background:var(--grey2)}
+  .ep-clip video,.ep-clip img{width:100%;height:48px;object-fit:cover;display:block}
+  .ep-io{flex:none;position:relative;width:66px;border-radius:7px;overflow:hidden;border:1.5px solid var(--ink)}
+  .ep-io video{width:100%;height:48px;object-fit:cover;display:block}
+  .ep-io span{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:9.5px;font-weight:700;background:var(--pill);color:var(--ink)}
+  .ep-music{display:flex;align-items:center;gap:10px;margin-top:12px;min-height:34px}
+  .ep-music .epmname{font-size:13px;font-weight:700;white-space:nowrap}
+  .ep-music .epwave{flex:1;height:34px;min-width:0;max-width:600px}
+  .ep-music .mnone{color:var(--muted);font-size:13.5px;font-weight:500}
   .edfoot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--line)}
   .edcoming{font-size:12.5px;color:var(--muted);font-weight:600}
   .edactions{display:flex;gap:10px}
@@ -463,7 +506,7 @@
   </div></nav>
   <div class="wrap">
     <div class="dash-head">
-      <div><h1>Branding</h1><p>Your office logo and outro clip, ready to add to any walkthrough.</p></div>
+      <div><h1>Branding</h1><p>Your office logo, intro and outro clips, ready to add to any walkthrough.</p></div>
     </div>
 
     <div class="bcard">
@@ -480,33 +523,17 @@
     </div>
 
     <div class="bcard">
-      <h3>Branding video</h3>
-      <div class="bhint">A short MP4 outro with your office logo — 3 to 6 seconds works well. Max 3 MB per file.<br>
-        Upload both shapes so every project can use one: landscape for 16:9 walkthroughs, portrait for 9:16.</div>
-      <div class="bvids">
-        <div class="bvid">
-          <div class="blab">Landscape · 16:9</div>
-          <div class="bslot">
-            <div class="bprev" id="bLandPrev"><span class="bempty">Not uploaded</span></div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn small" onclick="pickBrandVideo('landscape')">Upload</button>
-              <button class="btn ghost small" id="bLandRm" style="display:none" onclick="removeBranding('removeVideo','landscape')">Remove</button>
-            </div>
-          </div>
-        </div>
-        <div class="bvid">
-          <div class="blab">Portrait · 9:16</div>
-          <div class="bslot">
-            <div class="bprev" id="bPortPrev"><span class="bempty">Not uploaded</span></div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn small" onclick="pickBrandVideo('portrait')">Upload</button>
-              <button class="btn ghost small" id="bPortRm" style="display:none" onclick="removeBranding('removeVideo','portrait')">Remove</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <input type="file" id="bVidInput" accept="video/mp4" hidden>
+      <div class="bsecti"><h3>Intro videos</h3><button class="btn ghost small" onclick="addBrandItem('intro')">+ Add intro</button></div>
+      <div class="bhint">Short MP4 clips shown BEFORE the walkthrough. Add a landscape and/or portrait version per intro. Max 3 MB each.</div>
+      <div id="bIntros"></div>
     </div>
+
+    <div class="bcard">
+      <div class="bsecti"><h3>Outro videos</h3><button class="btn ghost small" onclick="addBrandItem('outro')">+ Add outro</button></div>
+      <div class="bhint">Short MP4 clips shown AFTER the walkthrough — usually your logo card. Max 3 MB each.</div>
+      <div id="bOutros"></div>
+    </div>
+    <input type="file" id="bVidInput" accept="video/mp4" hidden>
   </div>
 </section>
 
@@ -664,14 +691,8 @@
 
     <div class="step">
       <h2>Video editing</h2>
-      <div class="step-sub">Click the timeline to open the editor — add a text card, your logo and music, and preview it all.</div>
-      <div class="timeline tledit" id="ppTimeline" onclick="openEditor()"></div>
-      <div class="musicbar">
-        <button class="tplay" id="ppMusicPlay">▶</button>
-        <div class="mname" id="ppMusicName"><span class="mnone">No music selected</span></div>
-        <button class="btn ghost small" onclick="openEditor()">✎ Open editor</button>
-      </div>
-      <div class="bopts" id="ppBranding"></div>
+      <div class="step-sub">Click to open the editor — add text, your logo, an intro/outro and music.</div>
+      <div class="editpanel" id="editPanel" onclick="openEditor()"></div>
     </div>
 
     <div class="stage" id="exportStage"></div>
@@ -683,52 +704,28 @@
   <div class="edmodal">
     <div class="edhead">
       <h2>Video editing</h2>
+      <div class="edlogotool">
+        <button class="edchk" id="edLogoChk"><span class="edbox"></span> Logo</button>
+        <input type="range" id="edLogoRange" min="0.5" max="2" step="0.1" value="1" title="Logo size">
+        <span class="edscaleval" id="edScaleVal">1.0×</span>
+      </div>
       <button class="edx" onclick="closeEditor()" title="Close">✕</button>
     </div>
-    <div class="edbody">
-      <div class="edstage-wrap">
-        <div class="edstage" id="edStage">
-          <video id="edVid" playsinline preload="auto"></video>
-          <div class="edoverlays" id="edOverlays"></div>
-        </div>
-        <div class="cvbar" id="edBar"></div>
-        <div class="cvctl">
-          <button class="cvbtn" id="edPlay">▶</button>
-          <span class="cvnow" id="edNow"></span>
-          <div class="cvright"><button class="btn ghost small" id="edRestart">↺ Restart</button></div>
-        </div>
-        <div class="edtimeline" id="edTimeline"></div>
-        <div class="edwave" id="edWave"></div>
+    <div class="edpreview">
+      <div class="edstage" id="edStage">
+        <video id="edVid" playsinline preload="auto"></video>
+        <div class="edoverlays" id="edOverlays"></div>
       </div>
-      <div class="edpanels">
-        <div class="edpanel">
-          <div class="edph"><h4>Text</h4><button class="btn ghost small" onclick="edAddText()">+ Add text</button></div>
-          <div id="edTexts"></div>
-        </div>
-        <div class="edpanel">
-          <h4>Logo</h4>
-          <button class="bopt" id="edLogo"><span class="bbox"></span><span>Show logo bottom-right<span class="bsub" id="edLogoSub"></span></span></button>
-          <div class="edsize" id="edLogoSize" style="display:none">
-            <span class="edsizelab">Size</span>
-            <button data-s="small">Small</button>
-            <button data-s="medium">Medium</button>
-          </div>
-        </div>
-        <div class="edpanel">
-          <h4>Branding video</h4>
-          <button class="bopt" id="edOutro"><span class="bbox"></span><span>Add branding video as outro<span class="bsub" id="edOutroSub"></span></span></button>
-        </div>
-        <div class="edpanel">
-          <h4>Music</h4>
-          <div class="mpick" id="edMpick">
-            <button class="mopt" data-m="none">No music</button>
-            <button class="mopt" data-m="toura">Toura picks</button>
-            <button class="mopt" data-m="favs">Favorites</button>
-            <button class="mopt" data-m="mine">My uploads</button>
-          </div>
-          <div class="mlist" id="edMlist"></div>
-        </div>
+      <div class="edtoolbar">
+        <button class="cvbtn" id="edPlay">▶</button>
+        <span class="cvnow" id="edNow"></span>
+        <button class="btn ghost small" id="edRestart">↺ Restart</button>
       </div>
+    </div>
+    <div class="edtracks">
+      <div class="edrow"><span class="edtlab">Text <button class="edadd" id="edAddTextBtn" title="Add text">+</button></span><div class="edtrack" id="edTextTrack"></div></div>
+      <div class="edrow"><span class="edtlab">Clips</span><div class="edtrack" id="edClipTrack"></div></div>
+      <div class="edrow"><span class="edtlab">Music</span><div class="edtrack" id="edMusicTrack"></div></div>
     </div>
     <div class="edfoot">
       <span class="edcoming">Text &amp; logo are burned into the exported video.</span>
@@ -738,6 +735,7 @@
       </div>
     </div>
   </div>
+  <div class="edpop" id="edPop"></div>
 </div>
 
 <!-- upload popup -->
@@ -1246,20 +1244,61 @@ function goAccount(){
 }
 
 /* ============ branding ============ */
-let branding={logo:null,videos:{landscape:null,portrait:null}};
+let branding={logo:null,intros:[],outros:[]};
 async function loadBranding(){
   try{ branding=(await api('/api/branding')).branding; }catch{}
 }
 function goBranding(){ renderBranding(); show('branding'); }
+// Helpers shared with the editor.
+function brandList(kind){ return (kind==='intro'?branding.intros:branding.outros)||[]; }
+function brandItem(kind,id){ return brandList(kind).find(x=>x.id===id)||null; }
+function brandVariant(item,aspect){ if(!item) return null; const v=item.videos[aspect==='9:16'?'portrait':'landscape']; return v&&v.url?v:null; }
+function brandVariantUrl(item,aspect){ return brandVariant(item,aspect)?.url||null; }
+
 function renderBranding(){
   const lp=$('bLogoPrev');
   lp.innerHTML=branding.logo?`<img src="${esc(branding.logo.url)}" alt="Logo">`:'<span class="bempty">No logo yet</span>';
   $('bLogoRm').style.display=branding.logo?'':'none';
-  [['landscape','bLandPrev','bLandRm'],['portrait','bPortPrev','bPortRm']].forEach(([v,prev,rm])=>{
-    const vid=branding.videos[v];
-    $(prev).innerHTML=vid?`<video src="${esc(vid.url)}" controls muted playsinline preload="metadata"></video>`:'<span class="bempty">Not uploaded</span>';
-    $(rm).style.display=vid?'':'none';
+  renderBrandList('intro',$('bIntros'));
+  renderBrandList('outro',$('bOutros'));
+}
+function renderBrandList(kind,box){
+  box.innerHTML='';
+  const list=brandList(kind);
+  if(!list.length){ box.innerHTML=`<div class="empty-note" style="padding:4px 2px">No ${kind}s yet — add one above.</div>`; return; }
+  list.forEach(item=>{
+    const card=document.createElement('div'); card.className='bitem';
+    const head=document.createElement('div'); head.className='bitem-head';
+    const name=document.createElement('input'); name.className='bitem-name'; name.value=item.name; name.maxLength=80;
+    name.onchange=async()=>{ await brandApi({action:'rename',kind,id:item.id,name:name.value.trim()||item.name}); };
+    const rm=document.createElement('button'); rm.className='bitem-del'; rm.textContent='Remove'; rm.title='Delete this '+kind;
+    rm.onclick=async()=>{ if(confirm(`Delete "${item.name}"?`)) await brandApi({action:'removeitem',kind,id:item.id}); };
+    head.appendChild(name); head.appendChild(rm); card.appendChild(head);
+    const vids=document.createElement('div'); vids.className='bvids';
+    [['landscape','Landscape · 16:9'],['portrait','Portrait · 9:16']].forEach(([v,label])=>{
+      const col=document.createElement('div'); col.className='bvid';
+      const vid=item.videos[v];
+      col.innerHTML=`<div class="blab">${label}</div>
+        <div class="bprev">${vid?`<video src="${esc(vid.url)}" controls muted playsinline preload="metadata"></video>`:'<span class="bempty">Not uploaded</span>'}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn small">${vid?'Replace':'Upload'}</button>
+          ${vid?'<button class="btn ghost small brm">Remove</button>':''}
+        </div>`;
+      col.querySelector('.btn.small').onclick=()=>pickBrandVideo(kind,item.id,v);
+      const b=col.querySelector('.brm'); if(b) b.onclick=async()=>{ await brandApi({action:'removevariant',kind,id:item.id,variant:v}); };
+      vids.appendChild(col);
+    });
+    card.appendChild(vids); box.appendChild(card);
   });
+}
+async function brandApi(body){
+  try{ branding=(await api('/api/branding',{method:'POST',body})).branding; renderBranding(); }
+  catch(e){ toast(e.message,6000); }
+}
+async function addBrandItem(kind){
+  const name=window.prompt(`Name this ${kind}`, kind==='intro'?'Intro':'Outro');
+  if(!name||!name.trim()) return;
+  await brandApi({action:'additem',kind,name:name.trim()});
 }
 // Uploads are sent as base64, which grows the payload ~33%; the server caps the
 // decoded file at 3 MB, so check the real file size here for a friendlier error.
@@ -1274,22 +1313,32 @@ $('bLogoInput').onchange=async()=>{
     renderBranding(); toast('Logo saved.');
   }catch(e){ toast(e.message,6000); }
 };
-let brandVariant='landscape';
-function pickBrandVideo(v){ brandVariant=v; $('bVidInput').click(); }
+// Probe a video's duration client-side (like music), so the export can time the
+// logo/text correctly around the intro.
+function probeVideoDur(file){
+  return new Promise(res=>{
+    const v=document.createElement('video'); v.preload='metadata';
+    v.onloadedmetadata=()=>{ res(Number.isFinite(v.duration)?v.duration:null); URL.revokeObjectURL(v.src); };
+    v.onerror=()=>res(null);
+    v.src=URL.createObjectURL(file);
+  });
+}
+let brandUpload=null; // {kind,id,variant}
+function pickBrandVideo(kind,id,variant){ brandUpload={kind,id,variant}; $('bVidInput').click(); }
 $('bVidInput').onchange=async()=>{
   const f=$('bVidInput').files[0]; $('bVidInput').value='';
-  if(!f) return;
+  if(!f||!brandUpload) return;
   if(f.size>MAX_MB*1024*1024){ toast(`Max ${MAX_MB} MB — keep the clip short (3-6 seconds).`); return; }
+  const dur=await probeVideoDur(f);
   try{
-    branding=(await api('/api/branding',{method:'POST',body:{action:'video',variant:brandVariant,name:f.name.replace(/\.\w+$/,''),data:await readAsDataUrl(f)}})).branding;
-    renderBranding(); toast('Branding video saved.');
+    branding=(await api('/api/branding',{method:'POST',body:{action:'uploadvariant',...brandUpload,data:await readAsDataUrl(f),dur}})).branding;
+    renderBranding(); toast('Saved.');
   }catch(e){ toast(e.message,6000); }
+  brandUpload=null;
 };
-async function removeBranding(action,variant){
-  try{
-    branding=(await api('/api/branding',{method:'POST',body:{action,variant}})).branding;
-    renderBranding();
-  }catch(e){ toast(e.message); }
+async function removeBranding(action){
+  try{ branding=(await api('/api/branding',{method:'POST',body:{action}})).branding; renderBranding(); }
+  catch(e){ toast(e.message); }
 }
 
 /* ============ route + segments ============ */
@@ -1629,35 +1678,16 @@ function renderFinalPage(){
     row.appendChild(el);
   });
 
-  // branding-video card — always last, not draggable. Toggles the same
-  // project.branding.outro flag as the option in step 4, so both stay in sync.
-  const bo=brandingOutro();
-  const bcOn=!!p.branding?.outro&&!!bo;
-  const bc=document.createElement('div'); bc.className='fclip fbrand'+(bcOn?' on':'');
-  if(bcOn){
-    bc.innerHTML=`<div class="cv"><video src="${esc(bo.url)}#t=0.1" muted playsinline preload="metadata"></video></div>
-      <div class="cc"><span>Branding video</span><span class="fbrm" title="Remove">✕</span></div>`;
-  } else {
-    bc.innerHTML=`<div class="fbadd"><span class="plus">+</span><span>Branding video</span></div>
-      <div class="cc"><span>${bo?'Add as outro':'Set up branding'}</span></div>`;
-  }
-  bc.onclick=async()=>{
-    if(!bo){ toast('Upload a branding video on the Branding page first.',5000); goBranding(); return; }
-    await doAction({action:'branding',outro:!p.branding?.outro});
-    renderFinalPage();
-  };
-  row.appendChild(bc);
-
   row.ondragover=e=>{
     e.preventDefault();
     if(fnDragIdx===null||!fnPh) return;
-    const cards=[...row.querySelectorAll('.fclip:not(.dragging):not(.fbrand)')];
+    const cards=[...row.querySelectorAll('.fclip:not(.dragging)')];
     let placed=false;
     for(const c of cards){
       const r=c.getBoundingClientRect();
       if(e.clientX < r.left + r.width/2){ row.insertBefore(fnPh,c); placed=true; break; }
     }
-    if(!placed){ const brand=row.querySelector('.fbrand'); brand?row.insertBefore(fnPh,brand):row.appendChild(fnPh); }
+    if(!placed) row.appendChild(fnPh);
   };
   row.ondrop=async e=>{
     e.preventDefault();
@@ -1665,7 +1695,7 @@ function renderFinalPage(){
     let newIdx=0;
     for(const el of row.children){
       if(el===fnPh) break;
-      if(el.classList.contains('fclip')&&!el.classList.contains('dragging')&&!el.classList.contains('fbrand')) newIdx++;
+      if(el.classList.contains('fclip')&&!el.classList.contains('dragging')) newIdx++;
     }
     const order=p.clips.map(c=>c.cid);
     const [m]=order.splice(fnDragIdx,1); order.splice(newIdx,0,m);
@@ -1673,20 +1703,17 @@ function renderFinalPage(){
     await doAction({action:'reorder',order});
   };
 
-  // concept stage — plays the clips (plus the branding outro when chosen) back
-  // to back in the browser. Nothing is merged here, so previewing costs nothing.
+  // concept stage — plays only the clips back to back in the browser. Intro/outro
+  // are chosen on the Final video page, not here. Previewing costs nothing.
   const cs=$('conceptStage');
   const vert=p.aspect==='9:16';
-  const clipSources=p.clips.map(c=>clipSrc(c)).filter(Boolean);
-  const allReady=clipSources.length===p.clips.length&&clipSources.length>0;
-  const outroUrl=(p.branding?.outro&&brandingOutro())?brandingOutro().url:null;
-  const outroLast=allReady&&!!outroUrl;
-  const sources=outroLast?[...clipSources,outroUrl]:[...clipSources];
+  const sources=p.clips.map(c=>clipSrc(c)).filter(Boolean);
+  const allReady=sources.length===p.clips.length&&sources.length>0;
   if(!sources.length){
     cs.innerHTML=`<div class="shead"><div><div class="sttl">Concept video</div><div class="ssub">Render your clips in the previous step to preview the walkthrough here.</div></div></div>`;
     stopConceptPlayer();
   } else {
-    cs.innerHTML=`<div class="shead"><div><div class="sttl">Concept video</div><div class="ssub">${allReady?'Your clips play back to back in the order below'+(outroLast?', with your branding video at the end':'')+'. Reorder the cards above and it updates instantly.':`Playing the ${clipSources.length} clip${clipSources.length>1?'s':''} that are ready — the rest appear as they finish.`}</div></div></div>
+    cs.innerHTML=`<div class="shead"><div><div class="sttl">Concept video</div><div class="ssub">${allReady?'Your clips play back to back in the order below. Reorder the cards above and it updates instantly.':`Playing the ${sources.length} clip${sources.length>1?'s':''} that are ready — the rest appear as they finish.`}</div></div></div>
       <div class="cvwrap ${vert?'vert':''}">
         <div class="cvstack" id="cvStack">
           <video id="cvA" playsinline preload="auto" muted></video>
@@ -1701,7 +1728,7 @@ function renderFinalPage(){
           </div>
         </div>
       </div>`;
-    setupConceptPlayer(sources,{outroLast,clipCount:clipSources.length});
+    setupConceptPlayer(sources,{clipCount:sources.length});
   }
 }
 // Best available source for a clip: the 720p final once it exists, else the 480p.
@@ -1817,30 +1844,8 @@ function renderPostPage(){
   // a) final quality · 720p
   renderFinalQuality(p);
 
-  // timeline
-  const tl=$('ppTimeline'); tl.innerHTML='';
-  p.clips.forEach((c,i)=>{
-    const v=(c.final?.status==='done'&&c.final.video)||c.video;
-    const d=document.createElement('div'); d.className='tclip';
-    const w=Math.max(70,(parseInt(c.duration,10)||8)*14);
-    d.innerHTML=v?`<video src="${esc(v)}#t=0.3" muted playsinline preload="metadata" style="width:${w}px"></video><span class="tdur">${esc(c.duration)}s</span>`
-      :`<img src="${esc(c.poster||'')}" style="width:${w}px"><span class="tdur">…</span>`;
-    tl.appendChild(d);
-  });
-  // The branding outro is appended when the export is built, so show it last.
-  const outro=brandingOutro();
-  if(p.branding?.outro&&outro){
-    const d=document.createElement('div'); d.className='tclip touro';
-    d.innerHTML=`<video src="${esc(outro.url)}#t=0.1" muted playsinline preload="metadata" style="width:70px"></video><span class="tdur">outro</span>`;
-    tl.appendChild(d);
-  }
-
-  // music summary (the picker itself lives in the editor)
-  $('ppMusicName').innerHTML=p.music?esc(p.music.name):'<span class="mnone">No music selected</span>';
-  $('ppMusicPlay').onclick=()=>{ if(p.music) previewTrack({url:p.music.url,name:p.music.name},$('ppMusicPlay')); };
-
-  // branding options
-  renderBrandingOpts(p);
+  // b) the video-editing panel (click → editor)
+  renderEditPanel(p);
 
   // export stage
   const ex=$('exportStage');
@@ -1849,11 +1854,11 @@ function renderPostPage(){
   if(p.mergedPending?.phase==='shotstack'){
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Rendering your video with text, logo and music…</div></div></div>`;
   } else if(p.mergedPending?.phase==='export'||p.mergedPending?.phase==='outro'){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Combining your clips${p.branding?.outro&&brandingOutro()?' and branding video':''}…</div></div></div>`;
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Combining your clips${(projIntroUrl(p)||projOutroUrl(p))?' with your intro/outro':''}…</div></div></div>`;
   } else if(p.mergedPending?.phase==='audio'){
     ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Laying your music under the video…</div></div></div>`;
   } else if(p.export){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">Ready to share${p.music?` · ♪ ${esc(p.music.name)}`:''}${p.branding?.outro&&brandingOutro()?' · with branding outro':''}.</div></div>
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">Ready to share${p.music?` · ♪ ${esc(p.music.name)}`:''}${projOutroUrl(p)?' · with outro':''}.</div></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="btn small" href="${esc(p.export)}" target="_blank" rel="noopener" download="toura-walkthrough.mp4">↓ Download video</a>
         <button class="btn ghost small" onclick="doAction({action:'export'})">↺ Rebuild</button>
@@ -1884,36 +1889,39 @@ function renderFinalQuality(p){
       <button class="btn small" ${doneClips===total&&total>0?'':'disabled'} onclick="upgradeAll()">Upgrade ${n} clip${n>1?'s':''} to 720p</button></div>`;
   }
 }
-// The outro clip must match the project's shape, so a 9:16 project needs the
-// portrait upload — the landscape one would letterbox or stretch.
-function brandingOutro(){
-  const p=currentProject; if(!p) return null;
-  return branding.videos[p.aspect==='9:16'?'portrait':'landscape'];
-}
-function renderBrandingOpts(p){
-  const el=$('ppBranding'); if(!el) return;
-  const outro=brandingOutro();
-  const shape=p.aspect==='9:16'?'portrait':'landscape';
-  const on=!!p.branding?.outro;
-  el.innerHTML=`
-    <button class="bopt ${on?'on':''}" id="bOptOutro" ${outro?'':'disabled'}>
-      <span class="bbox">${on?'✓':''}</span>
-      <span>Add branding video
-        <span class="bsub">${outro?'Your outro clip is added after the last clip.':`Upload a ${shape} branding video on the Branding page first.`}</span>
-      </span>
-    </button>
-    <button class="bopt" id="bOptLogo" disabled>
-      <span class="bbox"></span>
-      <span>Add logo overlay
-        <span class="bsub">Coming soon — our video service cannot place a logo over video yet.</span>
-      </span>
-    </button>`;
-  if(outro){
-    $('bOptOutro').onclick=async()=>{
-      await doAction({action:'branding',outro:!on});
-      renderPostPage();
-    };
+// Resolve a project's chosen intro/outro to a variant URL for its aspect.
+// Back-compat: a project with the old branding.outro on maps to the first outro.
+function projOutroId(p){ return p.outroId!==undefined?p.outroId:((p.branding?.outro&&branding.outros[0])?branding.outros[0].id:null); }
+function projIntroUrl(p){ return brandVariantUrl(brandItem('intro',p.introId||null),p.aspect); }
+function projOutroUrl(p){ return brandVariantUrl(brandItem('outro',projOutroId(p)),p.aspect); }
+
+// The grey video-editing panel on the Final page: a thin text bar (if any text),
+// the timeline (intro? clips outro?), and a music row with a real waveform.
+function renderEditPanel(p){
+  const el=$('editPanel'); if(!el) return;
+  const introUrl=projIntroUrl(p), outroUrl=projOutroUrl(p);
+  const texts=(p.edit?.texts||[]).filter(t=>t.text&&t.clips?.length);
+  const clipIds=p.clips.map(c=>c.cid);
+  // text bar: a light strip per text card marking which clips it covers
+  let textbar='';
+  if(texts.length){
+    const cells=clipIds.map(cid=>`<span class="epslot${texts.some(t=>t.clips.includes(cid))?' on':''}"></span>`).join('');
+    textbar=`<div class="ep-textbar"><span class="eplab">Text</span><div class="ep-cells">${cells}</div></div>`;
   }
+  const clipBlocks=p.clips.map((c,i)=>{
+    const v=(c.final?.status==='done'&&c.final.video)||c.video;
+    const w=Math.max(60,(parseInt(c.duration,10)||8)*12);
+    return v?`<div class="ep-clip" style="width:${w}px"><video src="${esc(v)}#t=0.3" muted playsinline preload="metadata"></video></div>`
+      :`<div class="ep-clip" style="width:${w}px"><img src="${esc(c.poster||'')}"></div>`;
+  }).join('');
+  const introBlock=introUrl?`<div class="ep-io"><video src="${esc(introUrl)}#t=0.1" muted playsinline preload="metadata"></video><span>Intro</span></div>`:'';
+  const outroBlock=outroUrl?`<div class="ep-io"><video src="${esc(outroUrl)}#t=0.1" muted playsinline preload="metadata"></video><span>Outro</span></div>`:'';
+  const music=p.music?`<span class="epmname">♪ ${esc(p.music.name)}</span><canvas class="epwave" width="600" height="34"></canvas>`
+    :'<span class="mnone">No added music</span>';
+  el.innerHTML=`${textbar}
+    <div class="ep-timeline">${introBlock}${clipBlocks}${outroBlock}</div>
+    <div class="ep-music">${music}</div>`;
+  if(p.music){ const cv=el.querySelector('.epwave'); if(cv) drawWaveform(cv,p.music.url); }
 }
 /* ============ download the individual clip files ============ */
 // Force a real save via fetch→blob; fall back to opening the URL if CORS blocks it.
@@ -1933,7 +1941,38 @@ async function downloadAllClips(){
   for(const it of items){ await downloadFile(it.url,`toura-clip-${it.i+1}.mp4`); await new Promise(r=>setTimeout(r,600)); }
 }
 
-/* ============ video editor (real overlays via the render API) ============ */
+/* ============ waveform (Web Audio, drawn on a canvas) ============ */
+const waveCache={};
+async function drawWaveform(canvas,url){
+  const ctx=canvas.getContext('2d'); if(!ctx) return;
+  const paint=peaks=>{
+    const w=canvas.width,h=canvas.height; ctx.clearRect(0,0,w,h);
+    const col=(getComputedStyle(document.body).getPropertyValue('--muted')||'#8a8a8a').trim()||'#8a8a8a';
+    ctx.fillStyle=col;
+    const bw=w/peaks.length;
+    peaks.forEach((p,i)=>{ const bh=Math.max(1,p*h); ctx.fillRect(i*bw+bw*0.2,(h-bh)/2,Math.max(1,bw*0.6),bh); });
+  };
+  if(waveCache[url]){ paint(waveCache[url]); return; }
+  try{
+    const buf=await (await fetch(url)).arrayBuffer();
+    const AC=window.AudioContext||window.webkitAudioContext;
+    const ac=new AC();
+    const audio=await ac.decodeAudioData(buf);
+    if(ac.close) ac.close();
+    const data=audio.getChannelData(0);
+    const N=Math.min(160,Math.max(60,Math.floor(canvas.width/4)));
+    const block=Math.floor(data.length/N)||1;
+    const peaks=[];
+    for(let i=0;i<N;i++){ let max=0; for(let j=0;j<block;j++){ const v=Math.abs(data[i*block+j]||0); if(v>max) max=v; } peaks.push(max); }
+    const norm=Math.max(...peaks)||1;
+    const scaled=peaks.map(p=>p/norm);
+    waveCache[url]=scaled; paint(scaled);
+  }catch{
+    paint(Array.from({length:80},()=>0.22)); // decode can fail on data: URLs in dev
+  }
+}
+
+/* ============ video editor (3-track, overlays burned in via Shotstack) ======= */
 let edState=null;
 const POSITIONS=[['tl','Top left'],['tc','Top center'],['tr','Top right'],['bl','Bottom left'],['bc','Bottom center'],['br','Bottom right']];
 function edAudio(){ // dedicated element so it doesn't fight the library preview (#bgm)
@@ -1947,28 +1986,33 @@ function openEditor(){
   edState={
     texts:(e.texts||[]).map(t=>({text:t.text||'',pos:t.pos||'bl',clips:[...(t.clips||[])]})),
     logo:!!e.logo,
-    logoSize:e.logoSize==='medium'?'medium':'small',
-    brandingOutro:e.brandingOutro!=null?!!e.brandingOutro:!!p.branding?.outro,
+    logoScale:Math.min(2,Math.max(0.5,Number(e.logoScale)||1)),
+    introId:p.introId||null,
+    outroId:projOutroId(p),
     music:e.music||p.music||null,
     idx:0, playing:false, items:[], _audio:null,
   };
   edBuildItems();
   $('edOverlay').classList.add('on');
-  edRenderPanels();
+  edSyncLogoTool();
+  edRenderTracks();
   edLoad(0,false);
 }
 function closeEditor(){
+  edClosePop();
   if(edState){ try{ $('edVid').pause(); edState._audio&&edState._audio.pause(); }catch{} }
   $('edOverlay').classList.remove('on');
   edState=null;
 }
-// The preview playlist: every rendered clip (720p if present, else 480p), plus
-// the branding outro as a last item when that toggle is on and a clip exists.
+// Preview playlist: intro? + clips + outro? (720p if present, else 480p).
 function edBuildItems(){
-  const p=currentProject;
-  const items=p.clips.map(c=>({src:clipSrc(c),cid:c.cid,dur:parseFloat(c.duration)||8,outro:false})).filter(x=>x.src);
-  const bo=brandingOutro();
-  if(edState.brandingOutro&&bo) items.push({src:bo.url,cid:null,dur:5,outro:true});
+  const p=currentProject, asp=p.aspect;
+  const items=[];
+  const iv=brandVariant(brandItem('intro',edState.introId),asp);
+  if(iv) items.push({src:iv.url,cid:null,dur:iv.dur||5,kind:'intro'});
+  p.clips.forEach(c=>{ const s=clipSrc(c); if(s) items.push({src:s,cid:c.cid,dur:parseFloat(c.duration)||8,kind:'clip'}); });
+  const ov=brandVariant(brandItem('outro',edState.outroId),asp);
+  if(ov) items.push({src:ov.url,cid:null,dur:ov.dur||5,kind:'outro'});
   edState.items=items;
   if(edState.idx>=items.length) edState.idx=0;
 }
@@ -1977,17 +2021,17 @@ function edLoad(i,play){
   edState.idx=i;
   const v=$('edVid'); v.src=it.src; v.load();
   if(play){ edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); }
-  edPaintBar(); edRenderOverlays(); edRenderTimeline();
+  edPaintNow(); edRenderOverlays(); edMarkClip();
 }
 function edNext(){
   if(edState.idx+1<edState.items.length) edLoad(edState.idx+1,true);
-  else { edState.playing=false; const a=edState._audio; if(a) a.pause(); edPaintBar(); }
+  else { edState.playing=false; const a=edState._audio; if(a) a.pause(); edPaintNow(); }
 }
 function edToggle(){
   const v=$('edVid');
   if(edState.playing){ edState.playing=false; v.pause(); const a=edState._audio; if(a) a.pause(); }
   else { edState.playing=true; v.play().catch(()=>{}); edSyncAudio(); }
-  edPaintBar();
+  edPaintNow();
 }
 function edSyncAudio(){
   const a=edAudio();
@@ -1995,142 +2039,186 @@ function edSyncAudio(){
   if(a.src!==edState.music.url) a.src=edState.music.url;
   if(edState.playing) a.play().catch(()=>{});
 }
-function edPaintBar(){
-  const bar=$('edBar'); bar.innerHTML='';
-  edState.items.forEach((_,i)=>{
-    const seg=document.createElement('div'); seg.className='cvseg'+(i<edState.idx?' done':''); seg.innerHTML='<i></i>';
-    if(i<edState.idx) seg.querySelector('i').style.width='100%';
-    seg.onclick=()=>edLoad(i,true);
-    bar.appendChild(seg);
-  });
+function edPaintNow(){
   const it=edState.items[edState.idx];
-  $('edNow').textContent=it?(it.outro?'Branding video':`Clip ${edState.idx+1} of ${edState.items.filter(x=>!x.outro).length}`):'';
+  const nClips=edState.items.filter(x=>x.kind==='clip').length;
+  const clipNo=edState.items.slice(0,edState.idx+1).filter(x=>x.kind==='clip').length;
+  $('edNow').textContent=it?(it.kind==='intro'?'Intro':it.kind==='outro'?'Outro':`Clip ${clipNo} of ${nClips}`):'';
   $('edPlay').textContent=edState.playing?'❚❚':'▶';
 }
-// Text cards whose selected clips include the current clip, plus the logo.
+function edMarkClip(){
+  document.querySelectorAll('#edClipTrack .edcellitem').forEach(el=>el.classList.toggle('on',+el.dataset.i===edState.idx));
+}
+// Overlays: text cards active on the current CLIP + the logo. The logo is hidden
+// during intro/outro segments (as it is in the export).
 function edRenderOverlays(){
   const el=$('edOverlays'); el.innerHTML='';
-  const it=edState.items[edState.idx]; if(!it) return;
+  const it=edState.items[edState.idx]; if(!it||it.kind!=='clip') return;
   edState.texts.forEach(t=>{
-    if(t.text&&it.cid&&t.clips.includes(it.cid)){
+    if(t.text&&t.clips.includes(it.cid)){
       const d=document.createElement('div'); d.className='edtext '+t.pos; d.textContent=t.text; el.appendChild(d);
     }
   });
   if(edState.logo&&branding.logo){
-    const img=document.createElement('img'); img.className='edlogo'+(edState.logoSize==='medium'?' medium':''); img.src=branding.logo.url; el.appendChild(img);
+    const img=document.createElement('img'); img.className='edlogo'; img.src=branding.logo.url;
+    img.style.maxWidth=(13*edState.logoScale)+'%'; img.style.maxHeight=(16*edState.logoScale)+'%';
+    el.appendChild(img);
   }
 }
-function edRenderTimeline(){
-  const tl=$('edTimeline'); tl.innerHTML='';
+function edSyncLogoTool(){
+  const hasLogo=!!branding.logo;
+  const chk=$('edLogoChk'), rng=$('edLogoRange');
+  chk.classList.toggle('on',edState.logo&&hasLogo);
+  chk.disabled=!hasLogo; chk.title=hasLogo?'':'Upload a logo on the Branding page first';
+  rng.value=edState.logoScale; rng.disabled=!(edState.logo&&hasLogo);
+  $('edScaleVal').textContent=edState.logoScale.toFixed(1)+'×';
+}
+function edRenderTracks(){ edRenderTextTrack(); edRenderClipTrack(); edRenderMusicTrack(); }
+function edRenderTextTrack(){
+  const tr=$('edTextTrack'); tr.innerHTML='';
+  edState.items.forEach(it=>{
+    const cell=document.createElement('div'); cell.className='edcell'; cell.style.flex=it.dur;
+    if(it.kind==='clip'){
+      edState.texts.forEach((t,ti)=>{
+        if(t.text&&t.clips.includes(it.cid)){
+          const bar=document.createElement('div'); bar.className='edtbar'; bar.textContent=t.text;
+          bar.onclick=ev=>{ ev.stopPropagation(); edEditText(ti,bar); };
+          cell.appendChild(bar);
+        }
+      });
+    }
+    tr.appendChild(cell);
+  });
+}
+function edRenderClipTrack(){
+  const tr=$('edClipTrack'); tr.innerHTML='';
+  const hasIntro=edState.items.some(x=>x.kind==='intro');
+  const hasOutro=edState.items.some(x=>x.kind==='outro');
+  if(!hasIntro){
+    const s=document.createElement('div'); s.className='edslot'; s.style.flex='2'; s.innerHTML='<span>+ Intro</span>';
+    s.onclick=()=>edPickIO('intro',s); tr.appendChild(s);
+  }
   edState.items.forEach((it,i)=>{
-    if(it.outro) return;
-    const d=document.createElement('div'); d.className='edtclip'+(i===edState.idx?' on':'');
-    d.style.width=Math.max(44,Math.min(140,it.dur*12))+'px';
-    d.innerHTML=`<video src="${esc(it.src)}#t=0.3" muted playsinline preload="metadata"></video><span class="edtlab">${i+1}</span>`;
-    d.onclick=()=>edLoad(i,true);
-    tl.appendChild(d);
+    const cell=document.createElement('div'); cell.style.flex=it.dur; cell.dataset.i=i;
+    if(it.kind==='clip'){
+      cell.className='edcellitem edclipthumb'+(i===edState.idx?' on':'');
+      cell.innerHTML=`<video src="${esc(it.src)}#t=0.3" muted preload="metadata"></video>`;
+      cell.onclick=()=>edLoad(i,true);
+    } else {
+      cell.className='edcellitem edio '+it.kind+(i===edState.idx?' on':'');
+      cell.innerHTML=`<video src="${esc(it.src)}#t=0.1" muted preload="metadata"></video><span>${it.kind}</span>`;
+      cell.onclick=()=>edPickIO(it.kind,cell);
+    }
+    tr.appendChild(cell);
   });
-  // branding-outro block, toggles inclusion as the last item
-  const bo=brandingOutro();
-  const ob=document.createElement('div'); ob.className='edtoutro'+(edState.brandingOutro&&bo?' on':'');
-  ob.innerHTML=edState.brandingOutro&&bo?'<span>outro</span><span>✓</span>':'<span class="plus">+</span><span>outro</span>';
-  ob.onclick=()=>{
-    if(!bo){ toast('Upload a branding video on the Branding page first.',5000); return; }
-    edState.brandingOutro=!edState.brandingOutro;
-    edBuildItems(); edRenderTimeline(); edPaintBar();
-  };
-  tl.appendChild(ob);
-}
-function edRenderWave(){
-  const w=$('edWave'); w.classList.toggle('on',!!edState.music); w.innerHTML='';
-  // Stylized decorative bars — not a decoded waveform (kept light on purpose).
-  for(let i=0;i<48;i++){
-    const bar=document.createElement('i');
-    const h=edState.music?(20+Math.round(70*Math.abs(Math.sin(i*0.7)*Math.cos(i*0.29)))):18;
-    bar.style.height=h+'%';
-    w.appendChild(bar);
+  if(!hasOutro){
+    const s=document.createElement('div'); s.className='edslot'; s.style.flex='2'; s.innerHTML='<span>+ Outro</span>';
+    s.onclick=()=>edPickIO('outro',s); tr.appendChild(s);
   }
 }
-function edRenderTexts(){
-  const box=$('edTexts'); box.innerHTML='';
+function edRenderMusicTrack(){
+  const tr=$('edMusicTrack'); tr.innerHTML='';
+  const cell=document.createElement('div'); cell.className='edmusiccell';
+  if(edState.music){ cell.innerHTML=`<span class="epmname">♪ ${esc(edState.music.name)}</span><canvas class="epwave" width="600" height="30"></canvas>`; }
+  else cell.innerHTML='<span class="mnone">+ Add music</span>';
+  cell.onclick=()=>edPickMusic(cell);
+  tr.appendChild(cell);
+  if(edState.music){ const cv=cell.querySelector('.epwave'); if(cv) drawWaveform(cv,edState.music.url); }
+}
+/* ---- popovers anchored to the clicked track element ---- */
+function edClosePop(){ const p=$('edPop'); if(p){ p.classList.remove('on'); p.innerHTML=''; } }
+function edOpenPop(anchor,html,wire){
+  const pop=$('edPop'); pop.innerHTML=html; pop.classList.add('on');
+  const r=anchor.getBoundingClientRect();
+  const pw=pop.offsetWidth, ph=pop.offsetHeight;
+  const left=Math.min(window.innerWidth-pw-12,Math.max(12,r.left));
+  let top=r.bottom+8; if(top+ph>window.innerHeight-12) top=Math.max(12,r.top-ph-8);
+  pop.style.left=left+'px'; pop.style.top=top+'px';
+  wire&&wire(pop);
+}
+document.addEventListener('click',e=>{
+  const pop=$('edPop');
+  if(pop&&pop.classList.contains('on')&&!pop.contains(e.target)&&!e.target.closest('.edtrack')&&!e.target.closest('#edAddTextBtn')) edClosePop();
+});
+function edEditText(ti,anchor){
+  const t=edState.texts[ti]; if(!t) return;
   const clips=currentProject.clips.filter(c=>clipSrc(c));
-  if(!edState.texts.length){ box.innerHTML='<div class="empty-note" style="padding:2px">No text yet — add an address or a title.</div>'; }
-  edState.texts.forEach((t,ti)=>{
-    const card=document.createElement('div'); card.className='edtcard';
-    const posOpts=POSITIONS.map(([v,l])=>`<option value="${v}" ${t.pos===v?'selected':''}>${l}</option>`).join('');
-    card.innerHTML=`<textarea placeholder="Text (e.g. address)">${esc(t.text)}</textarea>
-      <div class="edtrow"><label style="font-size:12px;color:var(--muted)">Position</label><select>${posOpts}</select>
-        <button class="edtrm">Remove</button></div>
-      <div class="edclips"></div>`;
-    card.querySelector('textarea').oninput=e=>{ t.text=e.target.value; edRenderOverlays(); };
-    card.querySelector('select').onchange=e=>{ t.pos=e.target.value; edRenderOverlays(); };
-    card.querySelector('.edtrm').onclick=()=>{ edState.texts.splice(ti,1); edRenderTexts(); edRenderOverlays(); };
-    const cc=card.querySelector('.edclips');
-    clips.forEach((c,ci)=>{
-      const b=document.createElement('button'); b.textContent=ci+1; b.className=t.clips.includes(c.cid)?'on':'';
-      b.title=`Show during clip ${ci+1}`;
-      b.onclick=()=>{ const k=t.clips.indexOf(c.cid); if(k<0) t.clips.push(c.cid); else t.clips.splice(k,1); b.classList.toggle('on'); edRenderOverlays(); };
-      cc.appendChild(b);
-    });
-    box.appendChild(card);
+  const posOpts=POSITIONS.map(([v,l])=>`<option value="${v}" ${t.pos===v?'selected':''}>${l}</option>`).join('');
+  const chips=clips.map((c,ci)=>`<button class="edchip ${t.clips.includes(c.cid)?'on':''}" data-cid="${c.cid}">${ci+1}</button>`).join('');
+  edOpenPop(anchor,`<div class="edpoptitle">Text</div>
+    <textarea class="edpoptext" placeholder="Text (e.g. address)">${esc(t.text)}</textarea>
+    <label class="edpoplab">Position</label><select class="edpopsel">${posOpts}</select>
+    <label class="edpoplab">Show during clips</label><div class="edchips">${chips}</div>
+    <div class="edpopfoot"><button class="btn ghost small edpoprm">Remove</button><button class="btn small edpopok">Done</button></div>`,
+  pop=>{
+    pop.querySelector('.edpoptext').oninput=e=>{ t.text=e.target.value; edRenderOverlays(); };
+    pop.querySelector('.edpopsel').onchange=e=>{ t.pos=e.target.value; edRenderOverlays(); };
+    pop.querySelectorAll('.edchip').forEach(b=>b.onclick=()=>{ const cid=b.dataset.cid; const k=t.clips.indexOf(cid); if(k<0)t.clips.push(cid); else t.clips.splice(k,1); b.classList.toggle('on'); edRenderOverlays(); edRenderTextTrack(); });
+    pop.querySelector('.edpoprm').onclick=()=>{ edState.texts.splice(ti,1); edClosePop(); edRenderTextTrack(); edRenderOverlays(); };
+    pop.querySelector('.edpopok').onclick=()=>{ edClosePop(); edRenderTextTrack(); };
   });
 }
-function edAddText(){
+function edAddText(anchor){
   const first=currentProject.clips.filter(c=>clipSrc(c))[0];
-  edState.texts.push({text:'',pos:'bl',clips:first?[first.cid]:[]});
-  edRenderTexts();
+  edState.texts.push({text:'New text',pos:'bl',clips:first?[first.cid]:[]});
+  edRenderTextTrack(); edRenderOverlays();
+  edEditText(edState.texts.length-1,anchor||$('edAddTextBtn'));
 }
-function edRenderPanels(){
-  // logo toggle
-  const lg=$('edLogo'); const hasLogo=!!branding.logo;
-  lg.classList.toggle('on',edState.logo&&hasLogo);
-  lg.querySelector('.bbox').textContent=edState.logo&&hasLogo?'✓':'';
-  $('edLogoSub').textContent=hasLogo?'Burned into the bottom-right of the whole video.':'Upload a logo on the Branding page first.';
-  lg.disabled=!hasLogo;
-  lg.onclick=hasLogo?()=>{ edState.logo=!edState.logo; edRenderPanels(); edRenderOverlays(); }:null;
-  // logo size (only when the logo is on)
-  const sz=$('edLogoSize'); sz.style.display=(edState.logo&&hasLogo)?'flex':'none';
-  sz.querySelectorAll('button').forEach(b=>{
-    b.classList.toggle('on',b.dataset.s===edState.logoSize);
-    b.onclick=()=>{ edState.logoSize=b.dataset.s; edRenderPanels(); edRenderOverlays(); };
+function edPickIO(kind,anchor){
+  const list=brandList(kind);
+  const curId=kind==='intro'?edState.introId:edState.outroId;
+  const shape=currentProject.aspect==='9:16'?'portrait':'landscape';
+  const rows=[`<button class="edoprow ${!curId?'on':''}" data-id="">None</button>`]
+    .concat(list.map(it=>{
+      const has=brandVariant(it,currentProject.aspect);
+      return `<button class="edoprow ${curId===it.id?'on':''}" data-id="${it.id}" ${has?'':'disabled'}>${esc(it.name)}${has?'':` <span class="edmiss">(no ${shape})</span>`}</button>`;
+    })).join('');
+  edOpenPop(anchor,`<div class="edpoptitle">${kind==='intro'?'Intro':'Outro'}</div>
+    ${list.length?rows:`<div class="empty-note" style="padding:4px">No ${kind}s yet — add one on the Branding page.</div>`}`,
+  pop=>{
+    pop.querySelectorAll('.edoprow').forEach(b=>{ if(b.disabled) return; b.onclick=()=>{
+      const id=b.dataset.id||null;
+      if(kind==='intro') edState.introId=id; else edState.outroId=id;
+      edClosePop(); edBuildItems(); edRenderTracks(); edLoad(Math.min(edState.idx,edState.items.length-1),false);
+    }; });
   });
-  // outro toggle (mirrors the timeline block)
-  const ot=$('edOutro'); const bo=brandingOutro();
-  ot.classList.toggle('on',edState.brandingOutro&&!!bo);
-  ot.querySelector('.bbox').textContent=edState.brandingOutro&&bo?'✓':'';
-  $('edOutroSub').textContent=bo?'Added after the last clip.':'Upload a branding video on the Branding page first.';
-  ot.disabled=!bo;
-  ot.onclick=bo?()=>{ edState.brandingOutro=!edState.brandingOutro; edBuildItems(); edRenderPanels(); edRenderTimeline(); edPaintBar(); }:null;
-  // text + music + wave
-  edRenderTexts();
-  edRenderWave();
-  bindMpick('edMpick','edMlist',m=>{ edState.music=m; edSyncAudio(); edRenderWave(); },()=>edState.music);
-  document.querySelectorAll('#edMpick .mopt').forEach(b=>b.classList.toggle('on',b.dataset.m==='none'&&!edState.music));
+}
+function edPickMusic(anchor){
+  edOpenPop(anchor,`<div class="edpoptitle">Music</div>
+    <div class="mpick" id="edMpick">
+      <button class="mopt" data-m="none">None</button>
+      <button class="mopt on" data-m="toura">Toura</button>
+      <button class="mopt" data-m="favs">Favorites</button>
+      <button class="mopt" data-m="mine">Mine</button>
+    </div><div class="mlist" id="edMlist"></div>`,
+  pop=>{
+    bindMpick('edMpick','edMlist',m=>{ edState.music=m; edSyncAudio(); edRenderMusicTrack(); },()=>edState.music);
+    renderMlist('edMlist',tracksForTab('toura'),m=>{ edState.music=m; edSyncAudio(); edRenderMusicTrack(); },()=>edState.music);
+  });
 }
 async function saveEditor(){
   const edit={
     texts:edState.texts.filter(t=>t.text.trim()).map(t=>({text:t.text.trim(),pos:t.pos,clips:t.clips})),
     logo:edState.logo,
-    logoSize:edState.logoSize,
-    brandingOutro:edState.brandingOutro,
+    logoScale:edState.logoScale,
     music:edState.music,
+    introId:edState.introId,
+    outroId:edState.outroId,
   };
   await doAction({action:'edit',edit});
   closeEditor();
   toast('Saved.');
 }
-// wire the preview element handlers once the DOM exists
+// wire the persistent editor controls once the DOM exists
 (function edWire(){
   const v=$('edVid'); if(!v) return;
   v.onended=()=>edNext();
-  v.ontimeupdate=()=>{
-    const bar=$('edBar'); if(!bar||!edState) return;
-    const seg=bar.children[edState.idx]; if(!seg) return;
-    const d=v.duration; if(Number.isFinite(d)&&d>0) seg.querySelector('i').style.width=Math.min(100,(v.currentTime/d)*100)+'%';
-  };
   $('edStage').onclick=()=>edToggle();
   $('edPlay').onclick=e=>{ e.stopPropagation(); edToggle(); };
   $('edRestart').onclick=e=>{ e.stopPropagation(); const a=edState&&edState._audio; if(a){a.currentTime=0;} edLoad(0,true); };
+  $('edAddTextBtn').onclick=e=>{ e.stopPropagation(); edAddText($('edAddTextBtn')); };
+  $('edLogoChk').onclick=()=>{ if(!branding.logo){ toast('Upload a logo on the Branding page first.'); return; } edState.logo=!edState.logo; edSyncLogoTool(); edRenderOverlays(); };
+  $('edLogoRange').oninput=e=>{ edState.logoScale=Math.round(parseFloat(e.target.value)*10)/10; $('edScaleVal').textContent=edState.logoScale.toFixed(1)+'×'; edRenderOverlays(); };
 })();
 
 function bindMpick(rootId,listId,onSel,getSel){

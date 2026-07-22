@@ -89,23 +89,37 @@ check "music favorite" "\"favs\":\[\"$TRACK_ID\"\]" "$R"
 R=$(curl -s -b $J localhost:3000/api/music)
 check "music catalog listed" 'Calm Piano' "$R"
 
-# --- branding: logo + outro clips ---
+# --- branding: logo + named intro/outro items ---
 LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 VID="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDE="
 
 R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"logo\",\"name\":\"Diepeveen\",\"data\":\"$LOGO\"}")
 check "branding logo uploaded" '"logo":{"url":"' "$R"
 
-R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"video\",\"variant\":\"landscape\",\"name\":\"Outro 16x9\",\"data\":\"$VID\"}")
-check "branding landscape video uploaded" '"landscape":{"url":"' "$R"
-BRAND_URL=$(jget "$R" branding videos landscape url)
-require_val "branding video url" "$BRAND_URL"
+# Create a named outro item, then upload its landscape variant with a duration.
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d '{"action":"additem","kind":"outro","name":"Logo card"}')
+check "outro item created" '"name":"Logo card"' "$R"
+OUTRO_ID=$(jget "$R" branding outros 0 id)
+require_val "outro id" "$OUTRO_ID"
+
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"uploadvariant\",\"kind\":\"outro\",\"id\":\"$OUTRO_ID\",\"variant\":\"landscape\",\"data\":\"$VID\",\"dur\":4}")
+check "outro landscape uploaded with duration" '"landscape":{"url":"' "$R"
+BRAND_URL=$(jget "$R" branding outros 0 videos landscape url)
+require_val "outro video url" "$BRAND_URL"
+
+# Create a named intro item + landscape variant.
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d '{"action":"additem","kind":"intro","name":"Opening"}')
+INTRO_ID=$(jget "$R" branding intros 0 id)
+require_val "intro id" "$INTRO_ID"
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"uploadvariant\",\"kind\":\"intro\",\"id\":\"$INTRO_ID\",\"variant\":\"landscape\",\"data\":\"$VID\",\"dur\":3}")
+check "intro landscape uploaded" '"intros":\[{"id"' "$R"
+INTRO_URL=$(jget "$R" branding intros 0 videos landscape url)
+
+R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d "{\"action\":\"rename\",\"kind\":\"outro\",\"id\":\"$OUTRO_ID\",\"name\":\"Outro card\"}")
+check "outro renamed" '"name":"Outro card"' "$R"
 
 R=$(curl -s -b $J localhost:3000/api/branding)
-check "branding persisted" '"name":"Diepeveen"' "$R"
-
-R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d '{"action":"removeVideo","variant":"portrait"}')
-check "removing an empty variant is a no-op" '"landscape":{"url":"' "$R"
+check "branding persisted" '"name":"Outro card"' "$R"
 
 R=$(curl -s -b $J -X POST localhost:3000/api/branding -H 'Content-Type: application/json' -d '{"action":"nonsense"}')
 check "unknown branding action rejected" 'Unknown action' "$R"
@@ -181,24 +195,21 @@ check "concept video merged" '"concept":"http' "$R"
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"music\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}")
 check "music attached to project" '"name":"Calm Piano"' "$R"
 
-# Video editor: text/logo are preview-only, but the edit action persists them and
-# mirrors brandingOutro + music onto the real export-facing fields.
-R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"Keizersgracht 214\",\"pos\":\"bl\",\"clips\":[\"$CID\"]}],\"logo\":true,\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
-check "editor choices saved" '"texts":\[{"text":"Keizersgracht 214"' "$R"
-check "editor mirrors brandingOutro to export flag" '"outro":true' "$R"
+# Music is attached in step 4 via the music action — /api/generate ignores it.
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"music\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}")
+check "music attached to project" '"name":"Calm Piano"' "$R"
 
-# Empty text cards are dropped; an unknown position falls back to bl. The editor
-# always sends the full state, so music is included (Save must not drop it).
-R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"\",\"pos\":\"xx\",\"clips\":[]},{\"text\":\"Hi\",\"pos\":\"zz\"}],\"logo\":false,\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+# Video editor: empty text cards are dropped; an unknown position falls back to
+# bl; logoScale is clamped to [0.5,2]; introId/outroId are stored on the project.
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"\",\"pos\":\"xx\",\"clips\":[]},{\"text\":\"Hi\",\"pos\":\"zz\",\"clips\":[\"$CID\"]}],\"logo\":true,\"logoScale\":9,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
 check "editor drops empty text cards" '"texts":\[{"text":"Hi","pos":"bl"' "$R"
-
-# Project is 16:9, so the landscape branding clip is the one that must be used.
-R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"branding\",\"outro\":true}")
-check "branding outro enabled" '"outro":true' "$R"
+check "logoScale clamped to 2" '"logoScale":2' "$R"
+check "intro selected on the project" "\"introId\":\"$INTRO_ID\"" "$R"
+check "outro selected on the project" "\"outroId\":\"$OUTRO_ID\"" "$R"
 
 # ---- Export route A: text + logo active → Shotstack burns them in ----
-R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"Keizersgracht 214\",\"pos\":\"bl\",\"clips\":[\"$CID\"]}],\"logo\":true,\"logoSize\":\"medium\",\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
-check "editor overlays saved" '"logoSize":"medium"' "$R"
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[{\"text\":\"Keizersgracht 214\",\"pos\":\"bl\",\"clips\":[\"$CID\"]}],\"logo\":true,\"logoScale\":1.5,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+check "editor overlays saved" '"logoScale":1.5' "$R"
 
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"export\"}")
 check "overlay export routes to shotstack" '"phase":"shotstack"' "$R"
@@ -210,11 +221,24 @@ check "overlay export ready (shotstack)" '"export":"https://example.com/shotstac
 SS=$(curl -s localhost:9998/_calls)
 check "shotstack got the text card" 'Keizersgracht 214' "$SS"
 check "shotstack got a logo image overlay" '"type":"image"' "$SS"
+check "shotstack got the intro clip" "$INTRO_URL" "$SS"
+check "shotstack got the outro clip" "$BRAND_URL" "$SS"
 check "shotstack got the soundtrack" "\"soundtrack\":{\"src\":\"$TRACK_URL\"" "$SS"
 check "shotstack output aspect matches the project" '"aspectRatio":"16:9"' "$SS"
 
-# ---- Export route B: no overlays → cheaper fal fallback ----
-R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[],\"logo\":false,\"brandingOutro\":true,\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
+# The intro is 3s, so clips (and the logo) must start at 3s, not 0 — proves the
+# logo does not cover the intro.
+LOGOSTART=$(echo "$SS" | python3 -c "
+import sys,json
+calls=json.load(sys.stdin)['calls']
+tl=calls[-1]['timeline']['tracks']
+img=[c for tr in tl for c in tr['clips'] if c['asset'].get('type')=='image'][0]
+print(img['start'])
+")
+check "logo starts after the intro (3s)" '^3$' "$LOGOSTART"
+
+# ---- Export route B: no overlays → cheaper fal fallback, still with intro+outro ----
+R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"edit\",\"edit\":{\"texts\":[],\"logo\":false,\"introId\":\"$INTRO_ID\",\"outroId\":\"$OUTRO_ID\",\"music\":{\"name\":\"Calm Piano\",\"url\":\"$TRACK_URL\"}}}")
 check "overlays cleared" '"texts":\[\]' "$R"
 
 R=$(curl -s -b $J -X POST localhost:3000/api/project -H 'Content-Type: application/json' -d "{\"id\":\"$PID\",\"action\":\"export\"}")
@@ -226,19 +250,17 @@ check "plain export uses the fal fallback" '"phase":"export"' "$R"
 R=$(poll_status '"export":"https://example.com/fake-audio')
 check "export ready (video + music)" '"export":"https://example.com/fake-audio' "$R"
 
-# Ask the fal stub what it was sent: the outro merge must include the branding
-# clip and pin the output shape to the listing video (index 0).
+# The fal merge must include the intro + both clips + the outro — 4 urls.
 CALLS=$(curl -s localhost:9999/_calls)
-check "export merge sent the branding clip to fal" "$BRAND_URL" "$CALLS"
-check "export merge pins aspect to the listing video" '"resolution_aspect_ratio_video_index":0' "$CALLS"
-
-# The export merge must carry both clips AND the outro — 3 urls.
+check "fal merge includes the intro clip" "$INTRO_URL" "$CALLS"
+check "fal merge includes the outro clip" "$BRAND_URL" "$CALLS"
+check "fal merge pins aspect to the listing video" '"resolution_aspect_ratio_video_index":0' "$CALLS"
 PARTS=$(echo "$CALLS" | python3 -c "
 import sys,json
 merges=[c for c in json.load(sys.stdin)['calls'] if c['kind']=='merge']
 print(len(merges[-1]['input'].get('video_urls',[])) if merges else 0)
 ")
-check "export merge carries both clips and the outro" '^3$' "$PARTS"
+check "fal merge carries intro + 2 clips + outro" '^4$' "$PARTS"
 
 # --- billing ---
 R=$(curl -s -b $J localhost:3000/api/billing)

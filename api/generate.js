@@ -63,8 +63,8 @@ export default async function handler(req, res){
       concept: null,   // merged 480p working clips (cheap check)
       final: null,     // merged 720p finalized clips
       export: null,    // final/concept + outro + music — the downloadable result
-      branding: { outro: false, logo: false }, // kantoor branding toggles
-      edit: { texts: [], logo: false, logoSize: 'small', brandingOutro: false, music: null }, // video-editor choices
+      introId: null, outroId: null, // chosen branding intro/outro
+      edit: { texts: [], logo: false, logoScale: 1, music: null }, // video-editor choices
       mergedPending: null,
       clips,
       renders: clips.length,
