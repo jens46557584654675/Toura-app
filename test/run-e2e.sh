@@ -70,6 +70,23 @@ poll_status(){
   echo "$last"
 }
 
+# --- unit: the route segments() split logic (extracted from the real frontend) ---
+SEG=$(node -e '
+const fs=require("fs");
+const src=fs.readFileSync("public/index.html","utf8");
+const m=src.match(/function segments\(\)\{[\s\S]*?\n\}/);
+let photos,cuts,splits; eval(m[0]);
+const run=()=>segments().map(seg=>seg.map(i=>photos[i].url).join("")).join(" / ");
+photos=[{url:"A"},{url:"B"},{url:"C"},{url:"D"}];
+cuts=new Set(); splits=new Set([1]); const a=run();          // split on B: shared
+cuts=new Set([1]); splits=new Set(); const b=run();          // hard cut
+cuts=new Set(); splits=new Set([0,2]); const c=run();        // two splits
+console.log(a+"||"+b+"||"+c);
+')
+check "split shares the photo across both clips" 'AB / BCD' "$SEG"
+check "hard cut does not share a photo" 'AB / CD' "$SEG"
+check "chained splits share each boundary photo" 'A / ABC / CD' "$SEG"
+
 R=$(curl -s -c $J -X POST localhost:3000/api/auth/signup -H 'Content-Type: application/json' -d '{"name":"Jens Diepeveen","email":"jens@toura.com","password":"toura2026!"}')
 check "signup" '"email":"jens@toura.com"' "$R"
 

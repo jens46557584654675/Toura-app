@@ -230,7 +230,9 @@
   .edtoolbar .cvnow{font-size:13px;color:var(--muted);font-weight:500}
   /* tracks (bottom half) — one shared time axis */
   .edtracks{position:relative;padding:6px 24px 18px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
-  .edplayhead{position:absolute;width:2px;background:var(--muted);opacity:.85;pointer-events:none;z-index:5;border-radius:2px}
+  .edplayhead{position:absolute;width:2px;background:var(--muted);opacity:.85;z-index:5;border-radius:2px;cursor:ew-resize;touch-action:none}
+  .edplayhead::before{content:'';position:absolute;top:-5px;left:-6px;right:-6px;height:11px;border-radius:3px;background:var(--muted)}
+  .edplayhead::after{content:'';position:absolute;inset:0 -6px}
   .edrow{display:flex;align-items:stretch;gap:10px}
   .edrow .edtlab{flex:none;width:52px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
   .edadd{width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
@@ -286,22 +288,28 @@
   .bfont{display:flex;align-items:center;gap:14px;background:var(--grey);border-radius:12px;padding:10px 14px;margin-top:10px;flex-wrap:wrap}
   .bfont-prev{flex:1;min-width:120px;font-size:22px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* final-page video-editing panel */
-  .editpanel{background:var(--grey);border-radius:var(--radius);padding:16px;cursor:pointer;transition:background .12s}
-  .editpanel:hover{background:var(--grey2)}
-  .ep-textbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .ep-textbar .eplab{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;width:36px}
-  .ep-cells{flex:1;position:relative;height:6px;background:var(--grey2);border-radius:999px}
-  .ep-cells .epseg{position:absolute;top:0;bottom:0;background:var(--ink);border-radius:999px;min-width:3px}
-  .ep-timeline{display:flex;gap:5px;align-items:center;overflow-x:auto;padding-bottom:4px}
-  .ep-clip{flex:none;border-radius:7px;overflow:hidden;background:var(--grey2)}
-  .ep-clip video,.ep-clip img{width:100%;height:48px;object-fit:cover;display:block}
-  .ep-io{flex:none;position:relative;width:66px;border-radius:7px;overflow:hidden;border:1.5px solid var(--ink)}
-  .ep-io video{width:100%;height:48px;object-fit:cover;display:block}
-  .ep-io span{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:9.5px;font-weight:700;background:var(--pill);color:var(--ink)}
-  .ep-music{display:flex;align-items:center;gap:10px;margin-top:12px;min-height:34px}
-  .ep-music .epmname{font-size:13px;font-weight:700;white-space:nowrap}
-  .ep-music .epwave{flex:1;height:34px;min-width:0;max-width:600px}
-  .ep-music .mnone{color:var(--muted);font-size:13.5px;font-weight:500}
+  /* numbered stages (step 4) */
+  .stage.numbered{position:relative;padding-left:60px}
+  .stage .stagenum{position:absolute;left:20px;top:22px;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+  /* step-4 video-editing mini timeline (a scaled mirror of the popup editor) */
+  .editpanel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;transition:background .12s;position:relative;margin-top:12px}
+  .editpanel:hover{background:var(--hover)}
+  .ep-hint{position:absolute;top:10px;right:12px;font-size:11.5px;font-weight:700;color:var(--muted)}
+  .ep-row{display:flex;align-items:stretch;gap:10px;margin-bottom:6px}
+  .ep-row:last-child{margin-bottom:0}
+  .ep-lab{flex:none;width:44px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center}
+  .ep-lane{flex:1;min-width:0;background:var(--grey);border-radius:7px;padding:3px;display:flex;gap:3px;min-height:30px}
+  .ep-textlane{position:relative;display:block}
+  .ep-textlane .epseg{position:absolute;top:6px;bottom:6px;background:var(--ink);border-radius:4px;min-width:4px}
+  .ep-cell{position:relative;border-radius:5px;overflow:hidden;min-width:0}
+  .ep-cell video{width:100%;height:34px;object-fit:cover;display:block}
+  .ep-cell .ep-ph{display:block;height:34px;background:var(--grey2)}
+  .ep-cell.ep-io{outline:1.5px solid var(--ink);outline-offset:-1.5px}
+  .ep-cell.ep-io span{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:8.5px;font-weight:700;background:var(--pill);color:var(--ink)}
+  .ep-musiclane{align-items:center;padding:0 10px;gap:10px}
+  .ep-musiclane .epmname{font-size:12px;font-weight:700;white-space:nowrap}
+  .ep-musiclane .epwave{flex:1;height:26px;min-width:0}
+  .epempty{color:var(--muted);font-size:12px;font-weight:600;align-self:center}
   .edfoot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--line)}
   .edcoming{font-size:12.5px;color:var(--muted);font-weight:600}
   .edactions{display:flex;gap:10px}
@@ -357,6 +365,13 @@
   .rgap.cut{width:34px}
   .rgap.cut .gdot{display:none}
   .rgap.cut::before{content:'';display:block;width:2.5px;height:84%;border-radius:2px;background:var(--ink)}
+  .rgap.split .gdot{width:20px;height:3px;border-radius:2px;background:var(--ink);opacity:.55}
+  .rgap.split:hover .gdot{transform:none;opacity:1}
+  /* continuous-split marker: a vertical line down the middle of the shared photo */
+  .rcard .rsplitbtn{position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;background:rgba(17,17,17,.8);color:#fff;font-size:11px;line-height:20px;text-align:center}
+  .rcard .rsplitbtn.on{background:var(--ink)}
+  .rcard.rsplit::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+  .rcard.rsplit .rnum{left:6px;right:6px;text-align:center}
   .route-hint{font-size:13px;color:var(--muted);margin-top:12px}
 
   /* editor: clip rows */
@@ -735,15 +750,17 @@
       <button class="btn ghost small" onclick="goDash()">Dashboard</button>
     </div>
 
-    <div class="stage" id="finalQualityStage"></div>
+    <div class="stage numbered"><span class="stagenum">1</span><div class="stagebody" id="finalQualityStage"></div></div>
 
-    <div class="step">
-      <h2>Video editing</h2>
-      <div class="step-sub">Click to open the editor — add text, your logo, an intro/outro and music.</div>
-      <div class="editpanel" id="editPanel" onclick="openEditor()"></div>
+    <div class="stage numbered"><span class="stagenum">2</span>
+      <div class="stagebody">
+        <div class="shead"><div><div class="sttl">Video editing</div><div class="ssub">Tap the timeline to open the editor — text, your logo, an intro/outro and music.</div></div>
+          <button class="btn ghost small" onclick="openEditor()">✎ Open editor</button></div>
+        <div class="editpanel" id="editPanel" onclick="openEditor()"></div>
+      </div>
     </div>
 
-    <div class="stage" id="exportStage"></div>
+    <div class="stage numbered"><span class="stagenum">3</span><div class="stagebody" id="exportStage"></div></div>
   </div>
 </section>
 
@@ -821,7 +838,10 @@
 <script>
 /* toura — frontend. All real work (accounts, rendering) happens on the Toura server. */
 let user=null, projects=[], musicLib={catalog:[],mine:[],favs:[]};
-let photos=[], cuts=new Set(), segCfgs=[];
+// cuts: hard cut AFTER photo i (no shared photo). splits: continuous split ON
+// photo i — photo i is the LAST frame of one clip and the FIRST of the next, so
+// it belongs to both clips (seamless motion). A boundary is a cut OR a split.
+let photos=[], cuts=new Set(), splits=new Set(), segCfgs=[];
 let editorProjectId=null, editorAspect='auto', currentProject=null;
 let pollT=null;
 
@@ -1494,16 +1514,20 @@ async function removeBranding(action){
 /* ============ route + segments ============ */
 function segments(){
   const segs=[]; let cur=[];
-  photos.forEach((p,i)=>{
+  for(let i=0;i<photos.length;i++){
     cur.push(i);
-    if(cuts.has(i)&&i<photos.length-1){ segs.push(cur); cur=[]; }
-  });
+    if(i<photos.length-1){
+      if(cuts.has(i)){ segs.push(cur); cur=[]; }            // hard cut, no shared photo
+      else if(splits.has(i)){ segs.push(cur); cur=[i]; }    // continuous split, photo i shared into next clip
+    }
+  }
   if(cur.length) segs.push(cur);
   return segs;
 }
 function segSig(seg){ return seg.map(i=>photos[i].id).join('|'); }
 function syncSegments(){
   [...cuts].forEach(i=>{ if(i>=photos.length-1) cuts.delete(i); });
+  [...splits].forEach(i=>{ if(i>=photos.length-1) splits.delete(i); });
   const segs=segments();
   const old=segCfgs;
   const oldCids=old.filter(c=>c.cid).map(c=>c.cid);
@@ -1533,20 +1557,29 @@ function syncSegments(){
   });
 }
 let dragIdx=null, phEl=null;
+function toggleCut(i){ if(cuts.has(i)){ cuts.delete(i); } else { cuts.add(i); splits.delete(i); } syncSegments(); renderEditor(); }
+function toggleSplit(i){ if(splits.has(i)){ splits.delete(i); } else { splits.add(i); cuts.delete(i); } syncSegments(); renderEditor(); }
 function renderRoute(){
   const strip=$('routeStrip'); strip.innerHTML='';
   const segs=segments();
-  let segNo=1,pos=0,segStart=0;
+  // which clip(s) each photo belongs to — a split photo belongs to two.
+  const members={};
+  segs.forEach((seg,si)=>seg.forEach((pi,pos)=>{ (members[pi] ||= []).push({clip:si+1,pos:pos+1}); }));
   photos.forEach((p,i)=>{
-    if(i===segStart) pos=0;
+    const m=members[i]||[{clip:1,pos:1}];
+    const shared=m.length>1; // this photo ends one clip and starts the next
     const card=document.createElement('div');
-    card.className='rcard'; card.draggable=true;
-    card.innerHTML=`<img src="${p.url}" alt=""><span class="rnum">Clip ${segNo} · ${pos+1}</span><button class="rrm">−</button>`;
+    card.className='rcard'+(shared?' rsplit':''); card.draggable=true;
+    const label=shared?`Clip ${m[0].clip} end · Clip ${m[1].clip} start`:`Clip ${m[0].clip} · ${m[0].pos}`;
+    const splitBtn=i<photos.length-1?`<button class="rsplitbtn${splits.has(i)?' on':''}" title="${splits.has(i)?'Remove continuous split':'Split here — this photo ends one clip and starts the next'}">⋈</button>`:'';
+    card.innerHTML=`<img src="${p.url}" alt=""><span class="rnum">${label}</span>${splitBtn}<button class="rrm">−</button>`;
     card.querySelector('.rrm').onclick=e=>{
       e.stopPropagation();
       photos.splice(i,1); shiftCuts(i);
       syncSegments(); renderEditor();
     };
+    const sb=card.querySelector('.rsplitbtn');
+    if(sb) sb.onclick=e=>{ e.stopPropagation(); toggleSplit(i); };
     card.ondragstart=e=>{
       dragIdx=i;
       card.classList.add('dragging');
@@ -1562,15 +1595,14 @@ function renderRoute(){
       dragIdx=null;
     };
     strip.appendChild(card);
-    pos++;
     if(i<photos.length-1){
       const gap=document.createElement('div');
-      gap.className='rgap'+(cuts.has(i)?' cut':'');
-      gap.title=cuts.has(i)?'Remove cut — merge into one clip':'Cut here — start a new clip';
+      const isCut=cuts.has(i), isSplit=splits.has(i);
+      gap.className='rgap'+(isCut?' cut':'')+(isSplit?' split':'');
+      gap.title=isSplit?'Continuous split — click to remove':isCut?'Remove cut — merge into one clip':'Cut here — start a new clip';
       gap.innerHTML='<span class="gdot"></span>';
-      gap.onclick=()=>{ cuts.has(i)?cuts.delete(i):cuts.add(i); syncSegments(); renderEditor(); };
+      gap.onclick=()=> isSplit ? toggleSplit(i) : toggleCut(i);
       strip.appendChild(gap);
-      if(cuts.has(i)){ segNo++; segStart=i+1; }
     }
   });
   strip.ondragover=e=>{
@@ -1598,13 +1630,17 @@ function renderRoute(){
     syncSegments(); renderEditor();
   };
   $('routeHint').textContent=photos.length
-    ? (segs.length>1?`${segs.length} clips — configure and render them below.`:'One continuous clip. Click a dot between photos to split — e.g. when you move to another floor.')
+    ? (segs.length>1?`${segs.length} clips — configure and render them below. ⋈ on a photo makes the next clip continue from it (seamless).`:'One continuous clip. Click a dot between photos for a hard cut, or ⋈ on a photo to split while keeping the motion seamless.')
     : '';
 }
-function shiftCuts(removedIdx){
+function reindexBoundaries(set,removedIdx){
   const next=new Set();
-  cuts.forEach(i=>{ if(i<removedIdx) next.add(i); else if(i>removedIdx) next.add(i-1); });
-  cuts=next;
+  set.forEach(i=>{ if(i<removedIdx) next.add(i); else if(i>removedIdx) next.add(i-1); });
+  return next;
+}
+function shiftCuts(removedIdx){
+  cuts=reindexBoundaries(cuts,removedIdx);
+  splits=reindexBoundaries(splits,removedIdx);
 }
 
 /* ============ clip rows ============ */
@@ -1724,25 +1760,35 @@ function renderEditor(){
   renderRoute(); renderClips(); updateFinalRow();
 }
 function resetEditor(){
-  photos=[]; cuts=new Set(); segCfgs=[]; editorProjectId=null; editorAspect='auto'; currentProject=null;
+  photos=[]; cuts=new Set(); splits=new Set(); segCfgs=[]; editorProjectId=null; editorAspect='auto'; currentProject=null;
   $('upName').value='';
   $('editorTitle').textContent='New walkthrough';
 }
 function goFinalStep(){ showStep('final'); }
 
-/* rebuild editor from an existing project */
+/* rebuild editor from an existing project. When a clip's first image equals the
+   previous clip's last image it's a continuous split (shared photo), so we don't
+   add that photo twice — we record a split boundary instead of a cut. */
 function editorFromProject(p){
-  photos=[]; cuts=new Set(); segCfgs=[];
+  photos=[]; cuts=new Set(); splits=new Set(); segCfgs=[];
+  const segs=[];
   p.clips.forEach((clip,ci)=>{
-    clip.images.forEach(u=>photos.push({id:uid(),url:u}));
-    if(ci<p.clips.length-1) cuts.add(photos.length-1);
+    const imgs=clip.images||[];
+    let start=0;
+    if(ci>0 && photos.length){
+      const prevLast=photos[photos.length-1];
+      if(prevLast && imgs[0]===prevLast.url){ splits.add(photos.length-1); start=1; }
+      else cuts.add(photos.length-1);
+    }
+    const seg=[];
+    if(start===1) seg.push(photos.length-1); // shared photo is the first of this clip
+    for(let k=start;k<imgs.length;k++){ photos.push({id:uid(),url:imgs[k]}); seg.push(photos.length-1); }
+    segs.push(seg);
   });
-  let idx=0;
-  segCfgs=p.clips.map(clip=>{
-    const ids=clip.images.map(()=>photos[idx++].id);
-    return {prompt:clip.stylePrompt||'',duration:parseInt(clip.duration,10)||8,
-      cid:clip.cid,status:clip.status,video:clip.video,sig:ids.join('|'),changed:false};
-  });
+  segCfgs=p.clips.map((clip,i)=>({
+    prompt:clip.stylePrompt||'',duration:parseInt(clip.duration,10)||8,
+    cid:clip.cid,status:clip.status,video:clip.video,sig:segSig(segs[i]),changed:false,
+  }));
   editorProjectId=p.id; currentProject=p; editorAspect=p.aspect||'auto';
   $('upName').value=p.name;
   $('editorTitle').textContent=p.name;
@@ -2029,15 +2075,12 @@ function renderFinalQuality(p){
   const finalCount=p.clips.filter(c=>c.final?.status==='done').length;
   const finPend=p.clips.filter(c=>c.final&&(c.final.status==='queued'||c.final.status==='in_progress')).length;
   const todo=p.clips.filter(c=>c.status==='done'&&!(c.final?.status==='done')).length;
-  if(finPend){
-    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div><div class="ssub"><span class="spin"></span> Rendering ${finPend} clip${finPend>1?'s':''} in 720p — only new or changed clips are re-rendered.</div></div></div>`;
-  } else if(total&&finalCount===total){
-    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div><div class="sok"><span class="tick">✓</span> All clips in final quality</div></div></div>`;
-  } else {
-    const n=todo||total;
-    fq.innerHTML=`<div class="shead"><div><div class="sttl">Final quality · 720p</div></div>
-      <button class="btn small" ${doneClips===total&&total>0?'':'disabled'} onclick="upgradeAll()">Upgrade ${n} clip${n>1?'s':''} to 720p</button></div>`;
-  }
+  const expl='Your clips were rendered in 480p in the concept phase. This upgrades them to crisp 720p — only new or changed clips are re-rendered.';
+  let right;
+  if(finPend) right=`<span class="ssub" style="max-width:none"><span class="spin"></span> Rendering ${finPend} clip${finPend>1?'s':''} in 720p…</span>`;
+  else if(total&&finalCount===total) right=`<div class="sok"><span class="tick">✓</span> All clips in final quality</div>`;
+  else { const n=todo||total; right=`<button class="btn small" ${doneClips===total&&total>0?'':'disabled'} onclick="upgradeAll()">Upgrade ${n} clip${n>1?'s':''} to 720p</button>`; }
+  fq.innerHTML=`<div class="shead"><div><div class="sttl">Upgrade your clips</div><div class="ssub">${expl}</div></div>${right}</div>`;
 }
 // Resolve a project's chosen intro/outro to a variant URL for its aspect.
 // Back-compat: a project with the old branding.outro on maps to the first outro.
@@ -2065,24 +2108,20 @@ function renderEditPanel(p){
     if(cids.length){ const s=Math.min(...cids.map(c=>cstart[c].s)); const e=Math.max(...cids.map(c=>cstart[c].s+cstart[c].d)); return {...t,start:s,dur:e-s}; }
     return {...t,start:introDur,dur:Math.min(4,clipsDur)};
   });
-  let textbar='';
-  if(texts.length){
-    const segs=texts.map(t=>`<span class="epseg" style="left:${t.start/total*100}%;width:${Math.max(1,t.dur/total*100)}%"></span>`).join('');
-    textbar=`<div class="ep-textbar"><span class="eplab">Text</span><div class="ep-cells">${segs}</div></div>`;
-  }
-  const clipBlocks=p.clips.map((c,i)=>{
-    const v=(c.final?.status==='done'&&c.final.video)||c.video;
-    const w=Math.max(60,(parseInt(c.duration,10)||8)*12);
-    return v?`<div class="ep-clip" style="width:${w}px"><video src="${esc(v)}#t=0.3" muted playsinline preload="metadata"></video></div>`
-      :`<div class="ep-clip" style="width:${w}px"><img src="${esc(c.poster||'')}"></div>`;
-  }).join('');
-  const introBlock=introUrl?`<div class="ep-io"><video src="${esc(introUrl)}#t=0.1" muted playsinline preload="metadata"></video><span>Intro</span></div>`:'';
-  const outroBlock=outroUrl?`<div class="ep-io"><video src="${esc(outroUrl)}#t=0.1" muted playsinline preload="metadata"></video><span>Outro</span></div>`:'';
-  const music=p.music?`<span class="epmname">♪ ${esc(p.music.name)}</span><canvas class="epwave" width="600" height="34"></canvas>`
-    :'<span class="mnone">No added music</span>';
-  el.innerHTML=`${textbar}
-    <div class="ep-timeline">${introBlock}${clipBlocks}${outroBlock}</div>
-    <div class="ep-music">${music}</div>`;
+  // A scaled-down mirror of the popup editor's three rows: TEXT / CLIPS / MUSIC.
+  const textbars=texts.map(t=>`<span class="epseg" style="left:${t.start/total*100}%;width:${Math.max(1,t.dur/total*100)}%"></span>`).join('')
+    || '<span class="epempty">No text</span>';
+  const cell=(url,dur,label)=>`<div class="ep-cell${label?' ep-io':''}" style="flex:${dur}">${url?`<video src="${esc(url)}#t=0.1" muted playsinline preload="metadata"></video>`:'<span class="ep-ph"></span>'}${label?`<span>${label}</span>`:''}</div>`;
+  let clipsRow='';
+  if(introUrl) clipsRow+=cell(introUrl,introDur,'intro');
+  p.clips.forEach(c=>{ const v=(c.final?.status==='done'&&c.final.video)||c.video; clipsRow+=cell(v,parseFloat(c.duration)||8,''); });
+  if(outroUrl) clipsRow+=cell(outroUrl,outroDur,'outro');
+  const music=p.music?`<span class="epmname">♪ ${esc(p.music.name)}</span><canvas class="epwave" width="600" height="30"></canvas>`
+    :'<span class="epempty">No added music</span>';
+  el.innerHTML=`<div class="ep-hint">✎ Open editor</div>
+    <div class="ep-row"><span class="ep-lab">Text</span><div class="ep-lane ep-textlane">${textbars}</div></div>
+    <div class="ep-row"><span class="ep-lab">Clips</span><div class="ep-lane ep-clipslane">${clipsRow}</div></div>
+    <div class="ep-row"><span class="ep-lab">Music</span><div class="ep-lane ep-musiclane">${music}</div></div>`;
   if(p.music){ const cv=el.querySelector('.epwave'); if(cv) drawWaveform(cv,p.music.url); }
 }
 /* ============ download the individual clip files ============ */
@@ -2229,15 +2268,32 @@ function edSyncAudio(){
 let edRaf=null;
 function edStopLoop(){ if(edRaf) cancelAnimationFrame(edRaf); edRaf=null; }
 function edLoopStart(){ edStopLoop(); const step=()=>{ if(!edState){ edRaf=null; return; } edUpdatePlayhead(); edRenderOverlays(); edRaf=edState.playing?requestAnimationFrame(step):null; }; edRaf=requestAnimationFrame(step); }
-function edUpdatePlayhead(){
+function edPlaceLine(frac){
   const line=$('edPlayhead'), ref=$('edClipContent'), tracks=$('edTracks');
   if(!line||!ref||!tracks) return;
   const tr=tracks.getBoundingClientRect(), rr=ref.getBoundingClientRect();
-  const total=edTotal(), frac=total?Math.min(1,Math.max(0,edGlobalTime()/total)):0;
-  line.style.left=((rr.left-tr.left)+frac*rr.width)+'px';
+  line.style.left=((rr.left-tr.left)+Math.min(1,Math.max(0,frac))*rr.width)+'px';
   const top=$('edTextTrack').getBoundingClientRect().top-tr.top;
   const bot=$('edMusicTrack').getBoundingClientRect().bottom-tr.top;
   line.style.top=top+'px'; line.style.height=Math.max(0,bot-top)+'px';
+}
+function edUpdatePlayhead(){ const total=edTotal(); edPlaceLine(total?edGlobalTime()/total:0); }
+// Drag the playhead: within the current clip it scrubs precisely; drag onto
+// another clip and that clip starts from the beginning.
+function edSeekToX(clientX){
+  const ref=$('edClipContent'); if(!ref||!edState) return;
+  const rr=ref.getBoundingClientRect();
+  const frac=Math.min(1,Math.max(0,(clientX-rr.left)/rr.width));
+  edPlaceLine(frac); // immediate visual feedback
+  const total=edTotal(), gt=frac*total;
+  let acc=0,i=0; for(;i<edState.items.length-1;i++){ if(gt<acc+edState.items[i].dur) break; acc+=edState.items[i].dur; }
+  const off=gt-acc, v=$('edVid');
+  if(i===edState.idx){
+    const apply=()=>{ try{ v.currentTime=Math.max(0,Math.min(off,(v.duration||edState.items[i].dur)-0.02)); }catch{} edRenderOverlays(); };
+    if(v.readyState>=1) apply(); else v.addEventListener('loadedmetadata',apply,{once:true});
+  } else {
+    edLoad(i, edState.playing); // different clip → play/preview it from 0
+  }
 }
 function edPaintNow(){
   const it=edState.items[edState.idx];
@@ -2456,6 +2512,21 @@ async function saveEditor(){
   $('edLogoChk').onclick=()=>{ if(!branding.logo){ toast('Upload a logo on the Branding page first.'); return; } edState.logo=!edState.logo; edSyncLogoTool(); edRenderOverlays(); };
   $('edLogoRange').oninput=e=>{ edState.logoScale=Math.round(parseFloat(e.target.value)*10)/10; $('edScaleVal').textContent=edState.logoScale.toFixed(1)+'×'; edRenderOverlays(); };
   window.addEventListener('resize',()=>{ if(edState) edUpdatePlayhead(); });
+  // draggable playhead
+  const ph=$('edPlayhead'); let phDrag=false;
+  ph.addEventListener('pointerdown',e=>{ if(!edState) return; e.preventDefault(); phDrag=true; try{ph.setPointerCapture(e.pointerId);}catch{} edSeekToX(e.clientX); });
+  ph.addEventListener('pointermove',e=>{ if(phDrag) edSeekToX(e.clientX); });
+  const endDrag=()=>{ phDrag=false; };
+  ph.addEventListener('pointerup',endDrag); ph.addEventListener('pointercancel',endDrag);
+  // spacebar toggles play/pause — unless typing in a field
+  document.addEventListener('keydown',e=>{
+    if(!edState||!$('edOverlay').classList.contains('on')) return;
+    if(e.code==='Space'||e.key===' '){
+      const t=e.target, tag=t&&t.tagName;
+      if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||(t&&t.isContentEditable)) return;
+      e.preventDefault(); edToggle();
+    }
+  });
 })();
 
 function bindMpick(rootId,listId,onSel,getSel){
