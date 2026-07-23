@@ -287,17 +287,27 @@
   /* branding fonts */
   .bfont{display:flex;align-items:center;gap:14px;background:var(--grey);border-radius:12px;padding:10px 14px;margin-top:10px;flex-wrap:wrap}
   .bfont-prev{flex:1;min-width:120px;font-size:22px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* final-page video-editing panel */
-  /* numbered stages (step 4) */
-  .stage.numbered{position:relative;padding-left:60px}
-  .stage .stagenum{position:absolute;left:20px;top:22px;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
-  /* step-4 video-editing mini timeline (a scaled mirror of the popup editor) */
-  .editpanel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;transition:background .12s;position:relative;margin-top:12px}
+  /* ===== step 4 — three clear numbered step cards ===== */
+  .fsteps{display:flex;flex-direction:column;gap:16px}
+  .fstep{background:var(--grey);border-radius:var(--radius);padding:22px;display:flex;gap:18px;align-items:flex-start}
+  .fstep-num{flex:none;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center}
+  .fstep-main{flex:1;min-width:0}
+  .fstep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .fstep-title{font-size:18px;font-weight:800;letter-spacing:-.01em}
+  .fstep-sub{font-size:13.5px;color:var(--muted);margin-top:4px;max-width:560px;line-height:1.5}
+  .fstep-action{flex:none;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .fstep .sok{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:#2e9c6a}
+  .fstep .sok .tick{width:20px;height:20px;border-radius:50%;background:#2e9c6a;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .fstep .splayer{border-radius:14px;overflow:hidden;background:#000;max-width:680px}
+  .fstep .splayer.vert{max-width:300px}
+  .fstep .splayer video{width:100%;display:block}
+  /* step-2 mini timeline — an exact scaled mirror of the popup editor */
+  .editpanel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;transition:background .12s;margin-top:14px}
   .editpanel:hover{background:var(--hover)}
-  .ep-hint{position:absolute;top:10px;right:12px;font-size:11.5px;font-weight:700;color:var(--muted)}
   .ep-row{display:flex;align-items:stretch;gap:10px;margin-bottom:6px}
   .ep-row:last-child{margin-bottom:0}
-  .ep-lab{flex:none;width:44px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center}
+  .ep-lab{flex:none;width:50px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px}
+  .ep-add{width:17px;height:17px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:11px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
   .ep-lane{flex:1;min-width:0;background:var(--grey);border-radius:7px;padding:3px;display:flex;gap:3px;min-height:30px}
   .ep-textlane{position:relative;display:block}
   .ep-textlane .epseg{position:absolute;top:6px;bottom:6px;background:var(--ink);border-radius:4px;min-width:4px}
@@ -306,10 +316,11 @@
   .ep-cell .ep-ph{display:block;height:34px;background:var(--grey2)}
   .ep-cell.ep-io{outline:1.5px solid var(--ink);outline-offset:-1.5px}
   .ep-cell.ep-io span{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:8.5px;font-weight:700;background:var(--pill);color:var(--ink)}
+  .ep-slot{flex:none;min-width:56px;border:1.5px dashed var(--dash);border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:10px;font-weight:700;text-align:center}
+  .ep-slotbtn{color:var(--muted);font-size:12.5px;font-weight:700}
   .ep-musiclane{align-items:center;padding:0 10px;gap:10px}
   .ep-musiclane .epmname{font-size:12px;font-weight:700;white-space:nowrap}
   .ep-musiclane .epwave{flex:1;height:26px;min-width:0}
-  .epempty{color:var(--muted);font-size:12px;font-weight:600;align-self:center}
   .edfoot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--line)}
   .edcoming{font-size:12.5px;color:var(--muted);font-weight:600}
   .edactions{display:flex;gap:10px}
@@ -750,17 +761,42 @@
       <button class="btn ghost small" onclick="goDash()">Dashboard</button>
     </div>
 
-    <div class="stage numbered"><span class="stagenum">1</span><div class="stagebody" id="finalQualityStage"></div></div>
+    <div class="fsteps">
+      <div class="fstep">
+        <div class="fstep-num">1</div>
+        <div class="fstep-main">
+          <div class="fstep-head">
+            <div><div class="fstep-title">Upgrade your clips</div>
+              <div class="fstep-sub">Your clips were rendered in 480p in the concept phase. This step upgrades them to crisp 720p — only new or changed clips are re-rendered.</div></div>
+            <div class="fstep-action" id="fq1Action"></div>
+          </div>
+        </div>
+      </div>
 
-    <div class="stage numbered"><span class="stagenum">2</span>
-      <div class="stagebody">
-        <div class="shead"><div><div class="sttl">Video editing</div><div class="ssub">Tap the timeline to open the editor — text, your logo, an intro/outro and music.</div></div>
-          <button class="btn ghost small" onclick="openEditor()">✎ Open editor</button></div>
-        <div class="editpanel" id="editPanel" onclick="openEditor()"></div>
+      <div class="fstep">
+        <div class="fstep-num">2</div>
+        <div class="fstep-main">
+          <div class="fstep-head">
+            <div><div class="fstep-title">Video editing</div>
+              <div class="fstep-sub">Add text, music, your logo and an intro or outro.</div></div>
+            <div class="fstep-action"><button class="btn ghost small" onclick="openEditor()">✎ Open editor</button></div>
+          </div>
+          <div class="editpanel" id="editPanel" onclick="openEditor()"></div>
+        </div>
+      </div>
+
+      <div class="fstep">
+        <div class="fstep-num">3</div>
+        <div class="fstep-main">
+          <div class="fstep-head">
+            <div><div class="fstep-title">Export</div>
+              <div class="fstep-sub" id="exSub">Creates your downloadable video with everything you added.</div></div>
+            <div class="fstep-action" id="exAction"></div>
+          </div>
+          <div id="exBody"></div>
+        </div>
       </div>
     </div>
-
-    <div class="stage numbered"><span class="stagenum">3</span><div class="stagebody" id="exportStage"></div></div>
   </div>
 </section>
 
@@ -2037,50 +2073,47 @@ function renderPostPage(){
   const q=exportQuality(p);
   $('ppSub').textContent=q?'':'Render your clips in step 2 first';
 
-  // a) final quality · 720p
-  renderFinalQuality(p);
-
-  // b) the video-editing panel (click → editor)
-  renderEditPanel(p);
-
-  // export stage
-  const ex=$('exportStage');
+  renderFinalQuality(p);   // step 1
+  renderEditPanel(p);      // step 2 (mini mirror of the editor)
+  renderExport(p);         // step 3
+}
+// Step 3 — export block: sub + action in the head, player/download in the body.
+function renderExport(p){
+  const sub=$('exSub'), act=$('exAction'), body=$('exBody');
+  if(!sub||!act||!body) return;
   const ready=p.clips.length>0&&p.clips.every(c=>clipSrc(c));
   const vert=p.aspect==='9:16';
-  if(p.mergedPending?.phase==='shotstack'){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Rendering your video with text, logo and music…</div></div></div>`;
-  } else if(p.mergedPending?.phase==='export'||p.mergedPending?.phase==='outro'){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Combining your clips${(projIntroUrl(p)||projOutroUrl(p))?' with your intro/outro':''}…</div></div></div>`;
-  } else if(p.mergedPending?.phase==='audio'){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub"><span class="spin"></span> Laying your music under the video…</div></div></div>`;
+  const busy=phase=>p.mergedPending?.phase===phase;
+  body.innerHTML='';
+  if(busy('shotstack')||busy('export')||busy('outro')||busy('audio')){
+    const msg=busy('audio')?'Laying your music under the video…'
+      :busy('shotstack')?'Rendering your video with text, logo and music…'
+      :`Combining your clips${(projIntroUrl(p)||projOutroUrl(p))?' with your intro/outro':''}…`;
+    sub.innerHTML=`<span class="spin"></span> ${msg}`;
+    act.innerHTML='';
   } else if(p.export){
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">Ready to share${p.music?` · ♪ ${esc(p.music.name)}`:''}${projOutroUrl(p)?' · with outro':''}.</div></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn small" href="${esc(p.export)}" target="_blank" rel="noopener" download="toura-walkthrough.mp4">↓ Download video</a>
-        <button class="btn ghost small" onclick="doAction({action:'export'})">↺ Rebuild</button>
-      </div></div>
-      <div class="splayer ${vert?'vert':''}"><video src="${esc(p.export)}" controls playsinline></video></div>`;
+    sub.innerHTML=`Ready to share${p.music?` · ♪ ${esc(p.music.name)}`:''}${projOutroUrl(p)?' · with outro':''}.`;
+    act.innerHTML=`<a class="btn small" href="${esc(p.export)}" target="_blank" rel="noopener" download="toura-walkthrough.mp4">↓ Download video</a>
+      <button class="btn ghost small" onclick="doAction({action:'export'})">↺ Rebuild</button>`;
+    body.innerHTML=`<div class="splayer ${vert?'vert':''}" style="margin-top:16px"><video src="${esc(p.export)}" controls playsinline></video></div>`;
   } else {
     const overlayNote=(p.edit?.texts?.length||p.edit?.logo)?' Your text and logo are burned in.':'';
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Create your final video to download and share.${overlayNote}`:'Render all your clips in step 2 first.'}</div></div>
-      <button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
+    sub.innerHTML=ready?`Creates your downloadable video with everything you added.${overlayNote}`:'Render all your clips in step 2 first.';
+    act.innerHTML=`<button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'export'})">Create export</button>`;
   }
 }
 // Section a) of step 4 — per-clip 720p finalize. Reuses the existing finalize
 // logic, which only re-renders changed/new clips (the cost saver — do not touch).
 function renderFinalQuality(p){
-  const fq=$('finalQualityStage'); if(!fq) return;
+  const act=$('fq1Action'); if(!act) return;
   const total=p.clips.length;
   const doneClips=p.clips.filter(c=>c.status==='done').length;
   const finalCount=p.clips.filter(c=>c.final?.status==='done').length;
   const finPend=p.clips.filter(c=>c.final&&(c.final.status==='queued'||c.final.status==='in_progress')).length;
   const todo=p.clips.filter(c=>c.status==='done'&&!(c.final?.status==='done')).length;
-  const expl='Your clips were rendered in 480p in the concept phase. This upgrades them to crisp 720p — only new or changed clips are re-rendered.';
-  let right;
-  if(finPend) right=`<span class="ssub" style="max-width:none"><span class="spin"></span> Rendering ${finPend} clip${finPend>1?'s':''} in 720p…</span>`;
-  else if(total&&finalCount===total) right=`<div class="sok"><span class="tick">✓</span> All clips in final quality</div>`;
-  else { const n=todo||total; right=`<button class="btn small" ${doneClips===total&&total>0?'':'disabled'} onclick="upgradeAll()">Upgrade ${n} clip${n>1?'s':''} to 720p</button>`; }
-  fq.innerHTML=`<div class="shead"><div><div class="sttl">Upgrade your clips</div><div class="ssub">${expl}</div></div>${right}</div>`;
+  if(finPend) act.innerHTML=`<span class="fstep-sub" style="max-width:none"><span class="spin"></span> Rendering ${finPend} clip${finPend>1?'s':''} in 720p…</span>`;
+  else if(total&&finalCount===total) act.innerHTML=`<div class="sok"><span class="tick">✓</span> All clips in 720p</div>`;
+  else { const n=todo||total; act.innerHTML=`<button class="btn small" ${doneClips===total&&total>0?'':'disabled'} onclick="upgradeAll()">Upgrade ${n} clip${n>1?'s':''} to 720p</button>`; }
 }
 // Resolve a project's chosen intro/outro to a variant URL for its aspect.
 // Back-compat: a project with the old branding.outro on maps to the first outro.
@@ -2108,18 +2141,18 @@ function renderEditPanel(p){
     if(cids.length){ const s=Math.min(...cids.map(c=>cstart[c].s)); const e=Math.max(...cids.map(c=>cstart[c].s+cstart[c].d)); return {...t,start:s,dur:e-s}; }
     return {...t,start:introDur,dur:Math.min(4,clipsDur)};
   });
-  // A scaled-down mirror of the popup editor's three rows: TEXT / CLIPS / MUSIC.
-  const textbars=texts.map(t=>`<span class="epseg" style="left:${t.start/total*100}%;width:${Math.max(1,t.dur/total*100)}%"></span>`).join('')
-    || '<span class="epempty">No text</span>';
+  // An exact scaled mirror of the popup editor's three rows: TEXT ⊕ / CLIPS / MUSIC.
+  const textbars=texts.map(t=>`<span class="epseg" style="left:${t.start/total*100}%;width:${Math.max(1,t.dur/total*100)}%"></span>`).join('');
   const cell=(url,dur,label)=>`<div class="ep-cell${label?' ep-io':''}" style="flex:${dur}">${url?`<video src="${esc(url)}#t=0.1" muted playsinline preload="metadata"></video>`:'<span class="ep-ph"></span>'}${label?`<span>${label}</span>`:''}</div>`;
-  let clipsRow='';
-  if(introUrl) clipsRow+=cell(introUrl,introDur,'intro');
+  const slot=txt=>`<div class="ep-slot" style="flex:2"><span>${txt}</span></div>`;
+  let clipsRow = introUrl ? cell(introUrl,introDur,'intro') : slot('+ Intro');
   p.clips.forEach(c=>{ const v=(c.final?.status==='done'&&c.final.video)||c.video; clipsRow+=cell(v,parseFloat(c.duration)||8,''); });
-  if(outroUrl) clipsRow+=cell(outroUrl,outroDur,'outro');
+  clipsRow += outroUrl ? cell(outroUrl,outroDur,'outro') : slot('+ Outro');
+  // ⊕ and "+ Add music" open the editor directly at that part.
   const music=p.music?`<span class="epmname">♪ ${esc(p.music.name)}</span><canvas class="epwave" width="600" height="30"></canvas>`
-    :'<span class="epempty">No added music</span>';
-  el.innerHTML=`<div class="ep-hint">✎ Open editor</div>
-    <div class="ep-row"><span class="ep-lab">Text</span><div class="ep-lane ep-textlane">${textbars}</div></div>
+    :`<button class="ep-slotbtn" onclick="event.stopPropagation();openEditor('music')">+ Add music</button>`;
+  el.innerHTML=`
+    <div class="ep-row"><span class="ep-lab">Text <button class="ep-add" title="Add text" onclick="event.stopPropagation();openEditor('text')">⊕</button></span><div class="ep-lane ep-textlane">${textbars}</div></div>
     <div class="ep-row"><span class="ep-lab">Clips</span><div class="ep-lane ep-clipslane">${clipsRow}</div></div>
     <div class="ep-row"><span class="ep-lab">Music</span><div class="ep-lane ep-musiclane">${music}</div></div>`;
   if(p.music){ const cv=el.querySelector('.epwave'); if(cv) drawWaveform(cv,p.music.url); }
@@ -2180,7 +2213,7 @@ function edAudio(){ // dedicated element so it doesn't fight the library preview
   if(!edState._audio){ edState._audio=new Audio(); edState._audio.loop=true; }
   return edState._audio;
 }
-function openEditor(){
+function openEditor(focus){
   const p=currentProject; if(!p) return;
   if(!p.clips.some(c=>clipSrc(c))){ toast('Render your clips first.'); return; }
   const e=p.edit||{};
@@ -2207,6 +2240,9 @@ function openEditor(){
   edSyncLogoTool();
   edRenderTracks();
   edLoad(0,false);
+  // Opened from the mini-timeline's ⊕ or "+ Add music" → jump straight to it.
+  if(focus==='text') edAddText($('edAddTextBtn'));
+  else if(focus==='music') edPickMusic($('edMusicTrack'));
 }
 function closeEditor(){
   edClosePop(); edStopLoop();
