@@ -12,6 +12,8 @@ const ROUTES = {
   '/api/auth/signin':  './api/auth/signin.js',
   '/api/auth/signout': './api/auth/signout.js',
   '/api/auth/me':      './api/auth/me.js',
+  '/api/auth/forgot':  './api/auth/forgot.js',
+  '/api/auth/reset':   './api/auth/reset.js',
   '/api/projects':     './api/projects.js',
   '/api/generate':     './api/generate.js',
   '/api/status':       './api/status.js',

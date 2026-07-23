@@ -80,7 +80,7 @@ All colours come from CSS custom properties on `:root`, overridden by `body[data
 
 ### Billing / My account
 
-`My account` shows name, email (password change is a TODO) and the current plan. `Billing` renders the three plan cards from `lib/billing.js`. Choosing a plan only writes `{plan, status:'pending', since}` to `billing:{email}` and shows a confirmation — no payment provider yet, and nothing anywhere gates on it (everyone keeps full access on `trial`). The Stripe/Mollie TODO sits in `api/billing.js`; mark a subscription active from the provider webhook, never from that handler.
+`My account` shows name, email, a **change-password** form (current password required, same policy as sign-up, live strength meter) and the current plan. `Billing` renders the three plan cards from `lib/billing.js`. Choosing a plan only writes `{plan, status:'pending', since}` to `billing:{email}` and shows a confirmation — no payment provider yet, and nothing anywhere gates on it (everyone keeps full access on `trial`). The Stripe/Mollie TODO sits in `api/billing.js`; mark a subscription active from the provider webhook, never from that handler.
 
 Music library page: Favorites / Toura picks (ADMIN_EMAIL uploads + AI-generate) / My uploads. Track duration is read in the browser (`probeDuration`) and stored as `dur` on upload; older tracks are probed lazily on render.
 
@@ -90,13 +90,21 @@ Branding page: kantoor logo (PNG recommended, max 2 MB) + **Intro videos** and *
 
 fal's `ffmpeg-api/compose` accepts image tracks, but a `Keyframe` is only `{timestamp, duration, url}`: no x/y/width/scale/opacity, so "small in a corner" is not expressible, and alpha handling is undocumented. No watermark/overlay endpoint exists in the ffmpeg-api family (`compose`, `merge-videos`, `merge-audio-video`, `merge-audios`, `extract-frame`, `images-to-video`, `metadata`, `waveform`). The only workaround would be pre-rendering a full-frame transparent PNG per resolution and hoping compose layers it over the video — two unverified behaviours. Re-check before building.
 
+## Security
+
+- **Auth** (`lib/auth.js`): scrypt password hashing + HMAC-signed stateless session cookie (HttpOnly, SameSite=Lax, Secure in prod). Password policy in `passwordProblem`: ≥10 chars, at least one letter and one number — enforced on sign-up, reset, and change-password (client mirrors it in `pwStrength` with a strength meter). Existing weak passwords stay until changed.
+- **Password reset** (`api/auth/forgot` + `reset`): a one-time token (`reset:{token}`, 30-min TTL in Redis) is emailed via Resend (`lib/mail.js`, plain REST — no SDK). `forgot` always returns the same generic message (never reveals whether an account exists) and no-ops with a friendly message when `RESEND_API_KEY` is unset. `reset` is single-use and signs the user in. The link is `/?reset=<token>`; the frontend opens the reset form from that query param.
+- **Rate limiting** (`lib/ratelimit.js`, windowed counters in Redis, auto-expiring): ≤`AUTH_FAIL_LIMIT` (5) failed sign-ins per email / 15 min (then a 429), and ≤`AUTH_IP_LIMIT` (20) auth requests per IP / 15 min. Applied to signup / signin / forgot / reset (not me/signout). The e2e sets `AUTH_IP_LIMIT` high so its many calls aren't blocked, and tests the per-email lockout.
+- **Ownership**: every project/music/branding/billing/account read+write keys on the session email (`projects:{email}`, `music:{email}`, …), so a user can only ever touch their own data — there is no cross-user id lookup to spoof. All free-text inputs are length-capped server-side, and all user strings go through `esc()` (or `textContent`) before hitting the DOM.
+- **Headers** (`vercel.json`): a pragmatic CSP (`script-src`/`style-src` allow `'unsafe-inline'` — required by the single-file inline-handler design; `frame-ancestors 'none'`, `object-src 'none'`, media/img/font/connect scoped to self + data/blob/https + Google Fonts + Blob), plus `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`.
+
 ## Upload limits
 
 Uploads travel as base64 data URLs in the request body, which inflates them ~33%, and Vercel caps a serverless request body at 4.5 MB. So the real ceiling is **3 MB per file** (`MAX_UPLOAD_MB` in `lib/blob.js`), logo 2 MB. A "4 MB" limit would silently fail. Raising it means switching to client-side direct-to-Blob uploads.
 
 ## Environment variables (Vercel)
 
-`FAL_KEY` (fal.ai), `SHOTSTACK_API_KEY` (Shotstack render key for overlay exports; **production key** so downloads have no watermark), `SESSION_SECRET`, `ADMIN_EMAIL` (Toura admin account: unlimited budget, curates "Toura picks" music), `KV_REDIS_URL` (auto, Redis), `BLOB_READ_WRITE_TOKEN` (auto, Blob), optional `SHOTSTACK_ENV` (`v1` prod default / `stage` sandbox), `TOURA_BUDGET_EUR`, `FAL_MODEL`, `HF_BASE`/`FAL_BASE`/`SHOTSTACK_BASE` (test stubs).
+`FAL_KEY` (fal.ai), `SHOTSTACK_API_KEY` (Shotstack render key for overlay exports; **production key** so downloads have no watermark), `SESSION_SECRET`, `ADMIN_EMAIL` (Toura admin account: unlimited budget, curates "Toura picks" music), `RESEND_API_KEY` (password-reset email; without it reset shows a friendly "temporarily unavailable"), `KV_REDIS_URL` (auto, Redis), `BLOB_READ_WRITE_TOKEN` (auto, Blob), optional `MAIL_FROM` (reset sender, default `onboarding@resend.dev`), `SHOTSTACK_ENV` (`v1` prod default / `stage` sandbox), `AUTH_IP_LIMIT` (20) / `AUTH_FAIL_LIMIT` (5), `TOURA_BUDGET_EUR`, `FAL_MODEL`, `HF_BASE`/`FAL_BASE`/`SHOTSTACK_BASE`/`RESEND_BASE` (test stubs).
 
 ## Development & deploy
 
@@ -117,7 +125,7 @@ Uploads travel as base64 data URLs in the request body, which inflates them ~33%
 ## Roadmap / known gaps
 
 - Payments: plan cards + subscription record exist, but no checkout and no gating yet (Stripe/Mollie later). The internal render budget guard is unrelated and still active.
-- Email verification + password reset (required before real customers).
+- Email verification (sign-up confirmation) still pending. Password reset is live (Resend). Reset email uses the Resend test sender until a domain is verified (`MAIL_FROM`).
 - Server-side render completion via fal webhooks (now: client polling; closing the tab pauses progress tracking, renders continue).
 - Team accounts. Text (draggable timing, custom fonts, size) + logo + intro/outro are burned into the export via Shotstack (html asset for text). **Smoke-test against a real Shotstack key still pending** — especially the `html` asset (custom-font `@font-face` from a Blob URL, positioning, sizing) and `length:'auto'`. If the html asset proves unreliable live, fall back to the `text` asset with a built-in font and report.
 - Photo upload per-file (current: data URLs in one request; fine ≤45 downscaled photos).

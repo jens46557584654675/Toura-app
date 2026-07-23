@@ -5,11 +5,17 @@ node test/fal-stub.js > /tmp/stub.log 2>&1 &
 STUB=$!
 node test/shotstack-stub.js > /tmp/shotstack.log 2>&1 &
 SS=$!
+node test/mail-stub.js > /tmp/mail.log 2>&1 &
+ML=$!
+# AUTH_IP_LIMIT high so the many test auth calls aren't blocked; FAIL_LIMIT stays
+# 5 so the per-email lockout is exercised.
 FAL_BASE=http://localhost:9999 FAL_KEY=test-key \
   SHOTSTACK_BASE=http://localhost:9998 SHOTSTACK_API_KEY=test-key SHOTSTACK_ENV=v1 \
+  RESEND_BASE=http://localhost:9997 RESEND_API_KEY=test-key MAIL_FROM='Toura <test@toura.com>' \
+  AUTH_IP_LIMIT=500 AUTH_FAIL_LIMIT=5 \
   ADMIN_EMAIL=jens@toura.com node dev-server.js > /tmp/dev.log 2>&1 &
 DEV=$!
-trap "kill $STUB $SS $DEV 2>/dev/null" EXIT
+trap "kill $STUB $SS $ML $DEV 2>/dev/null" EXIT
 
 # Wait for both servers to accept connections (fixed sleeps race on cold start).
 wait_up(){
@@ -22,6 +28,7 @@ wait_up(){
 wait_up localhost:3000/
 wait_up localhost:9999/
 wait_up localhost:9998/
+wait_up localhost:9997/_mails
 
 J=/tmp/jar.txt; rm -f $J
 PASS=0; FAIL=0
@@ -71,6 +78,55 @@ check "wrong password rejected" 'Wrong email or password' "$R"
 
 R=$(curl -s -c $J -X POST localhost:3000/api/auth/signin -H 'Content-Type: application/json' -d '{"email":"jens@toura.com","password":"toura2026!"}')
 check "signin" '"email"' "$R"
+
+# --- password policy (≥10 chars, a letter and a number) ---
+R=$(curl -s -X POST localhost:3000/api/auth/signup -H 'Content-Type: application/json' -d '{"name":"Weak","email":"weak@toura.com","password":"ab1"}')
+check "signup rejects a short password" 'at least 10 characters' "$R"
+R=$(curl -s -X POST localhost:3000/api/auth/signup -H 'Content-Type: application/json' -d '{"name":"Weak","email":"weak@toura.com","password":"abcdefghijkl"}')
+check "signup rejects a password with no number" 'at least one number' "$R"
+R=$(curl -s -X POST localhost:3000/api/auth/signup -H 'Content-Type: application/json' -d '{"name":"Dup","email":"jens@toura.com","password":"another2026x"}')
+check "signup rejects a duplicate email" 'already exists' "$R"
+
+# --- failed-login lockout: 5 attempts allowed, the 6th is blocked ---
+for i in 1 2 3 4 5; do
+  R=$(curl -s -X POST localhost:3000/api/auth/signin -H 'Content-Type: application/json' -d '{"email":"locktest@toura.com","password":"nope123456"}')
+done
+check "5th failed sign-in still the normal error" 'Wrong email or password' "$R"
+R=$(curl -s -X POST localhost:3000/api/auth/signin -H 'Content-Type: application/json' -d '{"email":"locktest@toura.com","password":"nope123456"}')
+check "6th failed sign-in is rate-limited" 'Too many failed sign-ins' "$R"
+
+# --- change password (My account) ---
+R=$(curl -s -b $J -X POST localhost:3000/api/account -H 'Content-Type: application/json' -d '{"action":"password","current":"wrongpw123","newPassword":"brandnew2026x"}')
+check "change password checks the current one" 'current password is incorrect' "$R"
+R=$(curl -s -b $J -X POST localhost:3000/api/account -H 'Content-Type: application/json' -d '{"action":"password","current":"toura2026!","newPassword":"short1"}')
+check "change password enforces the policy" 'at least 10 characters' "$R"
+R=$(curl -s -b $J -X POST localhost:3000/api/account -H 'Content-Type: application/json' -d '{"action":"password","current":"toura2026!","newPassword":"changed2026x"}')
+check "password changed" '"ok":true' "$R"
+CJ=/tmp/cj.txt; rm -f $CJ
+R=$(curl -s -c $CJ -X POST localhost:3000/api/auth/signin -H 'Content-Type: application/json' -d '{"email":"jens@toura.com","password":"changed2026x"}')
+check "sign in with the new password" '"email":"jens@toura.com"' "$R"
+R=$(curl -s -X POST localhost:3000/api/auth/signin -H 'Content-Type: application/json' -d '{"email":"jens@toura.com","password":"toura2026!"}')
+check "old password no longer works" 'Wrong email or password' "$R"
+
+# --- forgot / reset password ---
+R=$(curl -s -X POST localhost:3000/api/auth/forgot -H 'Content-Type: application/json' -d '{"email":"jens@toura.com"}')
+check "forgot returns a generic message" 'reset link is on its way' "$R"
+R=$(curl -s -X POST localhost:3000/api/auth/forgot -H 'Content-Type: application/json' -d '{"email":"nobody@toura.com"}')
+check "forgot does not leak unknown emails" 'reset link is on its way' "$R"
+# Pull the reset token out of the email the stub captured.
+RTOKEN=$(curl -s localhost:9997/_mails | python3 -c "
+import sys,json,re
+mails=json.load(sys.stdin)['mails']
+me=[m for m in mails if m.get('to')=='jens@toura.com'][-1]
+print(re.search(r'reset=([0-9a-f]+)', me['html']).group(1))
+")
+require_val "reset token" "$RTOKEN"
+R=$(curl -s -X POST localhost:3000/api/auth/reset -H 'Content-Type: application/json' -d "{\"token\":\"$RTOKEN\",\"password\":\"resetted2026x\"}")
+check "reset sets the new password" '"email":"jens@toura.com"' "$R"
+R=$(curl -s -X POST localhost:3000/api/auth/reset -H 'Content-Type: application/json' -d "{\"token\":\"$RTOKEN\",\"password\":\"resetted2026x\"}")
+check "reset token is single-use" 'invalid or has expired' "$R"
+R=$(curl -s -X POST localhost:3000/api/auth/signin -H 'Content-Type: application/json' -d '{"email":"jens@toura.com","password":"resetted2026x"}')
+check "sign in after reset" '"email":"jens@toura.com"' "$R"
 
 # --- music ---
 AUD="data:audio/mpeg;base64,SUQzAwAAAAAAAA=="

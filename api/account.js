@@ -1,6 +1,6 @@
 // Account settings — currently just the profile photo. The photo lives on the
 // user record (user:{email}); it is resized client-side to ~256px before upload.
-import { getSession } from '../lib/auth.js';
+import { getSession, verifyPassword, hashPassword, passwordProblem } from '../lib/auth.js';
 import { db } from '../lib/db.js';
 import { hostImage } from '../lib/blob.js';
 
@@ -23,6 +23,16 @@ export default async function handler(req, res){
       acc.photo = await hostImage(req.body.data);
     } else if(action === 'removePhoto'){
       acc.photo = null;
+    } else if(action === 'password'){
+      // Change password — the current password is a required check.
+      if(!verifyPassword(String(req.body.current || ''), acc.hash)){
+        return res.status(400).json({ error: 'Your current password is incorrect.' });
+      }
+      const pwErr = passwordProblem(req.body.newPassword);
+      if(pwErr) return res.status(400).json({ error: pwErr });
+      acc.hash = hashPassword(String(req.body.newPassword));
+      await db.set(key, acc);
+      return res.json({ ok: true });
     } else {
       return res.status(400).json({ error: 'Unknown action' });
     }

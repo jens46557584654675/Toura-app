@@ -67,6 +67,21 @@
   .tabs button{flex:1;padding:9px 0;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted)}
   .tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .auth-card .btn{width:100%;margin-top:8px}
+  .err.info{color:var(--muted)}
+  /* password strength meter */
+  .pwmeter{display:flex;align-items:center;gap:10px;margin:2px 2px 4px}
+  .pwbar{flex:1;height:5px;border-radius:999px;background:var(--grey2);overflow:hidden}
+  .pwbar i{display:block;height:100%;width:0;border-radius:999px;transition:width .15s,background .15s;background:#c0392b}
+  .pwbar i.weak{background:#c0392b}
+  .pwbar i.ok{background:#e0a021}
+  .pwbar i.ok.strong{background:#2e9c6a}
+  .pwmeter span{font-size:11.5px;font-weight:600;color:var(--muted);min-width:60px;text-align:right}
+  .auth-links{margin-top:14px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+  .auth-links a{font-size:13px;font-weight:600;color:var(--muted);text-decoration:none}
+  .auth-links a:hover{color:var(--ink)}
+  .pwform{display:flex;flex-direction:column;gap:0}
+  .pwform .field{margin-bottom:10px}
+  .pwform .btn{align-self:flex-start;width:auto}
   .auth-foot{margin-top:26px;font-size:13px;color:var(--muted)}
   .auth-foot a{color:var(--ink);text-decoration:none;font-weight:600}
 
@@ -449,17 +464,23 @@
     <div class="logo"><div class="mark">T</div></div>
     <h1 id="authTitle">Welcome to toura</h1>
     <p>Cinematic walkthrough videos for every listing.</p>
-    <div class="tabs">
+    <div class="tabs" id="authTabs">
       <button id="tabIn" class="on" onclick="setAuthMode('in')">Sign in</button>
       <button id="tabUp" onclick="setAuthMode('up')">Sign up</button>
     </div>
     <form id="authForm">
       <input class="field" type="text" id="aName" placeholder="Full name" style="display:none" autocomplete="name">
-      <input class="field" type="email" id="aEmail" placeholder="Email" required autocomplete="email">
-      <input class="field" type="password" id="aPass" placeholder="Password" required autocomplete="current-password" minlength="8">
+      <input class="field" type="email" id="aEmail" placeholder="Email" autocomplete="email">
+      <input class="field" type="password" id="aPass" placeholder="Password" autocomplete="current-password">
+      <input class="field" type="password" id="aPass2" placeholder="Confirm new password" style="display:none" autocomplete="new-password">
+      <div class="pwmeter" id="aMeter" style="display:none"><div class="pwbar"><i id="aMeterBar"></i></div><span id="aMeterTxt"></span></div>
       <div class="err" id="authErr"></div>
       <button class="btn" type="submit" id="authBtn">Sign in</button>
     </form>
+    <div class="auth-links">
+      <a href="#" id="forgotLink" onclick="setAuthMode('forgot');return false">Forgot password?</a>
+      <a href="#" id="backToIn" style="display:none" onclick="setAuthMode('in');return false">&larr; Back to sign in</a>
+    </div>
     <div class="auth-foot">New to Toura? <a href="https://toura.com" target="_blank" rel="noopener">Learn more at toura.com</a></div>
   </div>
 </section>
@@ -580,7 +601,16 @@
       <h3>Details</h3>
       <div class="arow"><span class="alab">Name</span><span class="aval" id="acName">—</span></div>
       <div class="arow"><span class="alab">Email</span><span class="aval" id="acEmail">—</span></div>
-      <div class="arow"><span class="alab">Password</span><span class="aval"><button class="btn ghost small" onclick="toast('Password change is coming soon.')">Change password</button></span></div>
+    </div>
+    <div class="bcard">
+      <h3>Change password</h3>
+      <form id="pwForm" class="pwform">
+        <input class="field" type="password" id="pwCur" placeholder="Current password" autocomplete="current-password">
+        <input class="field" type="password" id="pwNew" placeholder="New password" autocomplete="new-password">
+        <div class="pwmeter"><div class="pwbar"><i id="pwMeterBar"></i></div><span id="pwMeterTxt"></span></div>
+        <div class="err" id="pwErr"></div>
+        <button class="btn small" type="submit">Update password</button>
+      </form>
     </div>
     <div class="bcard">
       <h3>Subscription</h3>
@@ -848,23 +878,69 @@ function showStep(view){
 }
 
 /* ============ auth ============ */
-let authMode='in';
+let authMode='in', resetToken=null;
+// Shared password policy — mirrors lib/auth.js passwordProblem exactly.
+function pwStrength(pw){
+  pw=String(pw||'');
+  const ok = pw.length>=10 && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw);
+  let score=0;
+  if(pw.length>=10) score++;
+  if(/[A-Za-z]/.test(pw)&&/[0-9]/.test(pw)) score++;
+  if(pw.length>=14||/[^A-Za-z0-9]/.test(pw)) score++;
+  const label=!pw?'':!ok?'Too weak — 10+ chars, a letter and a number':score>=3?'Strong':'Good';
+  return {score,ok,label};
+}
+function paintMeter(barId,txtId,pw){
+  const st=pwStrength(pw);
+  const bar=$(barId); bar.style.width=(pw?Math.max(1,st.score)/3*100:0)+'%';
+  bar.className=st.ok?(st.score>=3?'ok strong':'ok'):'weak';
+  $(txtId).textContent=st.label;
+}
 function setAuthMode(m){
   authMode=m;
-  $('tabIn').classList.toggle('on',m==='in'); $('tabUp').classList.toggle('on',m==='up');
-  $('aName').style.display=m==='up'?'':'none'; $('aName').required=m==='up';
-  $('authBtn').textContent=m==='up'?'Create account':'Sign in';
-  $('authTitle').textContent=m==='up'?'Create your account':'Welcome to toura';
-  $('authErr').textContent='';
+  const up=m==='up', forgot=m==='forgot', reset=m==='reset';
+  $('authTabs').style.display=(forgot||reset)?'none':'';
+  $('tabIn').classList.toggle('on',m==='in'); $('tabUp').classList.toggle('on',up);
+  $('aName').style.display=up?'':'none';
+  $('aEmail').style.display=reset?'none':'';
+  $('aPass').style.display='';
+  $('aPass').placeholder=reset?'New password':'Password';
+  $('aPass').autocomplete=(up||reset)?'new-password':'current-password';
+  $('aPass2').style.display=reset?'':'none';
+  $('aMeter').style.display=(up||reset)?'':'none';
+  $('forgotLink').style.display=(m==='in')?'':'none';
+  $('backToIn').style.display=(forgot||reset)?'':'none';
+  $('authBtn').textContent=up?'Create account':forgot?'Send reset link':reset?'Reset password':'Sign in';
+  $('authTitle').textContent=up?'Create your account':forgot?'Reset your password':reset?'Choose a new password':'Welcome to toura';
+  $('authErr').textContent=''; $('authErr').className='err';
+  paintMeter('aMeterBar','aMeterTxt',$('aPass').value);
 }
+$('aPass').addEventListener('input',()=>{ if(authMode==='up'||authMode==='reset') paintMeter('aMeterBar','aMeterTxt',$('aPass').value); });
 $('authForm').addEventListener('submit',async e=>{
-  e.preventDefault(); $('authErr').textContent=''; $('authBtn').disabled=true;
+  e.preventDefault(); const err=$('authErr'); err.textContent=''; err.className='err'; $('authBtn').disabled=true;
   try{
-    const body={email:$('aEmail').value.trim(),password:$('aPass').value};
+    const email=$('aEmail').value.trim(), pass=$('aPass').value;
+    if(authMode==='forgot'){
+      const r=await api('/api/auth/forgot',{method:'POST',body:{email}});
+      err.className='err info'; err.textContent=r.message||'Check your inbox.';
+      $('authBtn').disabled=false; return;
+    }
+    if(authMode==='reset'){
+      if(!pwStrength(pass).ok){ err.textContent='Use at least 10 characters with a letter and a number.'; $('authBtn').disabled=false; return; }
+      if(pass!==$('aPass2').value){ err.textContent='The two passwords do not match.'; $('authBtn').disabled=false; return; }
+      const {user:u}=await api('/api/auth/reset',{method:'POST',body:{token:resetToken,password:pass}});
+      resetToken=null; history.replaceState({},'',location.pathname);
+      await enter(u); return;
+    }
+    if(authMode==='up'){
+      if(!$('aName').value.trim()){ err.textContent='Please enter your name.'; $('authBtn').disabled=false; return; }
+      if(!pwStrength(pass).ok){ err.textContent='Use at least 10 characters with a letter and a number.'; $('authBtn').disabled=false; return; }
+    }
+    const body={email,password:pass};
     if(authMode==='up') body.name=$('aName').value.trim();
     const {user:u}=await api('/api/auth/'+(authMode==='up'?'signup':'signin'),{method:'POST',body});
     await enter(u);
-  }catch(err){ $('authErr').textContent=err.message; }
+  }catch(err2){ err.textContent=err2.message; }
   finally{ $('authBtn').disabled=false; }
 });
 /* ---- profile menu (same markup in every nav, built once here) ---- */
@@ -969,6 +1045,9 @@ async function signOut(){
   setAuthMode('in'); show('auth');
 }
 (async function(){
+  // A reset link (?reset=token) always opens the reset form, signed in or not.
+  const rt=new URLSearchParams(location.search).get('reset');
+  if(rt){ resetToken=rt; show('auth'); setAuthMode('reset'); return; }
   try{ const {user:u}=await api('/api/auth/me'); if(u){ await enter(u); return; } }catch{}
   show('auth');
 })();
@@ -1256,11 +1335,25 @@ async function removePhoto(){
     user.photo=null; renderAccountPhoto(); paintUserMenus();
   }catch(e){ toast(e.message); }
 }
+$('pwNew').addEventListener('input',()=>paintMeter('pwMeterBar','pwMeterTxt',$('pwNew').value));
+$('pwForm').addEventListener('submit',async e=>{
+  e.preventDefault(); const err=$('pwErr'); err.textContent='';
+  const current=$('pwCur').value, newPassword=$('pwNew').value;
+  if(!pwStrength(newPassword).ok){ err.textContent='Use at least 10 characters with a letter and a number.'; return; }
+  const btn=$('pwForm').querySelector('button'); btn.disabled=true;
+  try{
+    await api('/api/account',{method:'POST',body:{action:'password',current,newPassword}});
+    $('pwCur').value=''; $('pwNew').value=''; paintMeter('pwMeterBar','pwMeterTxt','');
+    toast('Password updated.');
+  }catch(e2){ err.textContent=e2.message; }
+  finally{ btn.disabled=false; }
+});
 function goAccount(){
   $('acName').textContent=user?user.name:'—';
   $('acEmail').textContent=user?user.email:'—';
   $('acPlan').textContent=planLabel();
   renderAccountPhoto();
+  $('pwCur').value=''; $('pwNew').value=''; $('pwErr').textContent=''; paintMeter('pwMeterBar','pwMeterTxt','');
   show('account');
 }
 
@@ -1922,8 +2015,8 @@ function renderPostPage(){
       </div></div>
       <div class="splayer ${vert?'vert':''}"><video src="${esc(p.export)}" controls playsinline></video></div>`;
   } else {
-    const overlayNote=(p.edit?.texts?.length||p.edit?.logo)?' Your text &amp; logo are burned in.':'';
-    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Combines your clips into one ${q} video${p.music?' with music':' (add music in the editor, or export without)'}.${overlayNote}`:'Render all your clips in step 2 first.'}</div></div>
+    const overlayNote=(p.edit?.texts?.length||p.edit?.logo)?' Your text and logo are burned in.':'';
+    ex.innerHTML=`<div class="shead"><div><div class="sttl">Export</div><div class="ssub">${ready?`Create your final video to download and share.${overlayNote}`:'Render all your clips in step 2 first.'}</div></div>
       <button class="btn small" ${ready?'':'disabled'} onclick="doAction({action:'export'})">Create export</button></div>`;
   }
 }

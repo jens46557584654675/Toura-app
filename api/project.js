@@ -147,7 +147,7 @@ export default async function handler(req, res){
 
     } else if(action === 'music'){
       const m = req.body.music;
-      project.music = m && m.url ? { name: String(m.name || 'Track').slice(0, 80), url: String(m.url) } : null;
+      project.music = m && m.url ? { name: String(m.name || 'Track').slice(0, 80), url: String(m.url).slice(0, 2000) } : null;
       project.export = null; // soundtrack changed → export is stale
 
     } else if(action === 'edit'){
@@ -166,11 +166,11 @@ export default async function handler(req, res){
         font: t.font ? String(t.font).slice(0, 64) : '',
         scale: Math.min(2, Math.max(0.5, Number(t.scale) || 1)),
       })).filter(t => t.text) : [];
-      const music = e.music && e.music.url ? { name: String(e.music.name || 'Track').slice(0, 80), url: String(e.music.url) } : null;
+      const music = e.music && e.music.url ? { name: String(e.music.name || 'Track').slice(0, 80), url: String(e.music.url).slice(0, 2000) } : null;
       const logoScale = Math.min(2, Math.max(0.5, Number(e.logoScale) || 1));
       project.edit = { texts, logo: !!e.logo, logoScale, music };
-      if('introId' in e) project.introId = e.introId ? String(e.introId) : null;
-      if('outroId' in e) project.outroId = e.outroId ? String(e.outroId) : null;
+      if('introId' in e) project.introId = e.introId ? String(e.introId).slice(0, 64) : null;
+      if('outroId' in e) project.outroId = e.outroId ? String(e.outroId).slice(0, 64) : null;
       project.music = music;
       project.export = null; // edits changed → export is stale
 
